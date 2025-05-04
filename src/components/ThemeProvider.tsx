@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import useThemeStore from '@/store/theme';
 
 export default function ThemeProvider({
@@ -9,8 +9,16 @@ export default function ThemeProvider({
   children: React.ReactNode;
 }) {
   const { theme } = useThemeStore();
+  const [mounted, setMounted] = useState(false);
+  
+  // Only run once on the client after hydration
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   useEffect(() => {
+    if (!mounted) return;
+    
     const root = window.document.documentElement;
     
     // Remove all theme classes
@@ -25,7 +33,8 @@ export default function ThemeProvider({
     } else {
       root.classList.add(theme);
     }
-  }, [theme]);
+  }, [theme, mounted]);
   
+  // Prevent theme flash by rendering children only after mounting
   return <>{children}</>;
 }

@@ -5,18 +5,18 @@
 @tailwind utilities;
 
 :root {
-  --primary: 0 112 243;
-  --secondary: 121 40 202;
-  --success: 0 112 243;
-  --warning: 245 166 35;
-  --error: 255 0 0;
+  --primary: 93 71 119; /* #5D4777 - Deep Purple */
+  --secondary: 154 134 164; /* #9A86A4 - Lavender */
+  --success: 0 170 0; /* Green success color */
+  --warning: 255 191 0; /* #FFBF00 - Amber/Gold */
+  --error: 255 153 102; /* #FF9966 - Soft Orange for errors */
   --background: 255 255 255;
   --foreground: 0 0 0;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: 0 0 0;
+    --background: 17 15 23; /* Dark purple-tinted background */
     --foreground: 255 255 255;
   }
 }
