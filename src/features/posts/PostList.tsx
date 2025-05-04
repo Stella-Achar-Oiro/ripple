@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useRef } from 'react';
 import usePostStore from '@/store/posts';
 import PostCard from './PostCard';

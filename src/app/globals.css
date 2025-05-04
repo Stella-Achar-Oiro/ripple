@@ -5,19 +5,19 @@
 @tailwind utilities;
 
 :root {
-  --primary: #0070f3;
-  --secondary: #7928ca;
-  --success: #0070f3;
-  --warning: #f5a623;
-  --error: #ff0000;
-  --background: #ffffff;
-  --foreground: #000000;
+  --primary: 0 112 243;
+  --secondary: 121 40 202;
+  --success: 0 112 243;
+  --warning: 245 166 35;
+  --error: 255 0 0;
+  --background: 255 255 255;
+  --foreground: 0 0 0;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #000000;
-    --foreground: #ffffff;
+    --background: 0 0 0;
+    --foreground: 255 255 255;
   }
 }
 

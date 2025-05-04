@@ -1,3 +1,4 @@
+"use client";
 import Link from 'next/link';
 import { Home, User, LogOut } from 'lucide-react';
 import useAuthStore from '@/store/auth';

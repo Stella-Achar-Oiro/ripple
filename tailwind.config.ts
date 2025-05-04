@@ -10,13 +10,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: 'var(--primary)',
-        secondary: 'var(--secondary)',
-        success: 'var(--success)',
-        warning: 'var(--warning)',
-        error: 'var(--error)',
-        background: 'var(--background)',
-        foreground: 'var(--foreground)',
+        primary: 'rgb(var(--primary))',
+        secondary: 'rgb(var(--secondary))',
+        success: 'rgb(var(--success))',
+        warning: 'rgb(var(--warning))',
+        error: 'rgb(var(--error))',
+        background: 'rgb(var(--background))',
+        foreground: 'rgb(var(--foreground))',
       },
       keyframes: {
         'fade-in': {

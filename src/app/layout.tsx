@@ -1,14 +1,15 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import Header from "@/components/Header";
-import ThemeProvider from "@/components/ThemeProvider";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import Header from '@/components/Header';
+import ThemeProvider from '@/components/ThemeProvider';
+import AuthInitializer from '@/components/AuthInitializer';
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Ripple - Connect and Share",
-  description: "A modern social network built with Next.js",
+  title: 'Ripple - Connect with others',
+  description: 'A modern social network application',
 };
 
 export default function RootLayout({
@@ -17,11 +18,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full">
-      <body className={`${inter.className} h-full`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className}>
         <ThemeProvider>
-          <Header />
-          {children}
+          <AuthInitializer>
+            <Header />
+            {children}
+          </AuthInitializer>
         </ThemeProvider>
       </body>
     </html>

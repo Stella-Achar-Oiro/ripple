@@ -1,3 +1,4 @@
+"use client";
 import { useState, useCallback } from 'react';
 import { Search as SearchIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
