@@ -12,7 +12,10 @@ export const AuthProvider = ({ children }) => {
     // Check if user is logged in
     const checkUserLoggedIn = async () => {
       try {
-        const response = await fetch('/api/auth/me');
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include', // Important to send cookies with request
+        });
+        
         if (response.ok) {
           const userData = await response.json();
           setUser(userData);
@@ -33,6 +36,7 @@ export const AuthProvider = ({ children }) => {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Important to send/receive cookies
         body: JSON.stringify({ email, password }),
       });
 
@@ -55,14 +59,21 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     setLoading(true);
     try {
+      // If userData is FormData, we need to convert it to JSON
+      const data = userData instanceof FormData
+        ? Object.fromEntries(userData.entries())
+        : userData;
+      
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
+        credentials: 'include', // Important to send/receive cookies
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
-        throw new Error('Registration failed');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
       }
 
       const user = await response.json();
@@ -79,7 +90,10 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch('/api/auth/logout', { 
+        method: 'POST',
+        credentials: 'include', // Important to send cookies
+      });
       setUser(null);
       router.push('/login');
     } catch (error) {
