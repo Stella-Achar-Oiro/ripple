@@ -2,72 +2,104 @@
 import { useState, useEffect } from 'react';
 import PostForm from './PostForm';
 import PostCard from './PostCard';
+import { postsAPI } from '../../services/api';
 
 const Feed = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({
+    limit: 10,
+    offset: 0,
+    hasMore: true
+  });
+  
+  const fetchPosts = async (reset = false) => {
+    try {
+      const offset = reset ? 0 : pagination.offset;
+      const { posts: newPosts, pagination: newPagination } = await postsAPI.getFeed(pagination.limit, offset);
+      
+      setPosts(prev => reset ? newPosts : [...prev, ...newPosts]);
+      setPagination(prev => ({
+        ...prev,
+        offset: offset + newPosts.length,
+        hasMore: newPosts.length === pagination.limit
+      }));
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching feed:', err);
+      setError('Failed to load posts. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
   
   useEffect(() => {
-    // In a real app, we'd fetch posts from the API
-    // For now, let's use mock data
-    const mockPosts = [
-      {
-        id: '1',
-        content: 'Just launched Ripple! The next generation social network. What do you think?',
-        imagePath: null,
-        privacy: 'public',
-        user: {
-          id: '2',
-          firstName: 'Jane',
-          lastName: 'Doe',
-          avatarPath: null,
-        },
-        createdAt: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-        likes: 12,
-        comments: [
-          {
-            id: '1',
-            postId: '1',
-            content: 'Looks amazing! Can\'t wait to try it out.',
-            user: {
-              id: '3',
-              firstName: 'John',
-              lastName: 'Smith',
-              avatarPath: null,
-            },
-            createdAt: new Date(Date.now() - 1800000).toISOString(), // 30 minutes ago
-          }
-        ],
-      },
-      {
-        id: '2',
-        content: 'Beautiful day for coding! ☀️',
-        imagePath: 'https://images.unsplash.com/photo-1587620962725-abab7fe55159?w=800',
-        privacy: 'almost_private',
-        user: {
-          id: '3',
-          firstName: 'John',
-          lastName: 'Smith',
-          avatarPath: null,
-        },
-        createdAt: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
-        likes: 5,
-        comments: [],
-      },
-    ];
-    
-    // Simulate API delay
-    setTimeout(() => {
-      setPosts(mockPosts);
-      setLoading(false);
-    }, 1000);
+    fetchPosts(true);
   }, []);
   
   const handlePostCreated = (newPost) => {
     setPosts([newPost, ...posts]);
   };
   
-  if (loading) {
+  const handleLoadMore = () => {
+    if (!loading && pagination.hasMore) {
+      setLoading(true);
+      fetchPosts();
+    }
+  };
+  
+  const handleLikeToggle = async (postId, isLiked) => {
+    try {
+      if (isLiked) {
+        await postsAPI.unlikePost(postId);
+      } else {
+        await postsAPI.likePost(postId);
+      }
+      
+      // Update the post in state
+      setPosts(posts.map(post => 
+        post.id === postId 
+          ? { 
+              ...post, 
+              isLiked: !isLiked,
+              likesCount: isLiked ? post.likesCount - 1 : post.likesCount + 1 
+            } 
+          : post
+      ));
+    } catch (err) {
+      console.error('Error toggling like:', err);
+    }
+  };
+  
+  const handleDeletePost = async (postId) => {
+    try {
+      await postsAPI.deletePost(postId);
+      setPosts(posts.filter(post => post.id !== postId));
+    } catch (err) {
+      console.error('Error deleting post:', err);
+    }
+  };
+  
+  const handleAddComment = async (postId, content, image = null) => {
+    try {
+      const newComment = await postsAPI.createComment(postId, { content, image });
+      
+      // Update the post comments count in state
+      setPosts(posts.map(post => 
+        post.id === postId 
+          ? { ...post, commentsCount: post.commentsCount + 1 } 
+          : post
+      ));
+      
+      return newComment;
+    } catch (err) {
+      console.error('Error adding comment:', err);
+      throw err;
+    }
+  };
+  
+  if (loading && posts.length === 0) {
     return (
       <div className="space-y-4">
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 animate-pulse">
@@ -80,17 +112,49 @@ const Feed = () => {
     );
   }
   
+  if (error) {
+    return (
+      <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+        <p className="text-red-700">{error}</p>
+        <button 
+          onClick={() => fetchPosts(true)}
+          className="mt-2 px-4 py-2 bg-navy-600 text-white rounded-md"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+  
   return (
     <div className="space-y-4">
       <PostForm onPostCreated={handlePostCreated} />
       
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
+        <PostCard 
+          key={post.id} 
+          post={post} 
+          onLikeToggle={handleLikeToggle}
+          onDeletePost={handleDeletePost}
+          onAddComment={handleAddComment}
+        />
       ))}
       
       {posts.length === 0 && (
         <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
           <p className="text-gray-500">No posts yet. Be the first to share something!</p>
+        </div>
+      )}
+      
+      {pagination.hasMore && (
+        <div className="text-center py-4">
+          <button
+            onClick={handleLoadMore}
+            disabled={loading}
+            className={`px-4 py-2 bg-navy-600 text-white rounded-md ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-navy-700'}`}
+          >
+            {loading ? 'Loading...' : 'Load More'}
+          </button>
         </div>
       )}
     </div>
