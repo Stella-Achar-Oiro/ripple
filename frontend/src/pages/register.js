@@ -39,17 +39,9 @@ export default function Register() {
     setError('');
     
     try {
-      // Create FormData to handle file upload
-      const data = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        data.append(key, value);
-      });
-      
-      if (avatar) {
-        data.append('avatar', avatar);
-      }
-      
-      await register(data);
+      // Instead of FormData, directly use the formData object
+      // as we're using JSON for API communication
+      await register(formData);
     } catch (err) {
       setError('Registration failed. Please try again.');
     }
