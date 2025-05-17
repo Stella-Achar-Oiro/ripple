@@ -156,7 +156,7 @@ func (r *UserRepository) Follow(followerID, followedID string) error {
     now := time.Now()
     
     // If user has public profile, automatically accept follow request
-    status := "pending"
+    status = "pending"
     if followed.IsPublic {
         status = "accepted"
     }
