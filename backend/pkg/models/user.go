@@ -46,9 +46,14 @@ func (r *UserRepository) Create(user *User) error {
 	user.CreatedAt = now
 	user.UpdatedAt = now
 	
+	// Handle null values for optional fields
+	nickname := sql.NullString{String: user.Nickname, Valid: user.Nickname != ""}
+	aboutMe := sql.NullString{String: user.AboutMe, Valid: user.AboutMe != ""}
+	avatarPath := sql.NullString{String: user.AvatarPath, Valid: user.AvatarPath != ""}
+	
 	_, err = r.DB.Exec(
 		"INSERT INTO users (id, email, password, first_name, last_name, date_of_birth, avatar_path, nickname, about_me, is_public, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-		user.ID, user.Email, string(hashedPassword), user.FirstName, user.LastName, user.DateOfBirth, user.AvatarPath, user.Nickname, user.AboutMe, user.IsPublic, user.CreatedAt, user.UpdatedAt,
+		user.ID, user.Email, string(hashedPassword), user.FirstName, user.LastName, user.DateOfBirth, avatarPath, nickname, aboutMe, user.IsPublic, user.CreatedAt, user.UpdatedAt,
 	)
 	
 	return err

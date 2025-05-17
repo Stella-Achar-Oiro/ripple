@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
+	
+	"github.com/Stella-Achar-Oiro/ripple/pkg/api/middleware"
 	"github.com/Stella-Achar-Oiro/ripple/pkg/models"
 	"github.com/Stella-Achar-Oiro/ripple/pkg/utils"
-
 )
 
 type AuthHandler struct {
@@ -33,23 +34,29 @@ type LoginRequest struct {
 }
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
+	// Set content type header early to ensure it's included in error responses
+	w.Header().Set("Content-Type", "application/json")
+	
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Invalid request"})
 		return
 	}
 	
 	// Check if user already exists
 	existingUser, err := h.UserRepo.GetByEmail(req.Email)
 	if err == nil && existingUser != nil {
-		http.Error(w, "Email already registered", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Email already registered"})
 		return
 	}
 	
 	// Parse date of birth
 	dob, err := time.Parse("2006-01-02", req.DateOfBirth)
 	if err != nil {
-		http.Error(w, "Invalid date format", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Invalid date format"})
 		return
 	}
 	
@@ -66,14 +73,16 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	if err := h.UserRepo.Create(user); err != nil {
-		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Failed to create user"})
 		return
 	}
 	
 	// Generate JWT token
 	token, err := utils.GenerateToken(user)
 	if err != nil {
-		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Failed to generate token"})
 		return
 	}
 	
@@ -84,33 +93,46 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		Expires:  time.Now().Add(24 * 7 * time.Hour),
 		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+		Secure:   false, // Set to true in production with HTTPS
 	})
 	
 	// Clear password before sending response
 	user.Password = ""
 	
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	// Also send token in response body
+	responseData := map[string]interface{}{
+		"user":  user,
+		"token": token,
+	}
+	
+	json.NewEncoder(w).Encode(responseData)
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+	// Set content type header early to ensure it's included in error responses
+	w.Header().Set("Content-Type", "application/json")
+	
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Invalid request"})
 		return
 	}
 	
 	// Check credentials
 	user, err := h.UserRepo.CheckPassword(req.Email, req.Password)
 	if err != nil {
-		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Invalid credentials"})
 		return
 	}
 	
 	// Generate JWT token
 	token, err := utils.GenerateToken(user)
 	if err != nil {
-		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Failed to generate token"})
 		return
 	}
 	
@@ -121,10 +143,17 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		Expires:  time.Now().Add(24 * 7 * time.Hour),
 		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+		Secure:   false, // Set to true in production with HTTPS
 	})
 	
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	// Also send token in response body for clients that can't access cookies
+	responseData := map[string]interface{}{
+		"user":  user,
+		"token": token,
+	}
+	
+	json.NewEncoder(w).Encode(responseData)
 }
 
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
@@ -142,20 +171,24 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
+	// Set content type header early to ensure it's included in error responses
+	w.Header().Set("Content-Type", "application/json")
+	
 	// Get user ID from context (set by auth middleware)
-	userID, ok := r.Context().Value("userID").(string)
+	userID, ok := r.Context().Value(middleware.UserIDKey).(string)
 	if !ok {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Unauthorized"})
 		return
 	}
 	
 	// Get user from database
 	user, err := h.UserRepo.GetByID(userID)
 	if err != nil {
-		http.Error(w, "User not found", http.StatusNotFound)
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]string{"message": "User not found"})
 		return
 	}
 	
-	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
 }

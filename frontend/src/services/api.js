@@ -1,5 +1,5 @@
 // frontend/src/services/api.js
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+const API_URL = 'http://localhost:8080/api';
 
 // Helper function for API requests
 const apiRequest = async (endpoint, options = {}) => {
@@ -18,26 +18,31 @@ const apiRequest = async (endpoint, options = {}) => {
     credentials: 'include',
   };
   
-  const response = await fetch(url, config);
-  
-  // Handle unauthorized errors
-  if (response.status === 401) {
-    // Redirect to login if unauthorized
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login';
+  try {
+    const response = await fetch(url, config);
+    
+    // Handle unauthorized errors
+    if (response.status === 401) {
+      // Redirect to login if unauthorized
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
+      throw new Error('Unauthorized');
     }
-    throw new Error('Unauthorized');
+    
+    // Handle other errors
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error || 'Something went wrong');
+    }
+    
+    // Parse JSON response
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(`API Request Error: ${endpoint}`, error);
+    throw error;
   }
-  
-  // Handle other errors
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error || 'Something went wrong');
-  }
-  
-  // Parse JSON response
-  const data = await response.json();
-  return data;
 };
 
 // Authentication API

@@ -35,6 +35,7 @@ func SetupRoutes(db *sql.DB) *mux.Router {
 	// Protected routes
 	protected := r.PathPrefix("/api").Subrouter()
 	protected.Use(middleware.AuthMiddleware)
+	protected.Use(middleware.CorsMiddleware)
 	
 	// Add OPTIONS method to all protected routes
 	protected.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
