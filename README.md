@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ripple Social Media Platform
+
+Ripple is a modern social media platform built with Go (backend) and Next.js (frontend).
+
+## Features
+
+- User authentication and profile management
+- Post creation with privacy settings
+- Image uploads for posts and comments
+- Like/unlike functionality
+- Commenting system
+- Follow/unfollow users
+- Feed with pagination
+
+## Project Structure
+
+### Backend (Go)
+
+- `backend/server.go` - Main server entry point
+- `backend/pkg/api/` - API handlers, middleware, and routes
+- `backend/pkg/models/` - Data models and repositories
+- `backend/pkg/db/migrations/` - Database migrations
+
+### Frontend (Next.js)
+
+- `frontend/src/pages/` - Next.js pages and API routes
+- `frontend/src/components/` - React components
+- `frontend/src/contexts/` - React context providers
+- `frontend/src/services/` - API service layer
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Go 1.16+
+- Node.js 14+
+- SQLite3
+
+### Backend Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd backend
+go mod download
+go run server.go
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Frontend Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Committing Changes
 
-## Learn More
+A script has been provided to help commit changes with appropriate messages:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+./commit_script.sh
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This will stage and commit all files with descriptive commit messages organized by feature.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## License
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is licensed under the MIT License - see the LICENSE file for details.
