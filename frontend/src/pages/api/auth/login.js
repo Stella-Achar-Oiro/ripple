@@ -1,4 +1,7 @@
-export default function handler(req, res) {
+// frontend/src/pages/api/auth/login.js
+import { withCookies } from '../middleware';
+
+function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
@@ -24,3 +27,5 @@ export default function handler(req, res) {
   
   return res.status(401).json({ message: 'Invalid credentials' });
 }
+
+export default withCookies(handler);
