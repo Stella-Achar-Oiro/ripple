@@ -1,15 +1,11 @@
-// backend/pkg/websocket/client.go
+// backend/pkg/websocket/client.go - Enhanced client with privacy integration
 package websocket
 
 import (
-	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
-
-	"ripple/pkg/auth"
 
 	"github.com/gorilla/websocket"
 )
@@ -25,7 +21,7 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 
 	// Maximum message size allowed from peer
-	maxMessageSize = 1024
+	maxMessageSize = 2048
 )
 
 var upgrader = websocket.Upgrader{
@@ -38,30 +34,18 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-// UpgradeConnection upgrades HTTP connection to WebSocket
-func (h *Hub) UpgradeConnection(w http.ResponseWriter, r *http.Request, userID int) error {
+// ServeWS handles websocket requests from clients
+func ServeWS(hub *Hub, w http.ResponseWriter, r *http.Request, userID int) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Printf("WebSocket upgrade error: %v", err)
-		return err
+		log.Println(err)
+		return
 	}
-
-	client := &Client{
-		conn:     conn,
-		send:     make(chan []byte, 256),
-		userID:   userID,
-		hub:      h,
-		lastSeen: time.Now(),
-	}
-
-	// Register the client
+	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256), userID: userID}
 	client.hub.register <- client
 
-	// Start goroutines for reading and writing
 	go client.writePump()
 	go client.readPump()
-
-	return nil
 }
 
 // readPump pumps messages from the websocket connection to the hub
@@ -156,13 +140,15 @@ func (c *Client) handleIncomingMessage(msg *WSMessage) {
 		c.handleGroupMessage(msg)
 	case MessageTypeTyping:
 		c.handleTypingIndicator(msg)
+	case MessageTypeReadStatus:
+		c.handleReadStatusUpdate(msg)
 	default:
 		log.Printf("WebSocket: Unknown message type from user %d: %s", c.userID, msg.Type)
 		c.sendError("Unknown message type")
 	}
 }
 
-// handlePrivateMessage processes private messages
+// handlePrivateMessage processes private messages with privacy checks
 func (c *Client) handlePrivateMessage(msg *WSMessage) {
 	if msg.To <= 0 {
 		c.sendError("Invalid recipient")
@@ -174,7 +160,7 @@ func (c *Client) handlePrivateMessage(msg *WSMessage) {
 		return
 	}
 
-	// Check if user can send message to recipient
+	// Check if user can send message to recipient using existing follow system
 	canSend, err := c.canSendPrivateMessage(msg.To)
 	if err != nil {
 		log.Printf("WebSocket: Error checking message permissions: %v", err)
@@ -188,7 +174,7 @@ func (c *Client) handlePrivateMessage(msg *WSMessage) {
 	}
 
 	// Save message to database
-	messageID, err := c.savePrivateMessage(msg.To, msg.Content)
+	savedMessage, err := c.savePrivateMessage(msg.To, msg.Content)
 	if err != nil {
 		log.Printf("WebSocket: Error saving private message: %v", err)
 		c.sendError("Failed to save message")
@@ -196,21 +182,24 @@ func (c *Client) handlePrivateMessage(msg *WSMessage) {
 	}
 
 	// Send message to recipient if online
-	c.hub.SendPrivateMessage(c.userID, msg.To, msg.Content, messageID)
+	c.hub.SendPrivateMessage(c.userID, msg.To, msg.Content, savedMessage.ID)
 
-	// Send confirmation back to sender
+	// Send confirmation back to sender with full message details
 	confirmation := WSMessage{
 		Type:      MessageTypePrivate,
-		Content:   msg.Content,
-		From:      c.userID,
-		To:        msg.To,
-		MessageID: messageID,
-		Timestamp: time.Now(),
+		Content:   savedMessage.Content,
+		From:      savedMessage.SenderID,
+		To:        savedMessage.ReceiverID,
+		MessageID: savedMessage.ID,
+		Timestamp: savedMessage.CreatedAt,
+		Data: map[string]interface{}{
+			"message": savedMessage,
+		},
 	}
 	c.hub.sendToClient(c, confirmation)
 }
 
-// handleGroupMessage processes group messages
+// handleGroupMessage processes group messages with membership checks
 func (c *Client) handleGroupMessage(msg *WSMessage) {
 	if msg.GroupID <= 0 {
 		c.sendError("Invalid group ID")
@@ -229,7 +218,7 @@ func (c *Client) handleGroupMessage(msg *WSMessage) {
 	}
 
 	// Save message to database
-	messageID, err := c.saveGroupMessage(msg.GroupID, msg.Content)
+	savedMessage, err := c.saveGroupMessage(msg.GroupID, msg.Content)
 	if err != nil {
 		log.Printf("WebSocket: Error saving group message: %v", err)
 		c.sendError("Failed to save message")
@@ -237,24 +226,37 @@ func (c *Client) handleGroupMessage(msg *WSMessage) {
 	}
 
 	// Send message to all group members
-	c.hub.SendGroupMessage(msg.GroupID, c.userID, msg.Content, messageID)
+	c.hub.SendGroupMessage(msg.GroupID, c.userID, msg.Content, savedMessage.ID)
 
 	// Send confirmation back to sender
 	confirmation := WSMessage{
 		Type:      MessageTypeGroup,
-		Content:   msg.Content,
-		From:      c.userID,
-		GroupID:   msg.GroupID,
-		MessageID: messageID,
-		Timestamp: time.Now(),
+		Content:   savedMessage.Content,
+		From:      savedMessage.SenderID,
+		GroupID:   savedMessage.GroupID,
+		MessageID: savedMessage.ID,
+		Timestamp: savedMessage.CreatedAt,
+		Data: map[string]interface{}{
+			"message": savedMessage,
+		},
 	}
 	c.hub.sendToClient(c, confirmation)
 }
 
 // handleTypingIndicator processes typing indicators
 func (c *Client) handleTypingIndicator(msg *WSMessage) {
+	isTyping, ok := msg.Data.(map[string]interface{})["is_typing"].(bool)
+	if !ok {
+		isTyping = true
+	}
+
 	if msg.To > 0 {
 		// Private message typing indicator
+		canSend, err := c.canSendPrivateMessage(msg.To)
+		if err != nil || !canSend {
+			return // Silently ignore if user can't message the recipient
+		}
+
 		c.hub.mu.RLock()
 		if client, exists := c.hub.userClients[msg.To]; exists {
 			typingMsg := WSMessage{
@@ -262,6 +264,9 @@ func (c *Client) handleTypingIndicator(msg *WSMessage) {
 				From:      c.userID,
 				To:        msg.To,
 				Timestamp: time.Now(),
+				Data: map[string]interface{}{
+					"is_typing": isTyping,
+				},
 			}
 			c.hub.sendToClient(client, typingMsg)
 		}
@@ -274,6 +279,9 @@ func (c *Client) handleTypingIndicator(msg *WSMessage) {
 				From:      c.userID,
 				GroupID:   msg.GroupID,
 				Timestamp: time.Now(),
+				Data: map[string]interface{}{
+					"is_typing": isTyping,
+				},
 			}
 
 			c.hub.mu.RLock()
@@ -289,13 +297,37 @@ func (c *Client) handleTypingIndicator(msg *WSMessage) {
 	}
 }
 
-// canSendPrivateMessage checks if user can send private message to another user
-func (c *Client) canSendPrivateMessage(recipientID int) (bool, error) {
-	// Users can message each other if:
-	// 1. At least one follows the other, OR
-	// 2. The receiver has a public profile
+// handleReadStatusUpdate processes read status updates
+func (c *Client) handleReadStatusUpdate(msg *WSMessage) {
+	if msg.To > 0 {
+		// Mark private messages as read
+		err := c.markPrivateMessagesAsRead(msg.To)
+		if err != nil {
+			log.Printf("WebSocket: Error marking messages as read: %v", err)
+			return
+		}
 
-	// Check if receiver has public profile
+		// Notify sender that messages were read
+		c.hub.mu.RLock()
+		if client, exists := c.hub.userClients[msg.To]; exists {
+			readMsg := WSMessage{
+				Type:      MessageTypeReadStatus,
+				From:      c.userID,
+				To:        msg.To,
+				Timestamp: time.Now(),
+				Data: map[string]interface{}{
+					"read_by": c.userID,
+				},
+			}
+			c.hub.sendToClient(client, readMsg)
+		}
+		c.hub.mu.RUnlock()
+	}
+}
+
+// canSendPrivateMessage checks if user can send private message using follow system
+func (c *Client) canSendPrivateMessage(recipientID int) (bool, error) {
+	// Use the existing CanSendMessage logic from follow repository
 	var isPublic bool
 	err := c.hub.db.QueryRow("SELECT is_public FROM users WHERE id = ?", recipientID).Scan(&isPublic)
 	if err != nil {
@@ -321,30 +353,64 @@ func (c *Client) canSendPrivateMessage(recipientID int) (bool, error) {
 	return count > 0, nil
 }
 
-// savePrivateMessage saves a private message to the database
-func (c *Client) savePrivateMessage(recipientID int, content string) (int, error) {
+// savePrivateMessage saves a private message and returns the full message object
+func (c *Client) savePrivateMessage(recipientID int, content string) (*PrivateMessage, error) {
 	query := `
 		INSERT INTO messages (sender_id, receiver_id, content, created_at)
 		VALUES (?, ?, ?, ?)
-		RETURNING id
+		RETURNING id, created_at
 	`
 
-	var messageID int
-	err := c.hub.db.QueryRow(query, c.userID, recipientID, content, time.Now()).Scan(&messageID)
-	return messageID, err
+	now := time.Now()
+	message := &PrivateMessage{
+		SenderID:   c.userID,
+		ReceiverID: recipientID,
+		Content:    content,
+		CreatedAt:  now,
+	}
+
+	err := c.hub.db.QueryRow(query, message.SenderID, message.ReceiverID, message.Content, message.CreatedAt).Scan(&message.ID, &message.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return message, nil
 }
 
-// saveGroupMessage saves a group message to the database
-func (c *Client) saveGroupMessage(groupID int, content string) (int, error) {
+// saveGroupMessage saves a group message and returns the full message object
+func (c *Client) saveGroupMessage(groupID int, content string) (*GroupMessage, error) {
 	query := `
 		INSERT INTO group_messages (group_id, sender_id, content, created_at)
 		VALUES (?, ?, ?, ?)
-		RETURNING id
+		RETURNING id, created_at
 	`
 
-	var messageID int
-	err := c.hub.db.QueryRow(query, groupID, c.userID, content, time.Now()).Scan(&messageID)
-	return messageID, err
+	now := time.Now()
+	message := &GroupMessage{
+		GroupID:   groupID,
+		SenderID:  c.userID,
+		Content:   content,
+		CreatedAt: now,
+	}
+
+	err := c.hub.db.QueryRow(query, message.GroupID, message.SenderID, message.Content, message.CreatedAt).Scan(&message.ID, &message.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return message, nil
+}
+
+// markPrivateMessagesAsRead marks all messages from a user as read
+func (c *Client) markPrivateMessagesAsRead(senderID int) error {
+	query := `
+		UPDATE messages 
+		SET read_at = ? 
+		WHERE receiver_id = ? AND sender_id = ? AND read_at IS NULL
+	`
+
+	_, err := c.hub.db.Exec(query, time.Now(), c.userID, senderID)
+	return err
 }
 
 // sendError sends an error message to the client
@@ -364,79 +430,60 @@ func (c *Client) sendError(errorMsg string) {
 	}
 }
 
-// SendGroupMessage sends a message to all members of a group
-func (h *Hub) SendGroupMessage(groupID int, senderID int, content string, messageID int) {
-	message := WSMessage{
-		Type:      MessageTypeGroup,
-		Content:   content,
-		From:      senderID,
-		GroupID:   groupID,
-		MessageID: messageID,
-		Timestamp: time.Now(),
+// SendPrivateMessage sends a private message to a specific user
+func (h *Hub) SendPrivateMessage(senderID, recipientID int, content string, messageID int) {
+	h.mu.RLock()
+	if client, exists := h.userClients[recipientID]; exists {
+		msg := WSMessage{
+			Type:      MessageTypePrivate,
+			Content:   content,
+			From:      senderID,
+			To:        recipientID,
+			MessageID: messageID,
+			Timestamp: time.Now(),
+		}
+		messageBytes, _ := json.Marshal(msg)
+		client.send <- messageBytes
 	}
+	h.mu.RUnlock()
+}
 
+// SendGroupMessage sends a message to all members of a group
+func (h *Hub) SendGroupMessage(groupID, senderID int, content string, messageID int) {
 	h.mu.RLock()
 	if clients, exists := h.groupClients[groupID]; exists {
+		msg := WSMessage{
+			Type:      MessageTypeGroup,
+			Content:   content,
+			From:      senderID,
+			GroupID:   groupID,
+			MessageID: messageID,
+			Timestamp: time.Now(),
+		}
+		messageBytes, _ := json.Marshal(msg)
 		for client := range clients {
 			if client.userID != senderID {
-				h.sendToClient(client, message)
+				client.send <- messageBytes
 			}
 		}
 	}
 	h.mu.RUnlock()
 }
 
-// SendPrivateMessage sends a message to a specific user
-func (h *Hub) SendPrivateMessage(senderID int, recipientID int, content string, messageID int) {
-	message := WSMessage{
-		Type:      MessageTypePrivate,
-		Content:   content,
-		From:      senderID,
-		To:        recipientID,
-		MessageID: messageID,
-		Timestamp: time.Now(),
-	}
-
-	h.mu.RLock()
-	if client, exists := h.userClients[recipientID]; exists {
-		h.sendToClient(client, message)
-	}
-	h.mu.RUnlock()
+// Message structures for database integration
+type PrivateMessage struct {
+	ID         int        `json:"id"`
+	SenderID   int        `json:"sender_id"`
+	ReceiverID int        `json:"receiver_id"`
+	Content    string     `json:"content"`
+	CreatedAt  time.Time  `json:"created_at"`
+	ReadAt     *time.Time `json:"read_at"`
 }
 
-// WebSocketAuthMiddleware authenticates WebSocket connections
-func WebSocketAuthMiddleware(sessionManager *auth.SessionManager) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// Get session cookie
-		cookie, err := r.Cookie("session_id")
-		if err != nil {
-			log.Printf("WebSocket: No session cookie found: %v", err)
-			http.Error(w, "Authentication required", http.StatusUnauthorized)
-			return
-		}
-
-		// Validate session
-		session, err := sessionManager.GetSession(cookie.Value)
-		if err != nil {
-			log.Printf("WebSocket: Session validation failed: %v", err)
-			http.Error(w, "Invalid session", http.StatusUnauthorized)
-			return
-		}
-
-		log.Printf("WebSocket: Authenticated user %d for WebSocket connection", session.UserID)
-
-		// Store userID in request context for the WebSocket handler
-		ctx := r.Context()
-		ctx = SetUserIDInContext(ctx, session.UserID)
-		r = r.WithContext(ctx)
-
-		// Pass to next handler (will be the WebSocket upgrade handler)
-		// This would typically be handled by the main server routing
-		w.Header().Set("X-User-ID", fmt.Sprintf("%d", session.UserID))
-	}
-}
-
-// Helper function to set user ID in context (add to auth package)
-func SetUserIDInContext(ctx context.Context, userID int) context.Context {
-	return context.WithValue(ctx, auth.UserIDKey, userID)
+type GroupMessage struct {
+	ID        int       `json:"id"`
+	GroupID   int       `json:"group_id"`
+	SenderID  int       `json:"sender_id"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"created_at"`
 }

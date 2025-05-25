@@ -1,4 +1,4 @@
-// backend/pkg/websocket/hub.go
+// backend/pkg/websocket/hub.go 
 package websocket
 
 import (
@@ -43,56 +43,6 @@ type Hub struct {
 	mu sync.RWMutex
 }
 
-// HandleWebSocket upgrades HTTP connection to WebSocket and handles the connection
-func HandleWebSocket(hub *Hub, sm *auth.SessionManager, w http.ResponseWriter, r *http.Request) {
-	// Get session cookie
-	cookie, err := r.Cookie("session_id")
-	if err != nil {
-		log.Printf("No session cookie found: %v", err)
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	// Get session and validate
-	session, err := sm.GetSession(cookie.Value)
-	if err != nil {
-		log.Printf("Invalid session: %v", err)
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
-	upgrader := websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-		CheckOrigin: func(r *http.Request) bool {
-			// In production, you should check the origin against your allowed domains
-			return true
-		},
-	}
-
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Printf("Error upgrading to WebSocket: %v", err)
-		return
-	}
-
-	client := &Client{
-		hub:        hub,
-		conn:       conn,
-		send:       make(chan []byte, 256),
-		userID:     session.UserID,
-		lastSeen:   time.Now(),
-		userGroups: make(map[int]bool),
-	}
-
-	// Register the client
-	client.hub.register <- client
-
-	// Start the read and write pumps in separate goroutines
-	go client.writePump()
-	go client.readPump()
-}
-
 // Client represents a WebSocket client
 type Client struct {
 	// The WebSocket connection
@@ -118,13 +68,18 @@ type Client struct {
 type MessageType string
 
 const (
-	MessageTypePrivate      MessageType = "private_message"
-	MessageTypeGroup        MessageType = "group_message"
-	MessageTypeNotification MessageType = "notification"
-	MessageTypeUserOnline   MessageType = "user_online"
-	MessageTypeUserOffline  MessageType = "user_offline"
-	MessageTypeTyping       MessageType = "typing"
-	MessageTypeError        MessageType = "error"
+	MessageTypePrivate       MessageType = "private_message"
+	MessageTypeGroup         MessageType = "group_message"
+	MessageTypeNotification  MessageType = "notification"
+	MessageTypeUserOnline    MessageType = "user_online"
+	MessageTypeUserOffline   MessageType = "user_offline"
+	MessageTypeTyping        MessageType = "typing"
+	MessageTypeReadStatus    MessageType = "read_status"
+	MessageTypeDelivered     MessageType = "delivered"
+	MessageTypeError         MessageType = "error"
+	MessageTypeHeartbeat     MessageType = "heartbeat"
+	MessageTypeUserList      MessageType = "user_list"
+	MessageTypePresence      MessageType = "presence"
 )
 
 // WebSocket message structure
@@ -153,6 +108,56 @@ func NewHub(db *sql.DB) *Hub {
 	}
 }
 
+// HandleWebSocket upgrades HTTP connection to WebSocket and handles the connection
+func HandleWebSocket(hub *Hub, sm *auth.SessionManager, w http.ResponseWriter, r *http.Request) {
+	// Get session cookie
+	cookie, err := r.Cookie("session_id")
+	if err != nil {
+		log.Printf("WebSocket: No session cookie found: %v", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Get session and validate
+	session, err := sm.GetSession(cookie.Value)
+	if err != nil {
+		log.Printf("WebSocket: Invalid session: %v", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	upgrader := websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+		CheckOrigin: func(r *http.Request) bool {
+			// In production, you should check the origin against your allowed domains
+			return true
+		},
+	}
+
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Printf("WebSocket: Error upgrading to WebSocket: %v", err)
+		return
+	}
+
+	client := &Client{
+		hub:        hub,
+		conn:       conn,
+		send:       make(chan []byte, 256),
+		userID:     session.UserID,
+		lastSeen:   time.Now(),
+		userGroups: make(map[int]bool),
+	}
+
+	// Register the client
+	client.hub.register <- client
+
+	// Start the read and write pumps in separate goroutines
+	go client.writePump()
+	go client.readPump()
+}
+
 // Stop gracefully shuts down the hub
 func (h *Hub) Stop() {
 	close(h.stop)
@@ -160,12 +165,20 @@ func (h *Hub) Stop() {
 
 // Run starts the hub and handles client connections
 func (h *Hub) Run() {
+	// Start cleanup routine
+	go h.cleanupRoutine()
+
 	for {
 		select {
 		case client := <-h.register:
 			h.mu.Lock()
 			h.clients[client] = true
 			if client.userID > 0 {
+				// If user already has a connection, close the old one
+				if oldClient, exists := h.userClients[client.userID]; exists {
+					close(oldClient.send)
+					delete(h.clients, oldClient)
+				}
 				h.userClients[client.userID] = client
 			}
 
@@ -175,6 +188,9 @@ func (h *Hub) Run() {
 			h.mu.Unlock()
 
 			log.Printf("WebSocket: User %d connected", client.userID)
+
+			// Send initial presence data
+			h.sendInitialPresenceData(client)
 
 			// Notify contacts that user is online
 			h.notifyUserOnline(client.userID)
@@ -203,6 +219,9 @@ func (h *Hub) Run() {
 			h.mu.Unlock()
 
 			log.Printf("WebSocket: User %d disconnected", client.userID)
+
+			// Update user presence
+			h.updateUserPresence(client.userID, false)
 
 			// Notify contacts that user is offline
 			h.notifyUserOffline(client.userID)
@@ -297,15 +316,58 @@ func (h *Hub) loadUserGroups(client *Client) {
 	log.Printf("WebSocket: Loaded %d groups for user %d", len(client.userGroups), client.userID)
 }
 
+// sendInitialPresenceData sends initial online user list and presence data
+func (h *Hub) sendInitialPresenceData(client *Client) {
+	// Get user's contacts
+	contacts := h.getUserContacts(client.userID)
+	
+	// Filter contacts to only online ones
+	var onlineContacts []int
+	h.mu.RLock()
+	for _, contactID := range contacts {
+		if _, isOnline := h.userClients[contactID]; isOnline {
+			onlineContacts = append(onlineContacts, contactID)
+		}
+	}
+	h.mu.RUnlock()
+
+	// Send initial user list
+	userListMsg := WSMessage{
+		Type:      MessageTypeUserList,
+		Timestamp: time.Now(),
+		Data: map[string]interface{}{
+			"online_users": onlineContacts,
+		},
+	}
+	h.sendToClient(client, userListMsg)
+}
+
+// updateUserPresence updates user's presence in the database
+func (h *Hub) updateUserPresence(userID int, isOnline bool) {
+	query := `
+		INSERT OR REPLACE INTO user_presence (user_id, last_seen, is_online)
+		VALUES (?, ?, ?)
+	`
+	
+	_, err := h.db.Exec(query, userID, time.Now(), isOnline)
+	if err != nil {
+		log.Printf("WebSocket: Error updating user presence: %v", err)
+	}
+}
+
 // notifyUserOnline notifies contacts that a user came online
 func (h *Hub) notifyUserOnline(userID int) {
-	// Get user's contacts (followers and following)
+	h.updateUserPresence(userID, true)
+	
 	contacts := h.getUserContacts(userID)
 
 	message := WSMessage{
 		Type:      MessageTypeUserOnline,
 		From:      userID,
 		Timestamp: time.Now(),
+		Data: map[string]interface{}{
+			"user_id": userID,
+		},
 	}
 
 	messageBytes, _ := json.Marshal(message)
@@ -331,6 +393,9 @@ func (h *Hub) notifyUserOffline(userID int) {
 		Type:      MessageTypeUserOffline,
 		From:      userID,
 		Timestamp: time.Now(),
+		Data: map[string]interface{}{
+			"user_id": userID,
+		},
 	}
 
 	messageBytes, _ := json.Marshal(message)
@@ -437,6 +502,59 @@ func (h *Hub) sendQueuedMessages(client *Client) {
 	}
 }
 
+// // SendGroupMessage sends a message to all members of a group
+// func (h *Hub) SendGroupMessage(groupID int, senderID int, content string, messageID int) {
+// 	message := WSMessage{
+// 		Type:      MessageTypeGroup,
+// 		Content:   content,
+// 		From:      senderID,
+// 		GroupID:   groupID,
+// 		MessageID: messageID,
+// 		Timestamp: time.Now(),
+// 	}
+
+// 	h.mu.RLock()
+// 	if clients, exists := h.groupClients[groupID]; exists {
+// 		for client := range clients {
+// 			if client.userID != senderID {
+// 				h.sendToClient(client, message)
+// 			}
+// 		}
+// 	}
+// 	h.mu.RUnlock()
+// }
+
+// // SendPrivateMessage sends a message to a specific user
+// func (h *Hub) SendPrivateMessage(senderID int, recipientID int, content string, messageID int) {
+// 	message := WSMessage{
+// 		Type:      MessageTypePrivate,
+// 		Content:   content,
+// 		From:      senderID,
+// 		To:        recipientID,
+// 		MessageID: messageID,
+// 		Timestamp: time.Now(),
+// 	}
+
+// 	h.mu.RLock()
+// 	if client, exists := h.userClients[recipientID]; exists {
+// 		h.sendToClient(client, message)
+		
+// 		// Send delivery confirmation back to sender
+// 		deliveredMsg := WSMessage{
+// 			Type:      MessageTypeDelivered,
+// 			From:      recipientID,
+// 			To:        senderID,
+// 			MessageID: messageID,
+// 			Timestamp: time.Now(),
+// 		}
+		
+// 		if senderClient, senderExists := h.userClients[senderID]; senderExists {
+// 			h.sendToClient(senderClient, deliveredMsg)
+// 		}
+// 	}
+// 	h.mu.RUnlock()
+// }
+
 // IsUserOnline checks if a user is currently online
 func (h *Hub) IsUserOnline(userID int) bool {
 	h.mu.RLock()
@@ -450,11 +568,9 @@ func (h *Hub) GetOnlineUsers() []int {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
-	onlineUsers := make([]int, 0)
-	for client := range h.clients {
-		if client.userID > 0 {
-			onlineUsers = append(onlineUsers, client.userID)
-		}
+	onlineUsers := make([]int, 0, len(h.userClients))
+	for userID := range h.userClients {
+		onlineUsers = append(onlineUsers, userID)
 	}
 	return onlineUsers
 }
@@ -487,23 +603,41 @@ func (h *Hub) BroadcastTypingIndicator(userID int, chatType string, targetID int
 		},
 	}
 
+	if chatType == "private" {
+		msg.To = targetID
+	} else if chatType == "group" {
+		msg.GroupID = targetID
+	}
+
 	messageBytes, err := json.Marshal(msg)
 	if err != nil {
-		log.Printf("Error marshaling typing indicator: %v", err)
+		log.Printf("WebSocket: Error marshaling typing indicator: %v", err)
 		return
 	}
 
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
-	for client := range h.clients {
-		if chatType == "private" && client.userID == targetID {
-			// For private chat, send only to the target user
-			client.send <- messageBytes
-		} else if chatType == "group" {
-			// For group chat, if client is in the group and not the sender
-			if client.userGroups[targetID] && client.userID != userID {
-				client.send <- messageBytes
+	if chatType == "private" && targetID > 0 {
+		// For private chat, send only to the target user
+		if client, exists := h.userClients[targetID]; exists {
+			select {
+			case client.send <- messageBytes:
+			default:
+				// Skip if send channel is full
+			}
+		}
+	} else if chatType == "group" && targetID > 0 {
+		// For group chat, send to all group members except sender
+		if clients, exists := h.groupClients[targetID]; exists {
+			for client := range clients {
+				if client.userID != userID {
+					select {
+					case client.send <- messageBytes:
+					default:
+						// Skip if send channel is full
+					}
+				}
 			}
 		}
 	}
@@ -535,4 +669,35 @@ func (h *Hub) SendNotification(userID int, data interface{}) {
 		}
 	}
 	h.mu.RUnlock()
+}
+
+// cleanupRoutine periodically cleans up inactive connections and updates presence
+func (h *Hub) cleanupRoutine() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			h.mu.RLock()
+			var inactiveClients []*Client
+			cutoff := time.Now().Add(-2 * time.Minute)
+			
+			for client := range h.clients {
+				if client.lastSeen.Before(cutoff) {
+					inactiveClients = append(inactiveClients, client)
+				}
+			}
+			h.mu.RUnlock()
+
+			// Remove inactive clients
+			for _, client := range inactiveClients {
+				log.Printf("WebSocket: Removing inactive client for user %d", client.userID)
+				h.unregisterClient(client)
+			}
+
+		case <-h.stop:
+			return
+		}
+	}
 }
