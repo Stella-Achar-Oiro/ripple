@@ -18,10 +18,12 @@ func NewNotificationRepository(db *sql.DB) *NotificationRepository {
 type NotificationType string
 
 const (
-	NotificationFollowRequest = "follow_request"
-	NotificationGroupInvite   = "group_invitation"
-	NotificationGroupRequest  = "group_request"
-	NotificationEventCreated  = "event_created"
+	NotificationFollowRequest    = "follow_request"
+	NotificationGroupInvite      = "group_invitation"
+	NotificationGroupRequest     = "group_request"
+	NotificationEventCreated     = "event_created"
+	NotificationGroupPostCreated = "group_post_created"
+	NotificationEventReminder    = "event_reminder"
 )
 
 type CreateNotificationRequest struct {
@@ -63,7 +65,7 @@ func (nr *NotificationRepository) CreateNotification(req *CreateNotificationRequ
 		notification.Message,
 		notification.RelatedID,
 		notification.RelatedType,
-		notification.BaseModel.CreatedAt,
+		notification.CreatedAt,
 	).Scan(&notification.ID, &notification.CreatedAt)
 
 	if err != nil {
@@ -200,7 +202,210 @@ func (nr *NotificationRepository) CreateFollowRequestNotification(followerID, fo
 	return err
 }
 
+// CreateGroupInvitationNotification creates notification for group invitation
+func (nr *NotificationRepository) CreateGroupInvitationNotification(userID, groupID int, groupTitle, inviterName string) error {
+	req := &CreateNotificationRequest{
+		UserID:      userID,
+		Type:        NotificationGroupInvite,
+		Title:       "Group Invitation",
+		Message:     fmt.Sprintf("%s invited you to join '%s'", inviterName, groupTitle),
+		RelatedID:   &groupID,
+		RelatedType: stringPtr("group"),
+	}
+
+	_, err := nr.CreateNotification(req)
+	return err
+}
+
+// CreateGroupJoinRequestNotification creates notification for group join request
+func (nr *NotificationRepository) CreateGroupJoinRequestNotification(creatorID, userID, groupID int, userName, groupTitle string) error {
+	req := &CreateNotificationRequest{
+		UserID:      creatorID,
+		Type:        NotificationGroupRequest,
+		Title:       "Group Join Request",
+		Message:     fmt.Sprintf("%s wants to join '%s'", userName, groupTitle),
+		RelatedID:   &groupID,
+		RelatedType: stringPtr("group"),
+	}
+
+	_, err := nr.CreateNotification(req)
+	return err
+}
+
+// CreateEventNotification creates notification for new event
+func (nr *NotificationRepository) CreateEventNotification(userID, eventID, groupID int, eventTitle, groupTitle string) error {
+	req := &CreateNotificationRequest{
+		UserID:      userID,
+		Type:        NotificationEventCreated,
+		Title:       "New Event",
+		Message:     fmt.Sprintf("New event '%s' created in '%s'", eventTitle, groupTitle),
+		RelatedID:   &eventID,
+		RelatedType: stringPtr("event"),
+	}
+
+	_, err := nr.CreateNotification(req)
+	return err
+}
+
+// CreateGroupPostNotification creates notification for new group post
+func (nr *NotificationRepository) CreateGroupPostNotification(userID, postID, groupID int, authorName, groupTitle string) error {
+	req := &CreateNotificationRequest{
+		UserID:      userID,
+		Type:        NotificationGroupPostCreated,
+		Title:       "New Group Post",
+		Message:     fmt.Sprintf("%s posted in '%s'", authorName, groupTitle),
+		RelatedID:   &postID,
+		RelatedType: stringPtr("group_post"),
+	}
+
+	_, err := nr.CreateNotification(req)
+	return err
+}
+
+// CreateEventReminderNotification creates notification for event reminder
+func (nr *NotificationRepository) CreateEventReminderNotification(userID, eventID int, eventTitle string, hoursUntil int) error {
+	var message string
+	if hoursUntil <= 1 {
+		message = fmt.Sprintf("Event '%s' is starting soon!", eventTitle)
+	} else if hoursUntil <= 24 {
+		message = fmt.Sprintf("Event '%s' is starting in %d hours", eventTitle, hoursUntil)
+	} else {
+		days := hoursUntil / 24
+		message = fmt.Sprintf("Event '%s' is starting in %d days", eventTitle, days)
+	}
+
+	req := &CreateNotificationRequest{
+		UserID:      userID,
+		Type:        NotificationEventReminder,
+		Title:       "Event Reminder",
+		Message:     message,
+		RelatedID:   &eventID,
+		RelatedType: stringPtr("event"),
+	}
+
+	_, err := nr.CreateNotification(req)
+	return err
+}
+
+// BulkCreateNotifications creates notifications for multiple users
+func (nr *NotificationRepository) BulkCreateNotifications(userIDs []int, notificationType NotificationType, title, message string, relatedID *int, relatedType *string) error {
+	if len(userIDs) == 0 {
+		return nil
+	}
+
+	tx, err := nr.db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	query := `
+		INSERT INTO notifications (user_id, type, title, message, related_id, related_type, is_read, created_at)
+		VALUES (?, ?, ?, ?, ?, ?, 0, ?)
+	`
+
+	now := time.Now()
+	for _, userID := range userIDs {
+		_, err = tx.Exec(query, userID, string(notificationType), title, message, relatedID, relatedType, now)
+		if err != nil {
+			return fmt.Errorf("failed to create bulk notification: %w", err)
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit bulk notifications: %w", err)
+	}
+
+	return nil
+}
+
+// NotifyAllGroupMembers notifies all members of a group (except the actor)
+func (nr *NotificationRepository) NotifyAllGroupMembers(groupID, actorID int, notificationType NotificationType, title, message string, relatedID *int, relatedType *string) error {
+	// Get all group members except the actor
+	query := `
+		SELECT user_id FROM group_members 
+		WHERE group_id = ? AND user_id != ? AND status = 'accepted'
+	`
+
+	rows, err := nr.db.Query(query, groupID, actorID)
+	if err != nil {
+		return fmt.Errorf("failed to get group members: %w", err)
+	}
+	defer rows.Close()
+
+	var userIDs []int
+	for rows.Next() {
+		var userID int
+		if err := rows.Scan(&userID); err != nil {
+			return fmt.Errorf("failed to scan user ID: %w", err)
+		}
+		userIDs = append(userIDs, userID)
+	}
+
+	if len(userIDs) == 0 {
+		return nil // No members to notify
+	}
+
+	return nr.BulkCreateNotifications(userIDs, notificationType, title, message, relatedID, relatedType)
+}
+
+// GetNotificationStats gets notification statistics for a user
+func (nr *NotificationRepository) GetNotificationStats(userID int) (map[string]int, error) {
+	query := `
+		SELECT type, COUNT(*) as count
+		FROM notifications 
+		WHERE user_id = ? AND is_read = 0
+		GROUP BY type
+	`
+
+	rows, err := nr.db.Query(query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get notification stats: %w", err)
+	}
+	defer rows.Close()
+
+	stats := make(map[string]int)
+	for rows.Next() {
+		var notType string
+		var count int
+		if err := rows.Scan(&notType, &count); err != nil {
+			return nil, fmt.Errorf("failed to scan notification stats: %w", err)
+		}
+		stats[notType] = count
+	}
+
+	return stats, nil
+}
+
+// CleanupOldNotifications removes notifications older than specified days
+func (nr *NotificationRepository) CleanupOldNotifications(daysOld int) error {
+	query := `DELETE FROM notifications WHERE created_at < ?`
+	cutoffDate := time.Now().AddDate(0, 0, -daysOld)
+
+	result, err := nr.db.Exec(query, cutoffDate)
+	if err != nil {
+		return fmt.Errorf("failed to cleanup old notifications: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected > 0 {
+		// Log cleanup activity (in production, use proper logging)
+		fmt.Printf("Cleaned up %d old notifications (older than %d days)\n", rowsAffected, daysOld)
+	}
+
+	return nil
+}
+
 // Helper function to create string pointer
 func stringPtr(s string) *string {
 	return &s
+}
+
+// Helper function to create int pointer
+func intPtr(i int) *int {
+	return &i
 }
