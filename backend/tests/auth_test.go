@@ -37,7 +37,7 @@ func setupTestDB() (*db.Database, func()) {
 	return database, cleanup
 }
 
-func createTestUser(userRepo *models.UserRepository) (*models.User, error) {
+func createAuthTestUser(userRepo *models.UserRepository) (*models.User, error) {
 	hashedPassword, err := auth.HashPassword("password123")
 	if err != nil {
 		return nil, err
@@ -174,7 +174,7 @@ func TestUserLogin(t *testing.T) {
 	authHandler := handlers.NewAuthHandler(userRepo, sessionManager)
 
 	// First register a user
-	_, err := createTestUser(userRepo)
+	_, err := createAuthTestUser(userRepo)
 	if err != nil {
 		t.Fatalf("Failed to create test user: %v", err)
 	}
@@ -348,7 +348,7 @@ func TestSessionManagement(t *testing.T) {
 	sessionManager := auth.NewSessionManager(database.DB)
 
 	// Create a test user first (FIXED: This was missing!)
-	user, err := createTestUser(userRepo)
+	user, err := createAuthTestUser(userRepo)
 	if err != nil {
 		t.Fatalf("Failed to create test user: %v", err)
 	}
