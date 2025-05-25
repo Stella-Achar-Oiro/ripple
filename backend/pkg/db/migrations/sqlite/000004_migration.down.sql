@@ -1,2 +1,0 @@
-DROP TABLE IF EXISTS post_privacy;
-DROP TABLE IF EXISTS post_likes;
