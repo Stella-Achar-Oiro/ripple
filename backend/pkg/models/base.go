@@ -40,21 +40,7 @@ type Follow struct {
 	Status      string `json:"status" db:"status"`
 }
 
-type Post struct {
-	BaseModel
-	UserID       int     `json:"user_id" db:"user_id"`
-	Content      string  `json:"content" db:"content"`
-	ImagePath    *string `json:"image_path" db:"image_path"`
-	PrivacyLevel string  `json:"privacy_level" db:"privacy_level"`
-}
 
-type Comment struct {
-	BaseModel
-	PostID    int     `json:"post_id" db:"post_id"`
-	UserID    int     `json:"user_id" db:"user_id"`
-	Content   string  `json:"content" db:"content"`
-	ImagePath *string `json:"image_path" db:"image_path"`
-}
 
 type Notification struct {
 	BaseModel
