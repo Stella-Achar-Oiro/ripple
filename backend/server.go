@@ -1,4 +1,4 @@
-// backend/server.go
+// backend/server.go (Updated for Phase 4)
 package main
 
 import (
@@ -22,7 +22,7 @@ import (
 func main() {
 	// Load configuration
 	cfg := config.LoadConfig()
-
+	
 	// Initialize database
 	database, err := db.NewDatabase(cfg.DatabasePath)
 	if err != nil {
@@ -40,6 +40,9 @@ func main() {
 	followRepo := models.NewFollowRepository(database.DB)
 	postRepo := models.NewPostRepository(database.DB)
 	notificationRepo := models.NewNotificationRepository(database.DB)
+	groupRepo := models.NewGroupRepository(database.DB)
+	groupPostRepo := models.NewGroupPostRepository(database.DB)
+	eventRepo := models.NewEventRepository(database.DB)
 
 	// Initialize session manager
 	sessionManager := auth.NewSessionManager(database.DB)
@@ -50,15 +53,17 @@ func main() {
 	postHandler := handlers.NewPostHandler(postRepo)
 	uploadHandler := handlers.NewUploadHandler(cfg)
 	notificationHandler := handlers.NewNotificationHandler(notificationRepo)
+	groupHandler := handlers.NewGroupHandler(groupRepo, groupPostRepo, notificationRepo)
+	eventHandler := handlers.NewEventHandler(eventRepo, groupRepo, notificationRepo)
 
 	// Setup HTTP server
 	mux := http.NewServeMux()
-
+	
 	// Health check endpoint
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"healthy","service":"ripple-backend","version":"1.0.0"}`))
+		w.Write([]byte(`{"status":"healthy","service":"ripple-backend","version":"1.1.0","phase":"4-groups-events"}`))
 	})
 
 	// Public authentication routes
@@ -77,10 +82,10 @@ func main() {
 	protectedFollowMux.HandleFunc("/api/follow/unfollow", followHandler.UnfollowUser)
 	protectedFollowMux.HandleFunc("/api/follow/handle", followHandler.HandleFollowRequest)
 	protectedFollowMux.HandleFunc("/api/follow/requests", followHandler.GetFollowRequests)
-	protectedFollowMux.HandleFunc("/api/follow/followers/", followHandler.GetFollowers) // /api/follow/followers/{userID}
-	protectedFollowMux.HandleFunc("/api/follow/following/", followHandler.GetFollowing) // /api/follow/following/{userID}
-	protectedFollowMux.HandleFunc("/api/follow/stats/", followHandler.GetFollowStats)   // /api/follow/stats/{userID}
-	protectedFollowMux.HandleFunc("/api/follow/status/", followHandler.GetFollowStatus) // /api/follow/status/{userID}
+	protectedFollowMux.HandleFunc("/api/follow/followers/", followHandler.GetFollowers)
+	protectedFollowMux.HandleFunc("/api/follow/following/", followHandler.GetFollowing)
+	protectedFollowMux.HandleFunc("/api/follow/stats/", followHandler.GetFollowStats)
+	protectedFollowMux.HandleFunc("/api/follow/status/", followHandler.GetFollowStatus)
 
 	// Protected post routes
 	protectedPostMux := http.NewServeMux()
@@ -97,26 +102,98 @@ func main() {
 	protectedPostMux.HandleFunc("/api/posts/", func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.URL.Path, "/comments") {
 			if r.Method == http.MethodPost {
-				postHandler.CreateComment(w, r) // /api/posts/{postID}/comments
+				postHandler.CreateComment(w, r)
 			} else if r.Method == http.MethodGet {
-				postHandler.GetComments(w, r) // /api/posts/{postID}/comments
+				postHandler.GetComments(w, r)
 			} else {
 				utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
 			}
-		} else if strings.HasSuffix(r.URL.Path, "/") || strings.Count(r.URL.Path, "/") == 3 {
-			// Handle direct post operations
-			if r.Method == http.MethodGet {
-				postHandler.GetPost(w, r) // /api/posts/{postID}
-			} else if r.Method == http.MethodDelete {
-				postHandler.DeletePost(w, r) // /api/posts/{postID}
-			} else {
-				utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
-			}
+		} else if r.Method == http.MethodGet {
+			postHandler.GetPost(w, r)
+		} else if r.Method == http.MethodDelete {
+			postHandler.DeletePost(w, r)
 		} else {
 			utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
 		}
 	})
-	protectedPostMux.HandleFunc("/api/posts/user/", postHandler.GetUserPosts) // /api/posts/user/{userID}
+	protectedPostMux.HandleFunc("/api/posts/user/", postHandler.GetUserPosts)
+
+	// Protected group routes
+	protectedGroupMux := http.NewServeMux()
+	
+	// Group management
+	protectedGroupMux.HandleFunc("/api/groups", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			groupHandler.CreateGroup(w, r)
+		case http.MethodGet:
+			groupHandler.GetAllGroups(w, r)
+		default:
+			utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		}
+	})
+	protectedGroupMux.HandleFunc("/api/groups/", func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "/posts") {
+			if r.Method == http.MethodPost {
+				groupHandler.CreateGroupPost(w, r)     // /api/groups/{id}/posts
+			} else if r.Method == http.MethodGet {
+				groupHandler.GetGroupPosts(w, r)       // /api/groups/{id}/posts
+			} else {
+				utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+			}
+		} else if strings.Contains(r.URL.Path, "/members") {
+			groupHandler.GetGroupMembers(w, r)         // /api/groups/{id}/members
+		} else if strings.Contains(r.URL.Path, "/join-requests") {
+			groupHandler.GetPendingJoinRequests(w, r)  // /api/groups/{id}/join-requests
+		} else if r.Method == http.MethodGet {
+			groupHandler.GetGroup(w, r)                // /api/groups/{id}
+		} else {
+			utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		}
+	})
+	protectedGroupMux.HandleFunc("/api/groups/my", groupHandler.GetUserGroups)
+	protectedGroupMux.HandleFunc("/api/groups/invite", groupHandler.InviteToGroup)
+	protectedGroupMux.HandleFunc("/api/groups/join", groupHandler.JoinGroup)
+	protectedGroupMux.HandleFunc("/api/groups/handle", groupHandler.HandleMembershipRequest)
+	protectedGroupMux.HandleFunc("/api/groups/invitations", groupHandler.GetPendingInvitations)
+	
+	// Group posts and comments
+	protectedGroupMux.HandleFunc("/api/group-posts/", func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "/comments") {
+			if r.Method == http.MethodPost {
+				groupHandler.CreateGroupComment(w, r)  // /api/group-posts/{id}/comments
+			} else if r.Method == http.MethodGet {
+				groupHandler.GetGroupComments(w, r)    // /api/group-posts/{id}/comments
+			} else {
+				utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+			}
+		}
+	})
+
+	// Protected event routes
+	protectedEventMux := http.NewServeMux()
+	protectedEventMux.HandleFunc("/api/events/", func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "/respond") {
+			eventHandler.RespondToEvent(w, r)          // /api/events/{id}/respond
+		} else if strings.Contains(r.URL.Path, "/responses") {
+			eventHandler.GetEventResponses(w, r)       // /api/events/{id}/responses
+		} else if r.Method == http.MethodGet {
+			eventHandler.GetEvent(w, r)                // /api/events/{id}
+		} else {
+			utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		}
+	})
+	protectedEventMux.HandleFunc("/api/groups/", func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "/events") {
+			if r.Method == http.MethodPost {
+				eventHandler.CreateEvent(w, r)         // /api/groups/{id}/events
+			} else if r.Method == http.MethodGet {
+				eventHandler.GetGroupEvents(w, r)      // /api/groups/{id}/events
+			} else {
+				utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+			}
+		}
+	})
 
 	// Protected upload routes
 	protectedUploadMux := http.NewServeMux()
@@ -130,9 +207,9 @@ func main() {
 	protectedNotificationMux.HandleFunc("/api/notifications/read-all", notificationHandler.MarkAllAsRead)
 	protectedNotificationMux.HandleFunc("/api/notifications/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPut {
-			notificationHandler.MarkAsRead(w, r) // /api/notifications/{id}/read
+			notificationHandler.MarkAsRead(w, r)
 		} else if r.Method == http.MethodDelete {
-			notificationHandler.DeleteNotification(w, r) // /api/notifications/{id}
+			notificationHandler.DeleteNotification(w, r)
 		} else {
 			utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
 		}
@@ -141,8 +218,14 @@ func main() {
 	// Apply auth middleware to protected routes
 	mux.Handle("/api/user/", sessionManager.AuthMiddleware(protectedUserMux))
 	mux.Handle("/api/follow/", sessionManager.AuthMiddleware(protectedFollowMux))
+	mux.Handle("/api/posts", sessionManager.AuthMiddleware(protectedPostMux))
 	mux.Handle("/api/posts/", sessionManager.AuthMiddleware(protectedPostMux))
+	mux.Handle("/api/groups", sessionManager.AuthMiddleware(protectedGroupMux))
+	mux.Handle("/api/groups/", sessionManager.AuthMiddleware(protectedGroupMux))
+	mux.Handle("/api/group-posts/", sessionManager.AuthMiddleware(protectedGroupMux))
+	mux.Handle("/api/events/", sessionManager.AuthMiddleware(protectedEventMux))
 	mux.Handle("/api/upload/", sessionManager.AuthMiddleware(protectedUploadMux))
+	mux.Handle("/api/notifications", sessionManager.AuthMiddleware(protectedNotificationMux))
 	mux.Handle("/api/notifications/", sessionManager.AuthMiddleware(protectedNotificationMux))
 
 	// Static file serving for uploads
@@ -165,25 +248,23 @@ func main() {
 	go func() {
 		ticker := time.NewTicker(1 * time.Hour)
 		defer ticker.Stop()
-
-		for {
-			select {
-			case <-ticker.C:
-				if err := sessionManager.CleanupExpiredSessions(); err != nil {
-					log.Printf("Failed to cleanup expired sessions: %v", err)
-				}
+		
+		for range ticker.C {
+			if err := sessionManager.CleanupExpiredSessions(); err != nil {
+				log.Printf("Failed to cleanup expired sessions: %v", err)
 			}
 		}
 	}()
 
 	// Start server in a goroutine
 	go func() {
-		log.Printf("🚀 Ripple Backend Server starting on port %s", cfg.ServerPort)
-		log.Printf("📁 Uploads directory: %s", cfg.UploadsPath)
-		log.Printf("💾 Database path: %s", cfg.DatabasePath)
-		log.Printf("🌐 Frontend URL: %s", cfg.AllowedOrigins[0])
-		log.Printf("📊 Max file size: %d MB", cfg.MaxFileSize/(1024*1024))
-
+		log.Printf("Ripple Backend Server starting on port %s", cfg.ServerPort)
+		log.Printf("Uploads directory: %s", cfg.UploadsPath)
+		log.Printf("Database path: %s", cfg.DatabasePath)
+		log.Printf("Frontend URL: %s", cfg.AllowedOrigins[0])
+		log.Printf("Max file size: %d MB", cfg.MaxFileSize/(1024*1024))
+		log.Printf("Phase 4: Groups & Events System Ready!")
+		
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Server failed to start: %v", err)
 		}
@@ -209,7 +290,7 @@ func main() {
 func corsMiddleware(next http.Handler, allowedOrigins []string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
-
+		
 		// Check if origin is allowed
 		for _, allowed := range allowedOrigins {
 			if origin == allowed {
@@ -217,7 +298,7 @@ func corsMiddleware(next http.Handler, allowedOrigins []string) http.Handler {
 				break
 			}
 		}
-
+		
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
@@ -245,12 +326,12 @@ func securityHeadersMiddleware(next http.Handler) http.Handler {
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-
+		
 		// Create a response writer wrapper to capture status code
 		rw := &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
-
+		
 		next.ServeHTTP(rw, r)
-
+		
 		// Log with emoji for better readability
 		statusEmoji := "✅"
 		if rw.statusCode >= 400 {
@@ -258,7 +339,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		} else if rw.statusCode >= 300 {
 			statusEmoji = "🔄"
 		}
-
+		
 		log.Printf("%s %s %s %d %v", statusEmoji, r.Method, r.URL.Path, rw.statusCode, time.Since(start))
 	})
 }
