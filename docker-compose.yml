@@ -1,22 +1,31 @@
+version: '3.8'
+
 services:
   backend:
     build: ./backend
     ports:
       - "8080:8080"
     volumes:
-      - ./backend:/app
-      - ./data:/data
+      - ./backend/data:/root/data
+      - ./backend/uploads:/root/uploads
     environment:
-      - DB_PATH=/data/ripple.db
-    restart: unless-stopped
+      - DATABASE_PATH=/root/data/ripple.db
+      - UPLOADS_PATH=/root/uploads
+      - FRONTEND_URL=http://localhost:3000
+    networks:
+      - ripple-network
 
   frontend:
     build: ./frontend
     ports:
       - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
     depends_on:
       - backend
-    restart: unless-stopped
+    networks:
+      - ripple-network
+
+networks:
+  ripple-network:
+    driver: bridge
