@@ -22,6 +22,8 @@ type User struct {
 	AboutMe      *string    `json:"about_me" db:"about_me"`
 	AvatarPath   *string    `json:"avatar_path" db:"avatar_path"`
 	IsPublic     bool       `json:"is_public" db:"is_public"`
+	CreatedAt   time.Time   `json:"created_at" db:"created_at"`
+    UpdatedAt   time.Time   `json:"updated_at" db:"updated_at"`
 }
 
 type Session struct {
