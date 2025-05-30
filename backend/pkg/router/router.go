@@ -68,6 +68,11 @@ func SetupRoutes(
 	})
 
 	// Apply middleware stack
+	// Apply middleware stack in the following order:
+	// 1. PanicRecoveryMiddleware: Recovers from panics and logs them.
+	// 2. SecurityHeadersMiddleware: Adds security-related headers to responses.
+	// 3. corsMiddleware: Handles Cross-Origin Resource Sharing (CORS) based on allowed origins.
+	// 4. JSONMiddleware: Ensures all responses are in JSON format.
 	return applyMiddleware(mux,
 		handlers.PanicRecoveryMiddleware,
 		handlers.SecurityHeadersMiddleware,
