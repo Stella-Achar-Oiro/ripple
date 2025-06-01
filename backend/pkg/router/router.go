@@ -67,7 +67,6 @@ func SetupRoutes(
 		websocket.HandleWebSocket(wsHub, sessionManager, w, r)
 	})
 
-	// Apply middleware stack
 	// Apply middleware stack in the following order:
 	// 1. PanicRecoveryMiddleware: Recovers from panics and logs them.
 	// 2. SecurityHeadersMiddleware: Adds security-related headers to responses.
@@ -80,4 +79,3 @@ func SetupRoutes(
 		handlers.JSONMiddleware,
 	)
 }
-
