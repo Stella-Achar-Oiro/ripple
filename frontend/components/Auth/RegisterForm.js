@@ -23,6 +23,9 @@ export default function RegisterForm() {
   const [avatarPreview, setAvatarPreview] = useState(null)
   const fileInputRef = useRef(null)
 
+  // Get API URL from environment variable
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
@@ -149,36 +152,76 @@ export default function RegisterForm() {
     setSubmitError('')
     
     try {
-      // Create FormData for file upload
-      const formDataToSend = new FormData()
-      
-      // Add all text fields
-      Object.keys(formData).forEach(key => {
-        if (formData[key]) {
-          formDataToSend.append(key, formData[key])
-        }
-      })
-      
-      // Add avatar if exists
-      if (fileInputRef.current && fileInputRef.current.files[0]) {
-        formDataToSend.append('avatar', fileInputRef.current.files[0])
+      // Step 1: Register user with JSON data
+      const jsonData = {
+        email: formData.email,
+        password: formData.password,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        date_of_birth: formData.date_of_birth,
       }
       
-      const response = await fetch('/api/auth/register', {
+      // Add optional fields only if they have values
+      if (formData.nickname) jsonData.nickname = formData.nickname
+      if (formData.about_me) jsonData.about_me = formData.about_me
+      
+      const registerResponse = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
-        body: formDataToSend,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonData),
+        credentials: 'include', // Important for cookies
       })
       
-      const data = await response.json()
+      const registerData = await registerResponse.json()
       
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed')
+      if (!registerResponse.ok) {
+        throw new Error(registerData.error?.message || 'Registration failed')
+      }
+      
+      // Step 2: If we have an avatar, upload it
+      if (fileInputRef.current && fileInputRef.current.files[0]) {
+        const avatarFormData = new FormData()
+        avatarFormData.append('avatar', fileInputRef.current.files[0])
+        
+        const avatarResponse = await fetch(`${API_URL}/api/upload/avatar`, {
+          method: 'POST',
+          body: avatarFormData,
+          credentials: 'include', // Important for cookies
+        })
+        
+        if (!avatarResponse.ok) {
+          console.error('Avatar upload failed, but registration was successful')
+          // Continue with registration success even if avatar upload fails
+        } else {
+          const avatarData = await avatarResponse.json()
+          
+          // Step 3: Update user profile with avatar path
+          if (avatarData.file_path) {
+            const updateResponse = await fetch(`${API_URL}/api/auth/profile/update`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                avatar_path: avatarData.file_path
+              }),
+              credentials: 'include',
+            })
+            
+            if (!updateResponse.ok) {
+              console.error('Profile update with avatar failed, but registration was successful')
+            }
+          }
+        }
       }
       
       // Registration successful
       router.push('/feed')
     } catch (error) {
       setSubmitError(error.message)
+      console.error('Registration error:', error)
     } finally {
       setIsSubmitting(false)
     }
