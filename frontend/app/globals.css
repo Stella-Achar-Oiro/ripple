@@ -14,11 +14,13 @@
   --light-gray: #f8f9fa;
   --border-gray: #e2e6ea;
   --text-light: #6c757d;
-  --success: #28a745;
-  --warning: #ffc107;
-  --danger: #dc3545;
+  --text-dark: #343a40;
+  --success-green: #28a745;
+  --warning-yellow: #ffc107;
+  --error-red: #dc3545;
   --shadow: 0 2px 10px rgba(0,0,0,0.1);
   --shadow-heavy: 0 4px 20px rgba(0,0,0,0.15);
+  --background-light: #f1f3f5;
 }
 
 body {
@@ -26,6 +28,32 @@ body {
   background-color: var(--light-gray);
   color: var(--primary-navy);
   line-height: 1.6;
+}
+
+/* Form styles */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-dark);
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border-gray);
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.form-input:focus {
+  border-color: var(--primary-navy);
+  outline: none;
 }
 
 /* Card Components */
