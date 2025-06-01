@@ -1,0 +1,76 @@
+.chatSidebar {
+  background-color: var(--light-gray);
+  border-right: 1px solid var(--border-gray);
+  display: flex;
+  flex-direction: column;
+}
+
+.chatSearch {
+  padding: 15px;
+  border-bottom: 1px solid var(--border-gray);
+}
+
+.chatSearch input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-gray);
+  border-radius: 20px;
+  font-size: 13px;
+}
+
+.chatList {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.chatItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 15px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border-bottom: 1px solid var(--border-gray);
+}
+
+.chatItem:hover,
+.chatItem.active {
+  background-color: var(--white);
+}
+
+.chatItemInfo {
+  flex: 1;
+}
+
+.chatItemName {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--primary-navy);
+  margin-bottom: 3px;
+}
+
+.chatItemPreview {
+  font-size: 12px;
+  color: var(--text-light);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chatItemTime {
+  font-size: 10px;
+  color: var(--text-light);
+}
+
+.unreadBadge {
+  background-color: var(--primary-navy);
+  color: var(--white);
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 3px;
+}

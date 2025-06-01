@@ -1,0 +1,139 @@
+.navbar {
+  background-color: var(--primary-navy);
+  color: var(--white);
+  padding: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  box-shadow: var(--shadow);
+}
+
+.navContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 15px;
+  height: 55px;
+}
+
+.navBrand {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--white);
+  text-decoration: none;
+}
+
+.navSearch {
+  flex: 1;
+  max-width: 350px;
+  margin: 0 30px;
+  position: relative;
+}
+
+.navSearch input {
+  width: 100%;
+  padding: 8px 35px 8px 14px;
+  border: none;
+  border-radius: 20px;
+  background-color: var(--secondary-navy);
+  color: var(--white);
+  font-size: 13px;
+}
+
+.navSearch input::placeholder {
+  color: #8e9aaf;
+}
+
+.navSearch i {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8e9aaf;
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.navIcon {
+  position: relative;
+  padding: 6px;
+  border-radius: 50%;
+  background-color: transparent;
+  color: var(--white);
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  text-decoration: none;
+}
+
+.navIcon:hover {
+  background-color: var(--secondary-navy);
+}
+
+.profileAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--secondary-navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.notificationPanel {
+  position: fixed;
+  top: 55px;
+  right: 15px;
+  width: 280px;
+  background-color: var(--white);
+  border-radius: 10px;
+  box-shadow: var(--shadow-heavy);
+  z-index: 1000;
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.notificationItem {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--border-gray);
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.notificationItem:hover {
+  background-color: var(--light-gray);
+}
+
+.notificationItem:last-child {
+  border-bottom: none;
+}
+
+.notificationContent {
+  font-size: 13px;
+  color: var(--primary-navy);
+  margin-bottom: 3px;
+}
+
+.notificationTime {
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+@media (max-width: 768px) {
+  .navSearch {
+    display: none;
+  }
+
+  .navActions {
+    gap: 10px;
+  }
+}

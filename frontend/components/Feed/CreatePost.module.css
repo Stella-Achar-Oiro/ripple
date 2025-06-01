@@ -1,0 +1,71 @@
+.createPost {
+  padding: 15px;
+}
+
+.createPostHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.postInput {
+  flex: 1;
+  border: 1px solid var(--border-gray);
+  border-radius: 25px;
+  padding: 10px 16px;
+  font-size: 14px;
+  outline: none;
+  resize: none;
+  min-height: 40px;
+  font-family: 'Roboto', sans-serif;
+}
+
+.postInput:focus {
+  border-color: var(--primary-navy);
+}
+
+.postActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.postOptions {
+  display: flex;
+  gap: 12px;
+}
+
+.postOption {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  color: var(--text-light);
+  font-size: 13px;
+}
+
+.postOption:hover {
+  background-color: var(--light-gray);
+}
+
+.postSubmitArea {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.privacySelector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-gray);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}

@@ -1,0 +1,57 @@
+.widget {
+  background-color: var(--white);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.widgetHeader {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--border-gray);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary-navy);
+}
+
+.widgetContent {
+  padding: 15px;
+}
+
+.groupCard {
+  margin: 0;
+  box-shadow: none;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.groupHeader {
+  height: 60px;
+  background: linear-gradient(135deg, var(--primary-navy), var(--secondary-navy));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.groupInfo {
+  padding: 12px;
+  text-align: center;
+}
+
+.groupName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary-navy);
+  margin-bottom: 6px;
+}
+
+.groupMeta {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-bottom: 10px;
+}
+
+.groupActions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}

@@ -1,0 +1,96 @@
+.post {
+  padding: 15px;
+}
+
+.postHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.postUser {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.postUserInfo h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary-navy);
+  margin-bottom: 2px;
+}
+
+.postMeta {
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.postMenu {
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.postMenu:hover {
+  background-color: var(--light-gray);
+}
+
+.postContent {
+  margin-bottom: 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--primary-navy);
+}
+
+.postImage {
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  background-color: var(--light-gray);
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light);
+}
+
+.postStats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-top: 1px solid var(--border-gray);
+  border-bottom: 1px solid var(--border-gray);
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+.postActionsRow {
+  display: flex;
+  justify-content: space-around;
+}
+
+.postAction {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  color: var(--text-light);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.postAction:hover {
+  background-color: var(--light-gray);
+}
+
+.postAction.liked {
+  color: var(--primary-navy);
+}

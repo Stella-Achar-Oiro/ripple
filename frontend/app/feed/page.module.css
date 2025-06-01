@@ -1,0 +1,29 @@
+.feedLayout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 15px;
+  max-width: 750px;
+  margin: 0 auto;
+}
+
+.feedMain {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.feedSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+@media (max-width: 1200px) {
+  .feedLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .feedSidebar {
+    order: -1;
+  }
+}

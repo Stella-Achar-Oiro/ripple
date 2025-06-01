@@ -1,0 +1,75 @@
+.loginContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-navy) 0%, var(--secondary-navy) 100%);
+  padding: 20px;
+}
+
+.loginCard {
+  background-color: var(--white);
+  border-radius: 16px;
+  box-shadow: var(--shadow-heavy);
+  overflow: hidden;
+  width: 100%;
+  max-width: 400px;
+}
+
+.loginHeader {
+  background-color: var(--primary-navy);
+  color: var(--white);
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.loginTitle {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.loginSubtitle {
+  font-size: 14px;
+  color: #8e9aaf;
+}
+
+.loginForm {
+  padding: 30px 20px;
+}
+
+.btnLogin {
+  width: 100%;
+  background-color: var(--primary-navy);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-bottom: 20px;
+}
+
+.btnLogin:hover {
+  background-color: var(--secondary-navy);
+}
+
+.loginFooter {
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-gray);
+  color: var(--text-light);
+  font-size: 14px;
+}
+
+.loginLink {
+  color: var(--primary-navy);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.loginLink:hover {
+  text-decoration: underline;
+}
