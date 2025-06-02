@@ -1,0 +1,140 @@
+.chatMain {
+  display: flex;
+  flex-direction: column;
+}
+
+.noConversation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-light);
+  font-size: 16px;
+}
+
+.chatHeader {
+  padding: 15px;
+  border-bottom: 1px solid var(--border-gray);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chatHeaderName {
+  font-weight: 600;
+  color: var(--primary-navy);
+  font-size: 14px;
+}
+
+.chatHeaderStatus {
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.chatHeaderActions {
+  margin-left: auto;
+  display: flex;
+  gap: 12px;
+}
+
+.chatHeaderActions i {
+  cursor: pointer;
+  padding: 8px;
+  color: var(--text-light);
+  transition: color 0.3s;
+}
+
+.chatHeaderActions i:hover {
+  color: var(--primary-navy);
+}
+
+.chatMessages {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  background-color: #fafbfc;
+}
+
+.message {
+  display: flex;
+  margin-bottom: 12px;
+}
+
+.message.own {
+  justify-content: flex-end;
+}
+
+.messageBubble {
+  max-width: 70%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.message.own .messageBubble {
+  background-color: var(--primary-navy);
+  color: var(--white);
+  border-bottom-right-radius: 4px;
+}
+
+.message:not(.own) .messageBubble {
+  background-color: var(--white);
+  color: var(--primary-navy);
+  border-bottom-left-radius: 4px;
+  box-shadow: var(--shadow);
+}
+
+.messageTime {
+  font-size: 10px;
+  color: var(--text-light);
+  margin-top: 3px;
+  text-align: right;
+}
+
+.message:not(.own) .messageTime {
+  text-align: left;
+}
+
+.chatInput {
+  padding: 15px;
+  border-top: 1px solid var(--border-gray);
+  background-color: var(--white);
+}
+
+.chatInputContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chatInputContainer input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid var(--border-gray);
+  border-radius: 20px;
+  font-size: 13px;
+}
+
+.chatInputContainer i {
+  cursor: pointer;
+  color: var(--text-light);
+}
+
+.chatSendBtn {
+  background-color: var(--primary-navy);
+  color: var(--white);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.chatSendBtn:hover {
+  background-color: var(--secondary-navy);
+}

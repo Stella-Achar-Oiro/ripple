@@ -1,0 +1,44 @@
+.widget {
+  background-color: var(--white);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.widgetHeader {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--border-gray);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary-navy);
+}
+
+.widgetContent {
+  padding: 15px;
+}
+
+.onlineFriends {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.friendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.friendItem:hover {
+  background-color: var(--light-gray);
+}
+
+.friendName {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--primary-navy);
+}
