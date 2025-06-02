@@ -2,13 +2,39 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import styles from './Sidebar.module.css'
 
 export default function Sidebar({ currentPage, isOpen, onClose }) {
   const router = useRouter()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
-  const handleLogout = () => {
-    router.push('/')
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true)
+      
+      const response = await fetch(`${API_URL}/api/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+      
+      if (!response.ok) {
+        const data = await response.json()
+        console.error('Logout failed:', data.message || 'Unknown error')
+      }
+      
+      // Redirect to login page regardless of response
+      // This ensures the user is logged out on the frontend even if the backend request fails
+      router.push('/')
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Still redirect to login page on error
+      router.push('/')
+    } finally {
+      setIsLoggingOut(false)
+    }
   }
 
   const sidebarClass = `${styles.sidebar} ${isOpen ? styles.mobileOpen : ''}`
@@ -73,10 +99,14 @@ export default function Sidebar({ currentPage, isOpen, onClose }) {
           <i className="fas fa-question-circle"></i>
           Help
         </a>
-        <a href="#" className={styles.sidebarItem} onClick={handleLogout}>
+        <button 
+          className={styles.sidebarItem} 
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+        >
           <i className="fas fa-sign-out-alt"></i>
-          Logout
-        </a>
+          {isLoggingOut ? 'Logging out...' : 'Logout'}
+        </button>
       </div>
     </aside>
   )
