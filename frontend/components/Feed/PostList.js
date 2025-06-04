@@ -21,7 +21,6 @@ export default function PostList() {
       }
 
       const data = await response.json()
-      console.log('Fetched data>>:', data);
       if (data.success && data.data && data.data.posts) {
         setPosts(data.data.posts)
       } else {
