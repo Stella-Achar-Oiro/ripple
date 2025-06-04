@@ -21,7 +21,7 @@ export default function PostList() {
       }
 
       const data = await response.json()
-      console.log('Fetched data:', data);
+      console.log('Fetched data>>:', data);
       if (data.success && data.data && data.data.posts) {
         setPosts(data.data.posts)
       } else {
@@ -59,11 +59,11 @@ export default function PostList() {
           <div className={styles.postHeader}>
             <div className={styles.userInfo}>
               <div className="user-avatar">
-                {post.author?.name?.[0] || post.author?.username?.[0] || 'U'}
+                {post.author?.nickname?.[0] || 'U'}
               </div>
               <div className={styles.userDetails}>
                 <span className={styles.userName}>
-                  {post.author?.name || post.author?.username || 'Unknown User'}
+                  {post.author?.first_name} {post.author?.last_name}
                 </span>
                 <span className={styles.postTime}>
                   {new Date(post.created_at).toLocaleDateString()}
