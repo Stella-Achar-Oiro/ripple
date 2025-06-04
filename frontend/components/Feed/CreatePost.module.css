@@ -1,71 +1,115 @@
 .createPost {
-  padding: 15px;
+  padding: 1rem;
 }
 
 .createPostHeader {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .postInput {
   flex: 1;
-  border: 1px solid var(--border-gray);
-  border-radius: 25px;
-  padding: 10px 16px;
-  font-size: 14px;
-  outline: none;
+  min-height: 100px;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   resize: none;
-  min-height: 40px;
-  font-family: 'Roboto', sans-serif;
+  font-family: inherit;
 }
 
 .postInput:focus {
-  border-color: var(--primary-navy);
+  outline: none;
+  border-color: #007bff;
+}
+
+.imagePreview {
+  position: relative;
+  margin: 1rem 0;
+  max-width: 100%;
+}
+
+.imagePreview img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 4px;
+}
+
+.removeImage {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.removeImage:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.errorMessage {
+  color: #dc3545;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
 }
 
 .postActions {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  margin-top: 12px;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #ddd;
 }
 
 .postOptions {
   display: flex;
-  gap: 12px;
+  gap: 1rem;
 }
 
 .postOption {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: 6px;
+  gap: 0.5rem;
+  color: #666;
   cursor: pointer;
-  transition: background-color 0.3s;
-  color: var(--text-light);
-  font-size: 13px;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
 }
 
 .postOption:hover {
-  background-color: var(--light-gray);
+  background-color: #f0f2f5;
 }
 
 .postSubmitArea {
   display: flex;
-  gap: 8px;
   align-items: center;
+  gap: 1rem;
 }
 
-.privacySelector {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border: 1px solid var(--border-gray);
-  border-radius: 6px;
+.privacySelector select {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
   cursor: pointer;
-  font-size: 13px;
+}
+
+.privacySelector select:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.privacySelector select:disabled {
+  background-color: #f0f2f5;
+  cursor: not-allowed;
 }
