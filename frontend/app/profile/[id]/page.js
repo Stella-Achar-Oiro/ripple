@@ -44,12 +44,11 @@ export default function ProfilePage() {
         }
 
         const currentUserData = await currentUserResponse.json()
-        console.log("current user data <<<<<< ", currentUserData.data)
 
         setCurrentUserProfile(currentUserData)
 
         const targetUserId = params.id
-        const isOwnProfile = String(targetUserId) === String(currentUserData.id)
+        const isOwnProfile = String(targetUserId) === String(currentUserData.data.id)
         setIsCurrentUser(isOwnProfile)
 
         // Fetch the requested profile
@@ -73,7 +72,6 @@ export default function ProfilePage() {
 
         const profileData = isOwnProfile ? currentUserData : await profileResponse.json()
         console.log("profile data <<<<<< ", profileData.data)
-
         setProfile(profileData.data)
       } catch (err) {
         console.error('Error fetching profile:', err)

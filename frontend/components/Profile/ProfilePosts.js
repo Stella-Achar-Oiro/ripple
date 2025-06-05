@@ -28,16 +28,30 @@ export default function ProfilePosts({ userId }) {
           throw new Error('Failed to fetch posts')
         }
         
-        const data = await response.json()
-        
-        if (page === 1) {
-          setPosts(data)
+        const result = await response.json()
+        console.log('Posts API response:', result) // Debug log
+
+        // Handle the response structure from backend
+        let postsData = []
+        if (result.data && Array.isArray(result.data.posts)) {
+          postsData = result.data.posts
+        } else if (result.data && Array.isArray(result.data)) {
+          postsData = result.data
+        } else if (Array.isArray(result)) {
+          postsData = result
         } else {
-          setPosts(prev => [...prev, ...data])
+          console.error('Unexpected response structure:', result)
+          postsData = []
         }
-        
+
+        if (page === 1) {
+          setPosts(postsData)
+        } else {
+          setPosts(prev => [...prev, ...postsData])
+        }
+
         // If we got fewer posts than requested, there are no more
-        setHasMore(data.length === POSTS_PER_PAGE)
+        setHasMore(postsData.length === POSTS_PER_PAGE)
       } catch (err) {
         console.error('Error fetching posts:', err)
         setError(err.message)
@@ -81,7 +95,7 @@ export default function ProfilePosts({ userId }) {
     )
   }
   
-  if (posts.length === 0) {
+  if (!posts || !Array.isArray(posts) || posts.length === 0) {
     return (
       <div className={styles.emptyContainer}>
         <i className="fas fa-file-alt"></i>
@@ -90,7 +104,7 @@ export default function ProfilePosts({ userId }) {
       </div>
     )
   }
-  
+
   return (
     <div className={styles.postsContainer}>
       {posts.map(post => (
