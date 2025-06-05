@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -16,12 +17,16 @@ import (
 
 type AuthHandler struct {
 	userRepo       *models.UserRepository
+	followRepo     *models.FollowRepository
+	postRepo       *models.PostRepository
 	sessionManager *auth.SessionManager
 }
 
-func NewAuthHandler(userRepo *models.UserRepository, sessionManager *auth.SessionManager) *AuthHandler {
+func NewAuthHandler(userRepo *models.UserRepository, followRepo *models.FollowRepository, postRepo *models.PostRepository, sessionManager *auth.SessionManager) *AuthHandler {
 	return &AuthHandler{
 		userRepo:       userRepo,
+		followRepo:     followRepo,
+		postRepo:       postRepo,
 		sessionManager: sessionManager,
 	}
 }
@@ -118,7 +123,7 @@ func (ah *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Session created successfully: ID=%s, UserID=%d, Expires=%v", 
+	log.Printf("Session created successfully: ID=%s, UserID=%d, Expires=%v",
 		session.ID, session.UserID, session.ExpiresAt)
 
 	// Set session cookie
@@ -262,8 +267,114 @@ func (ah *AuthHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteSuccessResponse(w, http.StatusOK, user.ToResponse())
+	// Get follow stats
+	followStats, err := ah.followRepo.GetFollowStats(userID)
+	if err != nil {
+		log.Printf("GetProfile - failed to get follow stats for user ID %d: %v", userID, err)
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	// Get post count
+	postCount, err := ah.postRepo.GetPostCount(userID)
+	if err != nil {
+		log.Printf("GetProfile - failed to get post count for user ID %d: %v", userID, err)
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	// Create profile response with stats (isFollowing is false for own profile)
+	profileResponse := user.ToProfileResponse(
+		followStats.FollowersCount,
+		followStats.FollowingCount,
+		postCount,
+		false, // User viewing their own profile
+	)
+
+	utils.WriteSuccessResponse(w, http.StatusOK, profileResponse)
 	log.Printf("GetProfile completed for user ID: %d", userID)
+}
+
+func (ah *AuthHandler) GetUserProfile(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	// Get current user ID from context
+	currentUserID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		log.Printf("GetUserProfile failed - user ID not in context: %v", err)
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	// Get target user ID from URL path
+	pathParts := strings.Split(r.URL.Path, "/")
+	if len(pathParts) < 4 {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "User ID required")
+		return
+	}
+
+	targetUserID, err := strconv.Atoi(pathParts[3])
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid user ID")
+		return
+	}
+
+	log.Printf("GetUserProfile request for target user ID: %d by user ID: %d", targetUserID, currentUserID)
+
+	// Get target user from database
+	user, err := ah.userRepo.GetUserByID(targetUserID)
+	if err != nil {
+		if strings.Contains(err.Error(), constants.ErrUserNotFound) {
+			log.Printf("GetUserProfile failed - user not found: %d", targetUserID)
+			utils.WriteErrorResponse(w, http.StatusNotFound, "User not found")
+			return
+		}
+		log.Printf("GetUserProfile database error for user ID %d: %v", targetUserID, err)
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	// Get follow stats
+	followStats, err := ah.followRepo.GetFollowStats(targetUserID)
+	if err != nil {
+		log.Printf("GetUserProfile - failed to get follow stats for user ID %d: %v", targetUserID, err)
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	// Get post count
+	postCount, err := ah.postRepo.GetPostCount(targetUserID)
+	if err != nil {
+		log.Printf("GetUserProfile - failed to get post count for user ID %d: %v", targetUserID, err)
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	// Check if current user is following target user
+	isFollowing := false
+	if currentUserID != targetUserID {
+		followStatus, err := ah.followRepo.GetFollowRelationshipStatus(currentUserID, targetUserID)
+		if err != nil {
+			log.Printf("GetUserProfile - failed to get follow status: %v", err)
+			// Don't fail the request, just set isFollowing to false
+		} else {
+			isFollowing = (followStatus == constants.FollowStatusAccepted)
+		}
+	}
+
+	// Create profile response with stats
+	profileResponse := user.ToProfileResponse(
+		followStats.FollowersCount,
+		followStats.FollowingCount,
+		postCount,
+		isFollowing,
+	)
+
+	utils.WriteSuccessResponse(w, http.StatusOK, profileResponse)
+	log.Printf("GetUserProfile completed for target user ID: %d", targetUserID)
 }
 
 func (ah *AuthHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
@@ -401,7 +512,7 @@ func (ah *AuthHandler) setSessionCookie(w http.ResponseWriter, sessionID string,
 		Path:     "/",
 	}
 	http.SetCookie(w, cookie)
-	log.Printf("Session cookie set: Name=%s, Value=%s, Expires=%v", 
+	log.Printf("Session cookie set: Name=%s, Value=%s, Expires=%v",
 		cookie.Name, sessionID, cookie.Expires)
 }
 

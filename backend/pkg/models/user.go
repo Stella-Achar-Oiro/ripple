@@ -4,8 +4,8 @@ package models
 import (
 	"database/sql"
 	"fmt"
-	"time"
 	"ripple/pkg/constants"
+	"time"
 )
 
 // User struct is defined in base.go
@@ -38,8 +38,27 @@ type UserResponse struct {
 	Nickname    *string `json:"nickname"`
 	AboutMe     *string `json:"about_me"`
 	AvatarPath  *string `json:"avatar_path"`
+	CoverPath   *string `json:"cover_path"`
 	IsPublic    bool    `json:"is_public"`
 	CreatedAt   string  `json:"created_at"`
+}
+
+type ProfileResponse struct {
+	ID             int     `json:"id"`
+	Email          string  `json:"email"`
+	FirstName      string  `json:"first_name"`
+	LastName       string  `json:"last_name"`
+	DateOfBirth    string  `json:"date_of_birth"`
+	Nickname       *string `json:"nickname"`
+	AboutMe        *string `json:"about_me"`
+	AvatarPath     *string `json:"avatar_path"`
+	CoverPath      *string `json:"cover_path"`
+	IsPublic       bool    `json:"is_public"`
+	CreatedAt      string  `json:"created_at"`
+	FollowerCount  int     `json:"follower_count"`
+	FollowingCount int     `json:"following_count"`
+	PostCount      int     `json:"post_count"`
+	IsFollowing    bool    `json:"is_following,omitempty"`
 }
 
 func (ur *UserRepository) CreateUser(req *CreateUserRequest, passwordHash string) (*User, error) {
@@ -50,8 +69,8 @@ func (ur *UserRepository) CreateUser(req *CreateUserRequest, passwordHash string
 	}
 
 	query := `
-		INSERT INTO users (email, password_hash, first_name, last_name, date_of_birth, nickname, about_me, avatar_path, is_public, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+		INSERT INTO users (email, password_hash, first_name, last_name, date_of_birth, nickname, about_me, avatar_path, cover_path, is_public, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
 		RETURNING id, created_at, updated_at
 	`
 
@@ -65,6 +84,7 @@ func (ur *UserRepository) CreateUser(req *CreateUserRequest, passwordHash string
 		Nickname:     req.Nickname,
 		AboutMe:      req.AboutMe,
 		AvatarPath:   req.AvatarPath,
+		CoverPath:    nil, // Default to nil for new users
 		IsPublic:     true,
 		CreatedAt:    now,
 		UpdatedAt:    now,
@@ -79,6 +99,7 @@ func (ur *UserRepository) CreateUser(req *CreateUserRequest, passwordHash string
 		user.Nickname,
 		user.AboutMe,
 		user.AvatarPath,
+		user.CoverPath,
 		user.CreatedAt,
 		user.UpdatedAt,
 	).Scan(&user.ID, &user.CreatedAt, &user.UpdatedAt)
@@ -92,13 +113,13 @@ func (ur *UserRepository) CreateUser(req *CreateUserRequest, passwordHash string
 
 func (ur *UserRepository) GetUserByEmail(email string) (*User, error) {
 	user := &User{}
-	
+
 	query := `
-		SELECT id, email, password_hash, first_name, last_name, date_of_birth, nickname, about_me, avatar_path, is_public, created_at, updated_at
+		SELECT id, email, password_hash, first_name, last_name, date_of_birth, nickname, about_me, avatar_path, cover_path, is_public, created_at, updated_at
 		FROM users
 		WHERE email = ?
 	`
-	
+
 	err := ur.db.QueryRow(query, email).Scan(
 		&user.ID,
 		&user.Email,
@@ -109,11 +130,12 @@ func (ur *UserRepository) GetUserByEmail(email string) (*User, error) {
 		&user.Nickname,
 		&user.AboutMe,
 		&user.AvatarPath,
+		&user.CoverPath,
 		&user.IsPublic,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
-	
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf(constants.ErrUserNotFound)
@@ -126,13 +148,13 @@ func (ur *UserRepository) GetUserByEmail(email string) (*User, error) {
 
 func (ur *UserRepository) GetUserByID(id int) (*User, error) {
 	user := &User{}
-	
+
 	query := `
-		SELECT id, email, password_hash, first_name, last_name, date_of_birth, nickname, about_me, avatar_path, is_public, created_at, updated_at
+		SELECT id, email, password_hash, first_name, last_name, date_of_birth, nickname, about_me, avatar_path, cover_path, is_public, created_at, updated_at
 		FROM users
 		WHERE id = ?
 	`
-	
+
 	err := ur.db.QueryRow(query, id).Scan(
 		&user.ID,
 		&user.Email,
@@ -143,11 +165,12 @@ func (ur *UserRepository) GetUserByID(id int) (*User, error) {
 		&user.Nickname,
 		&user.AboutMe,
 		&user.AvatarPath,
+		&user.CoverPath,
 		&user.IsPublic,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
-	
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf(constants.ErrUserNotFound)
@@ -161,12 +184,12 @@ func (ur *UserRepository) GetUserByID(id int) (*User, error) {
 func (ur *UserRepository) EmailExists(email string) (bool, error) {
 	var count int
 	query := `SELECT COUNT(*) FROM users WHERE email = ?`
-	
+
 	err := ur.db.QueryRow(query, email).Scan(&count)
 	if err != nil {
 		return false, fmt.Errorf("failed to check email existence: %w", err)
 	}
-	
+
 	return count > 0, nil
 }
 
@@ -211,7 +234,28 @@ func (u *User) ToResponse() *UserResponse {
 		Nickname:    u.Nickname,
 		AboutMe:     u.AboutMe,
 		AvatarPath:  u.AvatarPath,
+		CoverPath:   u.CoverPath,
 		IsPublic:    u.IsPublic,
 		CreatedAt:   u.CreatedAt.Format(time.RFC3339),
+	}
+}
+
+func (u *User) ToProfileResponse(followerCount, followingCount, postCount int, isFollowing bool) *ProfileResponse {
+	return &ProfileResponse{
+		ID:             u.ID,
+		Email:          u.Email,
+		FirstName:      u.FirstName,
+		LastName:       u.LastName,
+		DateOfBirth:    u.DateOfBirth.Format("2006-01-02"),
+		Nickname:       u.Nickname,
+		AboutMe:        u.AboutMe,
+		AvatarPath:     u.AvatarPath,
+		CoverPath:      u.CoverPath,
+		IsPublic:       u.IsPublic,
+		CreatedAt:      u.CreatedAt.Format(time.RFC3339),
+		FollowerCount:  followerCount,
+		FollowingCount: followingCount,
+		PostCount:      postCount,
+		IsFollowing:    isFollowing,
 	}
 }

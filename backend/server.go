@@ -53,7 +53,7 @@ func main() {
 	go wsHub.Run()
 
 	// Initialize handlers
-	authHandler := handlers.NewAuthHandler(userRepo, sessionManager)
+	authHandler := handlers.NewAuthHandler(userRepo, followRepo, postRepo, sessionManager)
 	followHandler := handlers.NewFollowHandler(followRepo, userRepo, notificationRepo)
 	postHandler := handlers.NewPostHandler(postRepo)
 	groupHandler := handlers.NewGroupHandler(groupRepo, groupPostRepo, notificationRepo)
@@ -117,5 +117,3 @@ func main() {
 
 	log.Println("Server stopped")
 }
-
-

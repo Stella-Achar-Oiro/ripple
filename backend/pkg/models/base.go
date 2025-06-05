@@ -13,17 +13,18 @@ type BaseModel struct {
 
 type User struct {
 	BaseModel
-	Email        string     `json:"email" db:"email"`
-	PasswordHash string     `json:"-" db:"password_hash"`
-	FirstName    string     `json:"first_name" db:"first_name"`
-	LastName     string     `json:"last_name" db:"last_name"`
-	DateOfBirth  time.Time  `json:"date_of_birth" db:"date_of_birth"`
-	Nickname     *string    `json:"nickname" db:"nickname"`
-	AboutMe      *string    `json:"about_me" db:"about_me"`
-	AvatarPath   *string    `json:"avatar_path" db:"avatar_path"`
-	IsPublic     bool       `json:"is_public" db:"is_public"`
-	CreatedAt   time.Time   `json:"created_at" db:"created_at"`
-    UpdatedAt   time.Time   `json:"updated_at" db:"updated_at"`
+	Email        string    `json:"email" db:"email"`
+	PasswordHash string    `json:"-" db:"password_hash"`
+	FirstName    string    `json:"first_name" db:"first_name"`
+	LastName     string    `json:"last_name" db:"last_name"`
+	DateOfBirth  time.Time `json:"date_of_birth" db:"date_of_birth"`
+	Nickname     *string   `json:"nickname" db:"nickname"`
+	AboutMe      *string   `json:"about_me" db:"about_me"`
+	AvatarPath   *string   `json:"avatar_path" db:"avatar_path"`
+	CoverPath    *string   `json:"cover_path" db:"cover_path"`
+	IsPublic     bool      `json:"is_public" db:"is_public"`
+	CreatedAt    time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
 }
 
 type Session struct {
@@ -39,8 +40,6 @@ type Follow struct {
 	FollowingID int    `json:"following_id" db:"following_id"`
 	Status      string `json:"status" db:"status"`
 }
-
-
 
 type Notification struct {
 	BaseModel
