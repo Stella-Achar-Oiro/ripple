@@ -48,3 +48,10 @@ go.work
 # Build artifacts
 /dist/
 /build/
+
+# Pictures
+*.jpg
+*.png
+*.jpeg
+*.gif
+*.webp
