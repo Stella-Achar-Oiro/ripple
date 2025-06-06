@@ -71,7 +71,7 @@ export default function ProfilePage() {
         }
 
         const profileData = isOwnProfile ? currentUserData : await profileResponse.json()
-        console.log("profile data <<<<<< ", profileData.data)
+        
         console.log("Setting profile with ID:", profileData.data.id) // Debug log
         setProfile(profileData.data)
       } catch (err) {
@@ -112,63 +112,64 @@ export default function ProfilePage() {
     }
   }
   
-  if (isLoading) {
-    return (
-      <Layout currentPage="profile">
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingSpinner}></div>
-          <p>Loading profile...</p>
-        </div>
-      </Layout>
-    )
-  }
-  
-  if (error) {
-    return (
-      <Layout currentPage="profile">
-        <div className={styles.errorContainer}>
-          <h2>Error</h2>
-          <p>{error}</p>
-          <button 
-            className={styles.backButton}
-            onClick={() => router.push('/feed')}
-          >
-            Back to Feed
-          </button>
-        </div>
-      </Layout>
-    )
-  }
-  
-  if (!profile) {
-    return (
-      <Layout currentPage="profile">
-        <div className={styles.errorContainer}>
-          <h2>Profile Not Found</h2>
-          <p>The requested profile could not be found.</p>
-          <button 
-            className={styles.backButton}
-            onClick={() => router.push('/feed')}
-          >
-            Back to Feed
-          </button>
-        </div>
-      </Layout>
-    )
-  }
-  
+  // Prepare loading component
+  const loadingComponent = (
+    <div className={styles.loadingContainer}>
+      <div className={styles.loadingSpinner}></div>
+      <p>Loading profile...</p>
+    </div>
+  )
+
+  // Prepare error component
+  const errorComponent = (
+    <div className={styles.errorContainer}>
+      <h2>Error</h2>
+      <p>{error}</p>
+      <button
+        className={styles.backButton}
+        onClick={() => router.push('/feed')}
+      >
+        Back to Feed
+      </button>
+    </div>
+  )
+
+  // Prepare not found component
+  const notFoundComponent = (
+    <div className={styles.errorContainer}>
+      <h2>Profile Not Found</h2>
+      <p>The requested profile could not be found.</p>
+      <button
+        className={styles.backButton}
+        onClick={() => router.push('/feed')}
+      >
+        Back to Feed
+      </button>
+    </div>
+  )
+
+  // Determine what to show in main content
+  const shouldShowError = error || (!isLoading && !profile)
+  const currentErrorComponent = error ? errorComponent : notFoundComponent
+
   // Check if current user can view this profile
-  const canViewProfile = isCurrentUser || profile.is_public || profile.is_following
-  
+  const canViewProfile = isCurrentUser || profile?.is_public || profile?.is_following
+
   return (
-    <Layout currentPage="profile">
+    <Layout
+      currentPage="profile"
+      isLoading={isLoading}
+      error={shouldShowError}
+      loadingComponent={loadingComponent}
+      errorComponent={currentErrorComponent}
+    >
       <div className={styles.profileContainer}>
-        <ProfileHeader 
+        <ProfileHeader
           profile={profile}
           isCurrentUser={isCurrentUser}
           onPrivacyToggle={handlePrivacyToggle}
         />
-        
+
         {canViewProfile ? (
           <>
             <ProfileTabs
