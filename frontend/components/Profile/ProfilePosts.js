@@ -6,28 +6,36 @@ export default function ProfilePosts({ userId }) {
   const [posts, setPosts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(true)
-  
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
-  const POSTS_PER_PAGE = 10
-  
+
+  // Simple retry function
+  const retryFetch = () => {
+    setError(null)
+    setRefreshTrigger(prev => prev + 1) // This will trigger useEffect
+  }
+
   useEffect(() => {
-    const fetchPosts = async () => {
-      if (page === 1) {
-        setIsLoading(true)
-      }
-      
+    if (!userId) return
+
+    console.log('ProfilePosts: Starting fetch for userId:', userId) // Debug log
+
+    const fetchAllPosts = async () => {
+      setIsLoading(true)
+      setError(null)
+
       try {
+        // Fetch all posts for this user (no pagination limit)
         const response = await fetch(
-          `${API_URL}/api/posts/user/${userId}?limit=${POSTS_PER_PAGE}&offset=${(page - 1) * POSTS_PER_PAGE}`,
+          `${API_URL}/api/posts/user/${userId}?limit=1000&offset=0`,
           { credentials: 'include' }
         )
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch posts')
         }
-        
+
         const result = await response.json()
         console.log('Posts API response:', result) // Debug log
 
@@ -44,14 +52,7 @@ export default function ProfilePosts({ userId }) {
           postsData = []
         }
 
-        if (page === 1) {
-          setPosts(postsData)
-        } else {
-          setPosts(prev => [...prev, ...postsData])
-        }
-
-        // If we got fewer posts than requested, there are no more
-        setHasMore(postsData.length === POSTS_PER_PAGE)
+        setPosts(postsData)
       } catch (err) {
         console.error('Error fetching posts:', err)
         setError(err.message)
@@ -59,17 +60,11 @@ export default function ProfilePosts({ userId }) {
         setIsLoading(false)
       }
     }
-    
-    fetchPosts()
-  }, [userId, page, API_URL])
+
+    fetchAllPosts()
+  }, [userId, API_URL, refreshTrigger]) // Re-run when userId, API_URL, or refreshTrigger changes
   
-  const loadMore = () => {
-    if (!isLoading && hasMore) {
-      setPage(prev => prev + 1)
-    }
-  }
-  
-  if (isLoading && page === 1) {
+  if (isLoading) {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.loadingSpinner}></div>
@@ -82,12 +77,9 @@ export default function ProfilePosts({ userId }) {
     return (
       <div className={styles.errorContainer}>
         <p>Error loading posts: {error}</p>
-        <button 
+        <button
           className={styles.retryButton}
-          onClick={() => {
-            setError(null)
-            setPage(1)
-          }}
+          onClick={retryFetch}
         >
           Retry
         </button>
@@ -110,18 +102,6 @@ export default function ProfilePosts({ userId }) {
       {posts.map(post => (
         <Post key={post.id} post={post} />
       ))}
-      
-      {hasMore && (
-        <div className={styles.loadMoreContainer}>
-          <button 
-            className={styles.loadMoreButton}
-            onClick={loadMore}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Loading...' : 'Load More'}
-          </button>
-        </div>
-      )}
     </div>
   )
 }

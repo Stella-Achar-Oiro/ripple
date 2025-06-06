@@ -72,6 +72,7 @@ export default function ProfilePage() {
 
         const profileData = isOwnProfile ? currentUserData : await profileResponse.json()
         console.log("profile data <<<<<< ", profileData.data)
+        console.log("Setting profile with ID:", profileData.data.id) // Debug log
         setProfile(profileData.data)
       } catch (err) {
         console.error('Error fetching profile:', err)
@@ -184,8 +185,8 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {activeTab === 'posts' && (
-              <ProfilePosts userId={profile.id} />
+            {activeTab === 'posts' && profile.id && (
+              <ProfilePosts key={`posts-${profile.id}`} userId={profile.id} />
             )}
 
             {activeTab === 'followers' && (
