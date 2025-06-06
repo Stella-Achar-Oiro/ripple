@@ -29,6 +29,7 @@ type Post struct {
 	// Joined fields
 	Author       *UserResponse `json:"author,omitempty"`
 	CommentCount int           `json:"comment_count"`
+	LikesCount   int           `json:"likes_count"`
 	CanView      bool          `json:"can_view"`
 	CanComment   bool          `json:"can_comment"`
 }
@@ -144,7 +145,8 @@ func (pr *PostRepository) GetPost(postID, viewerID int) (*Post, error) {
 	query := `
 		SELECT p.id, p.user_id, p.content, p.image_path, p.privacy_level, p.created_at, p.updated_at,
 		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.cover_path, u.is_public, u.created_at,
-		       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count
+		       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
+		       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
 		WHERE p.id = ?
@@ -156,7 +158,7 @@ func (pr *PostRepository) GetPost(postID, viewerID int) (*Post, error) {
 	err := pr.db.QueryRow(query, postID).Scan(
 		&post.ID, &post.UserID, &post.Content, &post.ImagePath, &post.PrivacyLevel, &post.CreatedAt, &post.UpdatedAt,
 		&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.CoverPath, &author.IsPublic, &author.CreatedAt,
-		&post.CommentCount,
+		&post.CommentCount, &post.LikesCount,
 	)
 
 	if err != nil {
@@ -189,7 +191,8 @@ func (pr *PostRepository) GetFeed(options *FeedOptions) ([]*Post, error) {
 	query := `
 		SELECT p.id, p.user_id, p.content, p.image_path, p.privacy_level, p.created_at, p.updated_at,
 		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.cover_path, u.is_public, u.created_at,
-		       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count
+		       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
+		       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
 		WHERE (
@@ -236,7 +239,7 @@ func (pr *PostRepository) GetFeed(options *FeedOptions) ([]*Post, error) {
 		err := rows.Scan(
 			&post.ID, &post.UserID, &post.Content, &post.ImagePath, &post.PrivacyLevel, &post.CreatedAt, &post.UpdatedAt,
 			&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.CoverPath, &author.IsPublic, &author.CreatedAt,
-			&post.CommentCount,
+			&post.CommentCount, &post.LikesCount,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan post: %w", err)
@@ -257,7 +260,8 @@ func (pr *PostRepository) GetUserPosts(userID, viewerID int, limit, offset int) 
 	query := `
 		SELECT p.id, p.user_id, p.content, p.image_path, p.privacy_level, p.created_at, p.updated_at,
 		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.is_public, u.created_at,
-		       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count
+		       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
+		       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
 		WHERE p.user_id = ?
@@ -278,8 +282,8 @@ func (pr *PostRepository) GetUserPosts(userID, viewerID int, limit, offset int) 
 
 		err := rows.Scan(
 			&post.ID, &post.UserID, &post.Content, &post.ImagePath, &post.PrivacyLevel, &post.CreatedAt, &post.UpdatedAt,
-			&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.CoverPath, &author.IsPublic, &author.CreatedAt,
-			&post.CommentCount,
+			&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.IsPublic, &author.CreatedAt,
+			&post.CommentCount, &post.LikesCount,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan post: %w", err)
