@@ -26,9 +26,9 @@ export default function ProfilePosts({ userId }) {
       setError(null)
 
       try {
-        // Fetch all posts for this user (no pagination limit)
+        // Fetch all posts for this specific user
         const response = await fetch(
-          `${API_URL}/api/posts/user/${userId}?limit=1000&offset=0`,
+          `${API_URL}/api/posts/user/${userId}`,
           { credentials: 'include' }
         )
 

@@ -11,8 +11,9 @@ export default function ProfileFollowing({ userId }) {
   
   useEffect(() => {
     const fetchFollowing = async () => {
+      console.log('ProfileFollowing: Fetching following for userId:', userId) // Debug log
       setIsLoading(true)
-      
+
       try {
         const response = await fetch(
           `${API_URL}/api/follow/following/${userId}`,
@@ -23,8 +24,12 @@ export default function ProfileFollowing({ userId }) {
           throw new Error('Failed to fetch following')
         }
         
-        const data = await response.json()
-        setFollowing(data)
+        const result = await response.json()
+        console.log('Following API response:', result) // Debug log
+
+        // Handle the response structure from backend
+        const followingData = result.data || result || []
+        setFollowing(followingData)
       } catch (err) {
         console.error('Error fetching following:', err)
         setError(err.message)
