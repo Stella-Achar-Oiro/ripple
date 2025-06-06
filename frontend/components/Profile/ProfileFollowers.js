@@ -28,8 +28,16 @@ export default function ProfileFollowers({ userId }) {
         console.log('Followers API response:', result) // Debug log
 
         // Handle the response structure from backend
-        const followersData = result.data || result || []
-        setFollowers(followersData)
+        // Backend returns: { success: true, data: { followers: [...] } }
+        const followersData = result.data?.followers || []
+
+        // Ensure followersData is always an array
+        if (Array.isArray(followersData)) {
+          setFollowers(followersData)
+        } else {
+          console.error('Followers data is not an array:', followersData)
+          setFollowers([])
+        }
       } catch (err) {
         console.error('Error fetching followers:', err)
         setError(err.message)

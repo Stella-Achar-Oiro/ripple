@@ -28,8 +28,16 @@ export default function ProfileFollowing({ userId }) {
         console.log('Following API response:', result) // Debug log
 
         // Handle the response structure from backend
-        const followingData = result.data || result || []
-        setFollowing(followingData)
+        // Backend returns: { success: true, data: { following: [...] } }
+        const followingData = result.data?.following || []
+
+        // Ensure followingData is always an array
+        if (Array.isArray(followingData)) {
+          setFollowing(followingData)
+        } else {
+          console.error('Following data is not an array:', followingData)
+          setFollowing([])
+        }
       } catch (err) {
         console.error('Error fetching following:', err)
         setError(err.message)
