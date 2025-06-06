@@ -13,7 +13,7 @@ import styles from './profile.module.css'
 export default function ProfilePage() {
   const params = useParams()
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState('posts')
+  const [activeTab, setActiveTab] = useState(null) // Start with no tab selected
   const [profile, setProfile] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -170,19 +170,28 @@ export default function ProfilePage() {
         
         {canViewProfile ? (
           <>
-            <ProfileTabs 
-              activeTab={activeTab} 
+            <ProfileTabs
+              activeTab={activeTab}
               onTabChange={setActiveTab}
             />
-            
+
+            {!activeTab && (
+              <div className={styles.profileWelcome}>
+                <div className={styles.welcomeContent}>
+                  <h3>Welcome to {isCurrentUser ? 'your' : `${profile.first_name}'s`} profile!</h3>
+                  <p>Click on the tabs above to explore {isCurrentUser ? 'your' : 'their'} posts, followers, and following.</p>
+                </div>
+              </div>
+            )}
+
             {activeTab === 'posts' && (
               <ProfilePosts userId={profile.id} />
             )}
-            
+
             {activeTab === 'followers' && (
               <ProfileFollowers userId={profile.id} />
             )}
-            
+
             {activeTab === 'following' && (
               <ProfileFollowing userId={profile.id} />
             )}
