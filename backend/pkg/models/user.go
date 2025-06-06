@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"ripple/pkg/constants"
+	"strings"
 	"time"
 )
 
@@ -209,12 +210,10 @@ func (ur *UserRepository) UpdateProfile(userID int, updates map[string]interface
 
 	setParts = append(setParts, "updated_at = ?")
 	args = append(args, time.Now())
-	args = append(args, userID)
 
-	query += fmt.Sprintf("%s WHERE id = ?", setParts[0])
-	for i := 1; i < len(setParts); i++ {
-		query += ", " + setParts[i]
-	}
+	// Join all SET parts with commas
+	query += fmt.Sprintf("%s WHERE id = ?", strings.Join(setParts, ", "))
+	args = append(args, userID)
 
 	_, err := ur.db.Exec(query, args...)
 	if err != nil {
