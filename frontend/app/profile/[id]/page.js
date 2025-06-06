@@ -111,7 +111,19 @@ export default function ProfilePage() {
       // Show error notification
     }
   }
-  
+
+  // Handle profile update from edit modal
+  const handleProfileUpdate = (updatedProfile) => {
+    setProfile(updatedProfile)
+    // Also update current user profile if it's the same user
+    if (isCurrentUser) {
+      setCurrentUserProfile(prev => ({
+        ...prev,
+        data: updatedProfile
+      }))
+    }
+  }
+
   // Prepare loading component
   const loadingComponent = (
     <div className={styles.loadingContainer}>
@@ -168,6 +180,7 @@ export default function ProfilePage() {
           profile={profile}
           isCurrentUser={isCurrentUser}
           onPrivacyToggle={handlePrivacyToggle}
+          onProfileUpdate={handleProfileUpdate}
         />
 
         {canViewProfile ? (

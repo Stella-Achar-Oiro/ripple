@@ -401,11 +401,13 @@ func (ah *AuthHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 	// Validate and sanitize updates
 	allowedFields := map[string]bool{
-		"first_name": true,
-		"last_name":  true,
-		"nickname":   true,
-		"about_me":   true,
-		"is_public":  true,
+		"first_name":  true,
+		"last_name":   true,
+		"nickname":    true,
+		"about_me":    true,
+		"is_public":   true,
+		"avatar_path": true,
+		"cover_path":  true,
 	}
 
 	validUpdates := make(map[string]interface{})

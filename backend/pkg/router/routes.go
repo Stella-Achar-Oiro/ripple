@@ -61,6 +61,7 @@ func setupEventRoutes(mux *http.ServeMux, h *handlers.EventHandler, auth func(ht
 
 func setupUploadRoutes(mux *http.ServeMux, h *handlers.UploadHandler, auth func(http.Handler) http.Handler) {
 	mux.Handle("/api/upload/avatar", auth(http.HandlerFunc(h.UploadAvatar)))
+	mux.Handle("/api/upload/cover", auth(http.HandlerFunc(h.UploadCover)))
 	mux.Handle("/api/upload/post", auth(http.HandlerFunc(h.UploadPostImage)))
 	mux.Handle("/api/upload/comment", auth(http.HandlerFunc(h.UploadCommentImage)))
 }

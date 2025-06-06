@@ -58,7 +58,7 @@ func (uh *UploadHandler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 
 	// Return file path
 	filePath := fmt.Sprintf("/uploads/avatars/%s", filename)
-	
+
 	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
 		"file_path": filePath,
 		"message":   "Avatar uploaded successfully",
@@ -103,7 +103,7 @@ func (uh *UploadHandler) UploadPostImage(w http.ResponseWriter, r *http.Request)
 
 	// Return file path
 	filePath := fmt.Sprintf("/uploads/posts/%s", filename)
-	
+
 	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
 		"file_path": filePath,
 		"message":   "Image uploaded successfully",
@@ -148,7 +148,7 @@ func (uh *UploadHandler) UploadCommentImage(w http.ResponseWriter, r *http.Reque
 
 	// Return file path
 	filePath := fmt.Sprintf("/uploads/comments/%s", filename)
-	
+
 	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
 		"file_path": filePath,
 		"message":   "Image uploaded successfully",
@@ -156,3 +156,47 @@ func (uh *UploadHandler) UploadCommentImage(w http.ResponseWriter, r *http.Reque
 	})
 }
 
+// UploadCover uploads user cover photo
+func (uh *UploadHandler) UploadCover(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	// Parse multipart form
+	err = r.ParseMultipartForm(uh.config.MaxFileSize)
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "File too large or invalid form")
+		return
+	}
+
+	file, header, err := r.FormFile("cover")
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "No file uploaded or invalid file field")
+		return
+	}
+	defer file.Close()
+
+	// Validate and save file
+	uploadDir := filepath.Join(uh.config.UploadsPath, "covers")
+	filename, err := utils.SaveUploadedFile(file, header, uploadDir, uh.config.MaxFileSize)
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Return file path
+	filePath := fmt.Sprintf("/uploads/covers/%s", filename)
+
+	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
+		"file_path": filePath,
+		"message":   "Cover photo uploaded successfully",
+		"user_id":   userID,
+	})
+}

@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import ProfileEditModal from './ProfileEditModal'
 import styles from './ProfileHeader.module.css'
 
-export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle }) {
+export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle, onProfileUpdate }) {
   const [isFollowing, setIsFollowing] = useState(profile.is_following)
   const [isLoading, setIsLoading] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
   
@@ -31,7 +33,13 @@ export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle 
       setIsLoading(false)
     }
   }
-  
+
+  const handleProfileSave = (updatedProfile) => {
+    if (onProfileUpdate) {
+      onProfileUpdate(updatedProfile)
+    }
+  }
+
   return (
     <div className={styles.profileHeader}>
       <div className={styles.profileCover}>
@@ -44,6 +52,17 @@ export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle 
         ) : (
           <div className={styles.coverPlaceholder}></div>
         )}
+        {isCurrentUser && (
+          <div className={styles.coverEditOverlay}>
+            <button
+              className={styles.coverEditButton}
+              onClick={() => setIsEditModalOpen(true)}
+              title="Edit cover photo"
+            >
+              <i className="fas fa-camera"></i>
+            </button>
+          </div>
+        )}
         <div className={styles.profileAvatar}>
           {profile.avatar_path ? (
             <img
@@ -54,6 +73,15 @@ export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle 
             <div className={styles.avatarPlaceholder}>
               {profile.first_name.charAt(0)}{profile.last_name.charAt(0)}
             </div>
+          )}
+          {isCurrentUser && (
+            <button
+              className={styles.avatarEditButton}
+              onClick={() => setIsEditModalOpen(true)}
+              title="Edit profile picture"
+            >
+              <i className="fas fa-camera"></i>
+            </button>
           )}
         </div>
       </div>
@@ -66,17 +94,26 @@ export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle 
           </h1>
           
           {isCurrentUser ? (
-            <div className={styles.privacyToggle}>
-              <label className={styles.toggleLabel}>
-                <span>Public Profile</span>
-                <input 
-                  type="checkbox" 
-                  checked={profile.is_public}
-                  onChange={(e) => onPrivacyToggle(e.target.checked)}
-                  className={styles.toggleCheckbox}
-                />
-                <span className={styles.toggleSwitch}></span>
-              </label>
+            <div className={styles.profileActions}>
+              <button
+                className={styles.editButton}
+                onClick={() => setIsEditModalOpen(true)}
+              >
+                <i className="fas fa-edit"></i>
+                Edit Profile
+              </button>
+              <div className={styles.privacyToggle}>
+                <label className={styles.toggleLabel}>
+                  <span>Public Profile</span>
+                  <input
+                    type="checkbox"
+                    checked={profile.is_public}
+                    onChange={(e) => onPrivacyToggle(e.target.checked)}
+                    className={styles.toggleCheckbox}
+                  />
+                  <span className={styles.toggleSwitch}></span>
+                </label>
+              </div>
             </div>
           ) : (
             <button 
@@ -137,6 +174,13 @@ export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle 
           </div>
         </div>
       </div>
+
+      <ProfileEditModal
+        profile={profile}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={handleProfileSave}
+      />
     </div>
   )
 }
