@@ -235,7 +235,7 @@ func (pr *PostRepository) GetFeed(options *FeedOptions) ([]*Post, error) {
 
 		err := rows.Scan(
 			&post.ID, &post.UserID, &post.Content, &post.ImagePath, &post.PrivacyLevel, &post.CreatedAt, &post.UpdatedAt,
-			&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.IsPublic, &author.CreatedAt,
+			&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.CoverPath, &author.IsPublic, &author.CreatedAt,
 			&post.CommentCount,
 		)
 		if err != nil {
@@ -278,7 +278,7 @@ func (pr *PostRepository) GetUserPosts(userID, viewerID int, limit, offset int) 
 
 		err := rows.Scan(
 			&post.ID, &post.UserID, &post.Content, &post.ImagePath, &post.PrivacyLevel, &post.CreatedAt, &post.UpdatedAt,
-			&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.IsPublic, &author.CreatedAt,
+			&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.CoverPath, &author.IsPublic, &author.CreatedAt,
 			&post.CommentCount,
 		)
 		if err != nil {
@@ -429,7 +429,7 @@ func (pr *PostRepository) GetComments(postID, viewerID int, limit, offset int) (
 
 	query := `
 		SELECT c.id, c.post_id, c.user_id, c.content, c.image_path, c.created_at, c.updated_at,
-		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.is_public, u.created_at
+		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.cover_path, u.is_public, u.created_at
 		FROM comments c
 		JOIN users u ON c.user_id = u.id
 		WHERE c.post_id = ?
@@ -450,7 +450,7 @@ func (pr *PostRepository) GetComments(postID, viewerID int, limit, offset int) (
 
 		err := rows.Scan(
 			&comment.ID, &comment.PostID, &comment.UserID, &comment.Content, &comment.ImagePath, &comment.CreatedAt, &comment.UpdatedAt,
-			&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.IsPublic, &author.CreatedAt,
+			&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.CoverPath, &author.IsPublic, &author.CreatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan comment: %w", err)

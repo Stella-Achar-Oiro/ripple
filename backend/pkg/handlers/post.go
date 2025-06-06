@@ -398,9 +398,9 @@ func (ph *PostHandler) validateCreatePostRequest(req *models.CreatePostRequest) 
 
 	// Validate privacy level
 	validPrivacyLevels := map[string]bool{
-		"public":        true,
+		"public":         true,
 		"almost_private": true,
-		"private":       true,
+		"private":        true,
 	}
 
 	if !validPrivacyLevels[req.PrivacyLevel] {
