@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ripple - Social Network Wireframe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-navy: #1a1d29;
+            --secondary-navy: #252940;
+            --accent-navy: #2d3347;
+            --white: #ffffff;
+            --light-gray: #f8f9fa;
+            --border-gray: #e2e6ea;
+            --text-light: #6c757d;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-heavy: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--light-gray);
+            color: var(--primary-navy);
+            line-height: 1.6;
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            background-color: var(--primary-navy);
+            color: var(--white);
+            padding: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            height: 60px;
+        }
+
+        .nav-brand {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--white);
+            text-decoration: none;
+        }
+
+        .nav-search {
+            flex: 1;
+            max-width: 400px;
+            margin: 0 40px;
+            position: relative;
+        }
+
+        .nav-search input {
+            width: 100%;
+            padding: 10px 40px 10px 16px;
+            border: none;
+            border-radius: 25px;
+            background-color: var(--secondary-navy);
+            color: var(--white);
+            font-size: 14px;
+        }
+
+        .nav-search input::placeholder {
+            color: #8e9aaf;
+        }
+
+        .nav-search i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8e9aaf;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-icon {
+            position: relative;
+            padding: 8px;
+            border-radius: 50%;
+            background-color: transparent;
+            color: var(--white);
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .nav-icon:hover {
+            background-color: var(--secondary-navy);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: var(--danger);
+            color: var(--white);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--secondary-navy);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Main Layout */
+        .main-container {
+            margin-top: 60px;
+            min-height: calc(100vh - 60px);
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            padding: 20px 0;
+            height: calc(100vh - 60px);
+            position: fixed;
+            left: 0;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 30px;
+        }
+
+        .sidebar-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-light);
+            margin-bottom: 10px;
+            padding: 0 20px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: var(--primary-navy);
+            text-decoration: none;
+            transition: background-color 0.3s;
+            font-weight: 400;
+        }
+
+        .sidebar-item:hover,
+        .sidebar-item.active {
+            background-color: var(--light-gray);
+            color: var(--primary-navy);
+            font-weight: 500;
+        }
+
+        .sidebar-item i {
+            width: 20px;
+            margin-right: 12px;
+            font-size: 16px;
+        }
+
+        .sidebar-item .badge {
+            margin-left: auto;
+            background-color: var(--danger);
+            color: var(--white);
+            border-radius: 10px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            flex: 1;
+            max-width: calc(100vw - 250px);
+        }
+
+        .content-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Feed Layout */
+        .feed-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
+
+        .feed-main {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .feed-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Card Components */
+        .card {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-gray);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-navy);
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Create Post Component */
+        .create-post {
+            padding: 20px;
+        }
+
+        .create-post-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-navy);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+        }
+
+        .post-input {
+            flex: 1;
+            border: 1px solid var(--border-gray);
+            border-radius: 25px;
+            padding: 12px 20px;
+            font-size: 14px;
+            outline: none;
+            resize: none;
+            min-height: 50px;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .post-input:focus {
+            border-color: var(--primary-navy);
+        }
+
+        .post-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .post-options {
+            display: flex;
+            gap: 15px;
+        }
+
+        .post-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .post-option:hover {
+            background-color: var(--light-gray);
+        }
+
+        .privacy-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border: 1px solid var(--border-gray);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-navy);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-navy);
+        }
+
+        /* Post Component */
+        .post {
+            padding: 20px;
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .post-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .post-user-info h4 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--primary-navy);
+            margin-bottom: 2px;
+        }
+
+        .post-meta {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .post-menu {
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .post-menu:hover {
+            background-color: var(--light-gray);
+        }
+
+        .post-content {
+            margin-bottom: 15px;
+            font-size: 15px;
+            line-height: 1.5;
+            color: var(--primary-navy);
+        }
+
+        .post-image {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: var(--light-gray);
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+        }
+
+        .post-stats {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-top: 1px solid var(--border-gray);
+            border-bottom: 1px solid var(--border-gray);
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        .post-actions-row {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .post-action {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            color: var(--text-light);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .post-action:hover {
+            background-color: var(--light-gray);
+        }
+
+        .post-action.liked {
+            color: var(--primary-navy);
+        }
+
+        /* Widget Components */
+        .widget {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .widget-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-gray);
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-navy);
+        }
+
+        .widget-content {
+            padding: 20px;
+        }
+
+        .online-friends {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .friend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .friend-item:hover {
+            background-color: var(--light-gray);
+        }
+
+        .friend-avatar {
+            position: relative;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--primary-navy);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .online-indicator {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            background-color: var(--success);
+            border: 2px solid var(--white);
+            border-radius: 50%;
+        }
+
+        .friend-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--primary-navy);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .feed-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .feed-sidebar {
+                order: -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                max-width: 100vw;
+                padding: 15px;
+            }
+
+            .nav-search {
+                display: none;
+            }
+
+            .nav-actions {
+                gap: 10px;
+            }
+        }
+
+        /* Login Page Styles */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary-navy) 0%, var(--secondary-navy) 100%);
+            padding: 20px;
+        }
+
+        .login-card {
+            background-color: var(--white);
+            border-radius: 16px;
+            box-shadow: var(--shadow-heavy);
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            background-color: var(--primary-navy);
+            color: var(--white);
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .login-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .login-subtitle {
+            font-size: 14px;
+            color: #8e9aaf;
+        }
+
+        .login-form {
+            padding: 30px 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--primary-navy);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-gray);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Roboto', sans-serif;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-navy);
+        }
+
+        .btn-login {
+            width: 100%;
+            background-color: var(--primary-navy);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .btn-login:hover {
+            background-color: var(--secondary-navy);
+        }
+
+        .login-footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-gray);
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .login-link {
+            color: var(--primary-navy);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Chat Interface */
+        .chat-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            height: calc(100vh - 60px);
+            background-color: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .chat-sidebar {
+            background-color: var(--light-gray);
+            border-right: 1px solid var(--border-gray);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-search {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-gray);
+        }
+
+        .chat-search input {
+            width: 100%;
+            padding: 10px 16px;
+            border: 1px solid var(--border-gray);
+            border-radius: 25px;
+            font-size: 14px;
+        }
+
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .chat-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border-bottom: 1px solid var(--border-gray);
+        }
+
+        .chat-item:hover,
+        .chat-item.active {
+            background-color: var(--white);
+        }
+
+        .chat-item-info {
+            flex: 1;
+        }
+
+        .chat-item-name {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--primary-navy);
+            margin-bottom: 4px;
+        }
+
+        .chat-item-preview {
+            font-size: 13px;
+            color: var(--text-light);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .chat-item-time {
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        .unread-badge {
+            background-color: var(--primary-navy);
+            color: var(--white);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-main {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-gray);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #fafbfc;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        .message.own {
+            justify-content: flex-end;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message.own .message-bubble {
+            background-color: var(--primary-navy);
+            color: var(--white);
+            border-bottom-right-radius: 4px;
+        }
+
+        .message:not(.own) .message-bubble {
+            background-color: var(--white);
+            color: var(--primary-navy);
+            border-bottom-left-radius: 4px;
+            box-shadow: var(--shadow);
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .message:not(.own) .message-time {
+            text-align: left;
+        }
+
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid var(--border-gray);
+            background-color: var(--white);
+        }
+
+        .chat-input-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border-gray);
+            border-radius: 25px;
+            font-size: 14px;
+        }
+
+        .chat-send-btn {
+            background-color: var(--primary-navy);
+            color: var(--white);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .chat-send-btn:hover {
+            background-color: var(--secondary-navy);
+        }
+
+        /* Group Card */
+        .group-card {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .group-header {
+            height: 120px;
+            background: linear-gradient(135deg, var(--primary-navy), var(--secondary-navy));
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .group-info {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .group-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-navy);
+            margin-bottom: 8px;
+        }
+
+        .group-meta {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-bottom: 15px;
+        }
+
+        .group-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary-navy);
+            border: 2px solid var(--primary-navy);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary-navy);
+            color: var(--white);
+        }
+
+        /* Notification Panel */
+        .notification-panel {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            width: 320px;
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow-heavy);
+            z-index: 1000;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-gray);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .notification-item:hover {
+            background-color: var(--light-gray);
+        }
+
+        .notification-item.unread {
+            background-color: #f8f9ff;
+            border-left: 4px solid var(--primary-navy);
+        }
+
+        .notification-content {
+            font-size: 14px;
+            color: var(--primary-navy);
+            margin-bottom: 4px;
+        }
+
+        .notification-time {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page (Initial State) -->
+    <div class="login-container" id="loginPage">
+        <div class="login-card">
+            <div class="login-header">
+                <h1 class="login-title">Ripple</h1>
+                <p class="login-subtitle">Connect with your world</p>
+            </div>
+            <form class="login-form">
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" id="email" class="form-input" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn-login">Sign In</button>
+                <div class="login-footer">
+                    Don't have an account? <a href="#" class="login-link">Sign up</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application (Hidden initially) -->
+    <div class="app-container" id="mainApp" style="display: none;">
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <a href="#" class="nav-brand">Ripple</a>
+                
+                <div class="nav-search">
+                    <input type="text" placeholder="Search Ripple...">
+                    <i class="fas fa-search"></i>
+                </div>
+                
+                <div class="nav-actions">
+                    <div class="nav-icon" id="homeBtn">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div class="nav-icon" id="groupsBtn">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="nav-icon" id="chatBtn">
+                        <i class="fas fa-comments"></i>
+                        <span class="notification-badge">3</span>
+                    </div>
+                    <div class="nav-icon" id="notificationsBtn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">5</span>
+                    </div>
+                    <div class="profile-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="main-container">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Navigation</div>
+                    <a href="#" class="sidebar-item active" data-page="feed">
+                        <i class="fas fa-home"></i>
+                        News Feed
+                    </a>
+                    <a href="#" class="sidebar-item" data-page="profile">
+                        <i class="fas fa-user"></i>
+                        My Profile
+                    </a>
+                    <a href="#" class="sidebar-item" data-page="groups">
+                        <i class="fas fa-users"></i>
+                        Groups
+                    </a>
+                    <a href="#" class="sidebar-item" data-page="events">
+                        <i class="fas fa-calendar"></i>
+                        Events
+                    </a>
+                </div>
+                
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Messages</div>
+                    <a href="#" class="sidebar-item" data-page="chat">
+                        <i class="fas fa-comments"></i>
+                        Messages
+                        <span class="badge">3</span>
+                    </a>
+                    <a href="#" class="sidebar-item">
+                        <i class="fas fa-video"></i>
+                        Video Calls
+                    </a>
+                </div>
+                
+                <div class="sidebar-section">
+                    <div class="sidebar-title">More</div>
+                    <a href="#" class="sidebar-item">
+                        <i class="fas fa-cog"></i>
+                        Settings
+                    </a>
+                    <a href="#" class="sidebar-item">
+                        <i class="fas fa-question-circle"></i>
+                        Help
+                    </a>
+                    <a href="#" class="sidebar-item">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </a>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="main-content">
+                <!-- Feed Page -->
+                <div class="page-content" id="feedPage">
+                    <div class="feed-layout">
+                        <div class="feed-main">
+                            <!-- Create Post -->
+                            <div class="card">
+                                <div class="create-post">
+                                    <div class="create-post-header">
+                                        <div class="user-avatar">JD</div>
+                                        <textarea class="post-input" placeholder="What's on your mind, John?"></textarea>
+                                    </div>
+                                    <div class="post-actions">
+                                        <div class="post-options">
+                                            <div class="post-option">
+                                                <i class="fas fa-image"></i>
+                                                Photo
+                                            </div>
+                                            <div class="post-option">
+                                                <i class="fas fa-video"></i>
+                                                Video
+                                            </div>
+                                            <div class="post-option">
+                                                <i class="fas fa-smile"></i>
+                                                Feeling
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; gap: 10px; align-items: center;">
+                                            <div class="privacy-selector">
+                                                <i class="fas fa-globe"></i>
+                                                Public
+                                            </div>
+                                            <button class="btn-primary">Post</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Feed Posts -->
+                            <div class="card">
+                                <div class="post">
+                                    <div class="post-header">
+                                        <div class="post-user">
+                                            <div class="user-avatar">SA</div>
+                                            <div class="post-user-info">
+                                                <h4>Sarah Anderson</h4>
+                                                <div class="post-meta">2 hours ago • <i class="fas fa-globe"></i> Public</div>
+                                            </div>
+                                        </div>
+                                        <div class="post-menu">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                        </div>
+                                    </div>
+                                    <div class="post-content">
+                                        Just finished an amazing hike in the mountains! The view was absolutely breathtaking. Nothing beats nature's therapy 🏔️ #hiking #nature
+                                    </div>
+                                    <div class="post-image">
+                                        <i class="fas fa-image" style="font-size: 24px;"></i>
+                                        <span style="margin-left: 10px;">Mountain View Photo</span>
+                                    </div>
+                                    <div class="post-stats">
+                                        <span>24 likes • 8 comments</span>
+                                        <span>3 shares</span>
+                                    </div>
+                                    <div class="post-actions-row">
+                                        <div class="post-action">
+                                            <i class="far fa-heart"></i>
+                                            Like
+                                        </div>
+                                        <div class="post-action">
+                                            <i class="far fa-comment"></i>
+                                            Comment
+                                        </div>
+                                        <div class="post-action">
+                                            <i class="fas fa-share"></i>
+                                            Share
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="post">
+                                    <div class="post-header">
+                                        <div class="post-user">
+                                            <div class="user-avatar">MT</div>
+                                            <div class="post-user-info">
+                                                <h4>Mike Torres</h4>
+                                                <div class="post-meta">5 hours ago • <i class="fas fa-users"></i> Friends</div>
+                                            </div>
+                                        </div>
+                                        <div class="post-menu">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                        </div>
+                                    </div>
+                                    <div class="post-content">
+                                        Excited to announce that our team won the hackathon! 🎉 Thanks to everyone who supported us. Hard work really pays off!
+                                    </div>
+                                    <div class="post-stats">
+                                        <span>42 likes • 15 comments</span>
+                                        <span>7 shares</span>
+                                    </div>
+                                    <div class="post-actions-row">
+                                        <div class="post-action liked">
+                                            <i class="fas fa-heart"></i>
+                                            Like
+                                        </div>
+                                        <div class="post-action">
+                                            <i class="far fa-comment"></i>
+                                            Comment
+                                        </div>
+                                        <div class="post-action">
+                                            <i class="fas fa-share"></i>
+                                            Share
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="feed-sidebar">
+                            <!-- Online Friends Widget -->
+                            <div class="widget">
+                                <div class="widget-header">
+                                    Online Friends (8)
+                                </div>
+                                <div class="widget-content">
+                                    <div class="online-friends">
+                                        <div class="friend-item">
+                                            <div class="friend-avatar">
+                                                SA
+                                                <div class="online-indicator"></div>
+                                            </div>
+                                            <div class="friend-name">Sarah Anderson</div>
+                                        </div>
+                                        <div class="friend-item">
+                                            <div class="friend-avatar">
+                                                MT
+                                                <div class="online-indicator"></div>
+                                            </div>
+                                            <div class="friend-name">Mike Torres</div>
+                                        </div>
+                                        <div class="friend-item">
+                                            <div class="friend-avatar">
+                                                AL
+                                                <div class="online-indicator"></div>
+                                            </div>
+                                            <div class="friend-name">Alex Liu</div>
+                                        </div>
+                                        <div class="friend-item">
+                                            <div class="friend-avatar">
+                                                EB
+                                                <div class="online-indicator"></div>
+                                            </div>
+                                            <div class="friend-name">Emma Brown</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Suggested Groups -->
+                            <div class="widget">
+                                <div class="widget-header">
+                                    Suggested Groups
+                                </div>
+                                <div class="widget-content">
+                                    <div class="group-card" style="margin: 0; box-shadow: none;">
+                                        <div class="group-header" style="height: 80px;">
+                                            <i class="fas fa-camera" style="font-size: 24px; color: white;"></i>
+                                        </div>
+                                        <div class="group-info" style="padding: 15px;">
+                                            <div class="group-name" style="font-size: 16px;">Photography Enthusiasts</div>
+                                            <div class="group-meta">1.2k members</div>
+                                            <div class="group-actions">
+                                                <button class="btn-outline" style="padding: 6px 12px; font-size: 12px;">Join</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Page -->
+                <div class="page-content" id="chatPage" style="display: none;">
+                    <div class="chat-layout">
+                        <div class="chat-sidebar">
+                            <div class="chat-search">
+                                <input type="text" placeholder="Search conversations...">
+                            </div>
+                            <div class="chat-list">
+                                <div class="chat-item active">
+                                    <div class="friend-avatar">SA<div class="online-indicator"></div></div>
+                                    <div class="chat-item-info">
+                                        <div class="chat-item-name">Sarah Anderson</div>
+                                        <div class="chat-item-preview">That sounds amazing! When...</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div class="chat-item-time">2:30 PM</div>
+                                        <div class="unread-badge">2</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="chat-item">
+                                    <div class="friend-avatar">MT<div class="online-indicator"></div></div>
+                                    <div class="chat-item-info">
+                                        <div class="chat-item-name">Mike Torres</div>
+                                        <div class="chat-item-preview">Thanks for the help with...</div>
+                                    </div>
+                                    <div class="chat-item-time">1:15 PM</div>
+                                </div>
+
+                                <div class="chat-item">
+                                    <div class="friend-avatar">AL</div>
+                                    <div class="chat-item-info">
+                                        <div class="chat-item-name">Alex Liu</div>
+                                        <div class="chat-item-preview">Hey! Are you free this...</div>
+                                    </div>
+                                    <div class="chat-item-time">Yesterday</div>
+                                </div>
+
+                                <div class="chat-item">
+                                    <div class="friend-avatar" style="background: linear-gradient(45deg, #6c5ce7, #a29bfe);">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                    <div class="chat-item-info">
+                                        <div class="chat-item-name">Photography Group</div>
+                                        <div class="chat-item-preview">Mike: Just uploaded some...</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div class="chat-item-time">Yesterday</div>
+                                        <div class="unread-badge">5</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="chat-main">
+                            <div class="chat-header">
+                                <div class="friend-avatar">SA<div class="online-indicator"></div></div>
+                                <div>
+                                    <div style="font-weight: 600; color: var(--primary-navy);">Sarah Anderson</div>
+                                    <div style="font-size: 12px; color: var(--text-light);">Active now</div>
+                                </div>
+                                <div style="margin-left: auto; display: flex; gap: 15px;">
+                                    <i class="fas fa-phone" style="cursor: pointer; padding: 8px;"></i>
+                                    <i class="fas fa-video" style="cursor: pointer; padding: 8px;"></i>
+                                    <i class="fas fa-info-circle" style="cursor: pointer; padding: 8px;"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="chat-messages">
+                                <div class="message">
+                                    <div class="message-bubble">
+                                        Hey! I saw your hiking post. The photos look amazing!
+                                        <div class="message-time">2:28 PM</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="message own">
+                                    <div class="message-bubble">
+                                        Thank you! It was such a beautiful day. You should come with us next time!
+                                        <div class="message-time">2:29 PM</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="message">
+                                    <div class="message-bubble">
+                                        That sounds amazing! When are you planning the next trip?
+                                        <div class="message-time">2:30 PM</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="message own">
+                                    <div class="message-bubble">
+                                        We're thinking next weekend. I'll create an event in our group!
+                                        <div class="message-time">Just now</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="chat-input">
+                                <div class="chat-input-container">
+                                    <i class="fas fa-smile" style="cursor: pointer; color: var(--text-light);"></i>
+                                    <input type="text" placeholder="Type a message...">
+                                    <i class="fas fa-paperclip" style="cursor: pointer; color: var(--text-light);"></i>
+                                    <button class="chat-send-btn">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Groups Page -->
+                <div class="page-content" id="groupsPage" style="display: none;">
+                    <div class="content-wrapper">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">Your Groups</h2>
+                                <button class="btn-primary">Create Group</button>
+                            </div>
+                            <div class="card-body">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+                                    <div class="group-card">
+                                        <div class="group-header">
+                                            <i class="fas fa-camera" style="font-size: 32px; color: white;"></i>
+                                        </div>
+                                        <div class="group-info">
+                                            <div class="group-name">Photography Enthusiasts</div>
+                                            <div class="group-meta">1,234 members • 5 new posts</div>
+                                            <div class="group-actions">
+                                                <button class="btn-primary">View Group</button>
+                                                <button class="btn-outline">Settings</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="group-card">
+                                        <div class="group-header">
+                                            <i class="fas fa-code" style="font-size: 32px; color: white;"></i>
+                                        </div>
+                                        <div class="group-info">
+                                            <div class="group-name">Web Developers</div>
+                                            <div class="group-meta">567 members • 12 new posts</div>
+                                            <div class="group-actions">
+                                                <button class="btn-primary">View Group</button>
+                                                <button class="btn-outline">Settings</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="group-card">
+                                        <div class="group-header">
+                                            <i class="fas fa-mountain" style="font-size: 32px; color: white;"></i>
+                                        </div>
+                                        <div class="group-info">
+                                            <div class="group-name">Hiking Adventures</div>
+                                            <div class="group-meta">89 members • 3 new posts</div>
+                                            <div class="group-actions">
+                                                <button class="btn-primary">View Group</button>
+                                                <button class="btn-outline">Settings</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" style="margin-top: 20px;">
+                            <div class="card-header">
+                                <h2 class="card-title">Discover Groups</h2>
+                            </div>
+                            <div class="card-body">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+                                    <div class="group-card">
+                                        <div class="group-header">
+                                            <i class="fas fa-music" style="font-size: 32px; color: white;"></i>
+                                        </div>
+                                        <div class="group-info">
+                                            <div class="group-name">Music Lovers</div>
+                                            <div class="group-meta">2,345 members</div>
+                                            <div class="group-actions">
+                                                <button class="btn-outline">Join Group</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="group-card">
+                                        <div class="group-header">
+                                            <i class="fas fa-dumbbell" style="font-size: 32px; color: white;"></i>
+                                        </div>
+                                        <div class="group-info">
+                                            <div class="group-name">Fitness Community</div>
+                                            <div class="group-meta">1,678 members</div>
+                                            <div class="group-actions">
+                                                <button class="btn-outline">Join Group</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Page -->
+                <div class="page-content" id="profilePage" style="display: none;">
+                    <div class="content-wrapper">
+                        <div class="card">
+                            <div style="height: 200px; background: linear-gradient(135deg, var(--primary-navy), var(--secondary-navy)); position: relative;">
+                                <div style="position: absolute; bottom: -50px; left: 30px;">
+                                    <div style="width: 120px; height: 120px; border-radius: 50%; background-color: var(--primary-navy); color: var(--white); display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 700; border: 4px solid white;">JD</div>
+                                </div>
+                            </div>
+                            <div style="padding: 60px 30px 30px;">
+                                <div style="display: flex; justify-content: space-between; align-items: start;">
+                                    <div>
+                                        <h1 style="font-size: 28px; font-weight: 700; color: var(--primary-navy); margin-bottom: 8px;">John Doe</h1>
+                                        <p style="color: var(--text-light); margin-bottom: 15px;">Software Developer | Photography Enthusiast</p>
+                                        <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+                                            <span style="font-weight: 500;"><strong>156</strong> Friends</span>
+                                            <span style="font-weight: 500;"><strong>24</strong> Posts</span>
+                                            <span style="font-weight: 500;"><strong>8</strong> Groups</span>
+                                        </div>
+                                    </div>
+                                    <button class="btn-primary">Edit Profile</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-top: 20px;">
+                            <div>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">About</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                                            <div style="display: flex; align-items: center; gap: 12px;">
+                                                <i class="fas fa-briefcase" style="color: var(--text-light);"></i>
+                                                <span>Works at Tech Company</span>
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 12px;">
+                                                <i class="fas fa-graduation-cap" style="color: var(--text-light);"></i>
+                                                <span>Studied at University</span>
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 12px;">
+                                                <i class="fas fa-map-marker-alt" style="color: var(--text-light);"></i>
+                                                <span>Lives in San Francisco</span>
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 12px;">
+                                                <i class="fas fa-calendar" style="color: var(--text-light);"></i>
+                                                <span>Joined March 2023</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Recent Posts</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div style="text-align: center; padding: 40px; color: var(--text-light);">
+                                            <i class="fas fa-plus-circle" style="font-size: 48px; margin-bottom: 15px;"></i>
+                                            <p>Share your first post!</p>
+                                            <button class="btn-primary" style="margin-top: 10px;">Create Post</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Notification Panel (Hidden by default) -->
+        <div class="notification-panel" id="notificationPanel" style="display: none;">
+            <div style="padding: 15px 20px; border-bottom: 1px solid var(--border-gray); font-weight: 600;">
+                Notifications
+            </div>
+            <div class="notification-item unread">
+                <div class="notification-content">
+                    <strong>Sarah Anderson</strong> liked your post
+                </div>
+                <div class="notification-time">2 minutes ago</div>
+            </div>
+            <div class="notification-item unread">
+                <div class="notification-content">
+                    <strong>Mike Torres</strong> commented on your photo
+                </div>
+                <div class="notification-time">1 hour ago</div>
+            </div>
+            <div class="notification-item">
+                <div class="notification-content">
+                    You have a new follow request from <strong>Emma Brown</strong>
+                </div>
+                <div class="notification-time">3 hours ago</div>
+            </div>
+            <div class="notification-item">
+                <div class="notification-content">
+                    <strong>Photography Enthusiasts</strong> group has a new event
+                </div>
+                <div class="notification-time">Yesterday</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple navigation simulation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Login simulation
+            const loginForm = document.querySelector('.login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    document.getElementById('loginPage').style.display = 'none';
+                    document.getElementById('mainApp').style.display = 'block';
+                });
+            }
+
+            // Page navigation
+            const sidebarItems = document.querySelectorAll('.sidebar-item[data-page]');
+            const pages = document.querySelectorAll('.page-content');
+            
+            sidebarItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all sidebar items
+                    sidebarItems.forEach(si => si.classList.remove('active'));
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // Hide all pages
+                    pages.forEach(page => page.style.display = 'none');
+                    // Show selected page
+                    const targetPage = document.getElementById(this.dataset.page + 'Page');
+                    if (targetPage) {
+                        targetPage.style.display = 'block';
+                    }
+                });
+            });
+
+            // Top navigation buttons
+            document.getElementById('homeBtn')?.addEventListener('click', () => {
+                sidebarItems.forEach(si => si.classList.remove('active'));
+                document.querySelector('[data-page="feed"]').classList.add('active');
+                pages.forEach(page => page.style.display = 'none');
+                document.getElementById('feedPage').style.display = 'block';
+            });
+
+            document.getElementById('groupsBtn')?.addEventListener('click', () => {
+                sidebarItems.forEach(si => si.classList.remove('active'));
+                document.querySelector('[data-page="groups"]').classList.add('active');
+                pages.forEach(page => page.style.display = 'none');
+                document.getElementById('groupsPage').style.display = 'block';
+            });
+
+            document.getElementById('chatBtn')?.addEventListener('click', () => {
+                sidebarItems.forEach(si => si.classList.remove('active'));
+                document.querySelector('[data-page="chat"]').classList.add('active');
+                pages.forEach(page => page.style.display = 'none');
+                document.getElementById('chatPage').style.display = 'block';
+            });
+
+            // Notifications panel toggle
+            document.getElementById('notificationsBtn')?.addEventListener('click', function() {
+                const panel = document.getElementById('notificationPanel');
+                panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            });
+
+            // Close notifications when clicking outside
+            document.addEventListener('click', function(e) {
+                const panel = document.getElementById('notificationPanel');
+                const notifBtn = document.getElementById('notificationsBtn');
+                if (panel && !panel.contains(e.target) && !notifBtn.contains(e.target)) {
+                    panel.style.display = 'none';
+                }
+            });
+
+            // Chat send button
+            const chatInput = document.querySelector('.chat-input input');
+            const sendBtn = document.querySelector('.chat-send-btn');
+            
+            if (sendBtn && chatInput) {
+                sendBtn.addEventListener('click', function() {
+                    if (chatInput.value.trim()) {
+                        console.log('Sending message:', chatInput.value);
+                        chatInput.value = '';
+                    }
+                });
+
+                chatInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' && this.value.trim()) {
+                        console.log('Sending message:', this.value);
+                        this.value = '';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
