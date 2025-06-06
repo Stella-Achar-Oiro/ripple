@@ -39,6 +39,7 @@ func main() {
 	userRepo := models.NewUserRepository(database.DB)
 	followRepo := models.NewFollowRepository(database.DB)
 	postRepo := models.NewPostRepository(database.DB)
+	likeRepo := models.NewLikeRepository(database.DB)
 	groupRepo := models.NewGroupRepository(database.DB)
 	groupPostRepo := models.NewGroupPostRepository(database.DB)
 	eventRepo := models.NewEventRepository(database.DB)
@@ -56,6 +57,7 @@ func main() {
 	authHandler := handlers.NewAuthHandler(userRepo, followRepo, postRepo, sessionManager)
 	followHandler := handlers.NewFollowHandler(followRepo, userRepo, notificationRepo)
 	postHandler := handlers.NewPostHandler(postRepo)
+	likeHandler := handlers.NewLikeHandler(likeRepo, postRepo)
 	groupHandler := handlers.NewGroupHandler(groupRepo, groupPostRepo, notificationRepo)
 	eventHandler := handlers.NewEventHandler(eventRepo, groupRepo, notificationRepo)
 	notificationHandler := handlers.NewNotificationHandler(notificationRepo)
@@ -68,6 +70,7 @@ func main() {
 		authHandler,
 		followHandler,
 		postHandler,
+		likeHandler,
 		groupHandler,
 		eventHandler,
 		notificationHandler,
