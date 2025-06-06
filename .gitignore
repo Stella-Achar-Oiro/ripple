@@ -24,6 +24,7 @@ yarn-error.log*
 /bin/
 /pkg/
 /tmp/
+*.txt
 
 # Go workspace file
 go.work
