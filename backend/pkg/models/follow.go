@@ -225,7 +225,7 @@ func (fr *FollowRepository) GetPendingFollowRequests(userID int) ([]*FollowReque
 // GetFollowers gets accepted followers for a user
 func (fr *FollowRepository) GetFollowers(userID int) ([]*UserResponse, error) {
 	query := `
-		SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.is_public, u.created_at
+		SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.cover_path, u.is_public, u.created_at
 		FROM follows f
 		JOIN users u ON f.follower_id = u.id
 		WHERE f.following_id = ? AND f.status = ?
@@ -242,7 +242,7 @@ func (fr *FollowRepository) GetFollowers(userID int) ([]*UserResponse, error) {
 	for rows.Next() {
 		user := &User{}
 		err := rows.Scan(
-			&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.DateOfBirth, &user.Nickname, &user.AboutMe, &user.AvatarPath, &user.IsPublic, &user.CreatedAt,
+			&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.DateOfBirth, &user.Nickname, &user.AboutMe, &user.AvatarPath, &user.CoverPath, &user.IsPublic, &user.CreatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan follower: %w", err)
@@ -256,7 +256,7 @@ func (fr *FollowRepository) GetFollowers(userID int) ([]*UserResponse, error) {
 // GetFollowing gets users that the current user is following
 func (fr *FollowRepository) GetFollowing(userID int) ([]*UserResponse, error) {
 	query := `
-		SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.is_public, u.created_at
+		SELECT u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.cover_path, u.is_public, u.created_at
 		FROM follows f
 		JOIN users u ON f.following_id = u.id
 		WHERE f.follower_id = ? AND f.status = ?
@@ -273,7 +273,7 @@ func (fr *FollowRepository) GetFollowing(userID int) ([]*UserResponse, error) {
 	for rows.Next() {
 		user := &User{}
 		err := rows.Scan(
-			&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.DateOfBirth, &user.Nickname, &user.AboutMe, &user.AvatarPath, &user.IsPublic, &user.CreatedAt,
+			&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.DateOfBirth, &user.Nickname, &user.AboutMe, &user.AvatarPath, &user.CoverPath, &user.IsPublic, &user.CreatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan following: %w", err)

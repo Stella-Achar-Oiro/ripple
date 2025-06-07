@@ -5,7 +5,7 @@ import styles from './Post.module.css'
 
 export default function Post({ post }) {
   const [isLiked, setIsLiked] = useState(post.isLiked)
-  const [likeCount, setLikeCount] = useState(post.stats.likes)
+  const [likeCount, setLikeCount] = useState(post.likes_count)
 
   const handleLike = () => {
     setIsLiked(!isLiked)
@@ -16,16 +16,24 @@ export default function Post({ post }) {
     return privacy === 'Public' ? 'fas fa-globe' : 'fas fa-users'
   }
 
+  // Helper function to generate initials from author's first and last name
+  const getAuthorInitials = (author) => {
+    if (!author) return 'U'
+    const firstInitial = author.first_name?.[0] || ''
+    const lastInitial = author.last_name?.[0] || ''
+    return (firstInitial + lastInitial).toUpperCase() || 'U'
+  }
+
   return (
     <div className="card">
       <div className={styles.post}>
         <div className={styles.postHeader}>
           <div className={styles.postUser}>
-            <div className="user-avatar">{post.user.initials}</div>
+            <div className="user-avatar">{getAuthorInitials(post.author)}</div>
             <div className={styles.postUserInfo}>
-              <h4>{post.user.name}</h4>
+              <h4>{post.author?.first_name} {post.author?.last_name}</h4>
               <div className={styles.postMeta}>
-                {post.timestamp} • <i className={getPrivacyIcon(post.privacy)}></i> {post.privacy}
+                {new Date(post.created_at).toLocaleDateString()} • <i className={getPrivacyIcon(post.privacy_level)}></i> {post.privacy_level}
               </div>
             </div>
           </div>
@@ -33,25 +41,33 @@ export default function Post({ post }) {
             <i className="fas fa-ellipsis-h"></i>
           </div>
         </div>
-        
+
         <div className={styles.postContent}>
           {post.content}
         </div>
-        
-        {post.hasImage && (
+
+        {post.image_path ? (
           <div className={styles.postImage}>
-            <i className="fas fa-image" style={{ fontSize: '24px' }}></i>
-            <span style={{ marginLeft: '10px' }}>{post.imageDescription}</span>
+            <img
+              src={post.image_path}
+              alt="Post attachment"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                borderRadius: '8px'
+              }}
+            />
           </div>
-        )}
-        
+        ) : null}
+
         <div className={styles.postStats}>
-          <span>{likeCount} likes • {post.stats.comments} comments</span>
-          <span>{post.stats.shares} shares</span>
+          <span>{likeCount} likes • {post.comment_count || 0} comments</span>
+          <span>{post.stats?.shares || 0} shares</span>
         </div>
-        
+
         <div className={styles.postActionsRow}>
-          <div 
+          <div
             className={`${styles.postAction} ${isLiked ? styles.liked : ''}`}
             onClick={handleLike}
           >

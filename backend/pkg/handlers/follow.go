@@ -259,6 +259,11 @@ func (fh *FollowHandler) GetFollowers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// SAFETY CHECK: Ensure never nil
+	if followers == nil {
+		followers = make([]*models.UserResponse, 0)
+	}
+
 	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
 		"followers": followers,
 	})
@@ -288,6 +293,11 @@ func (fh *FollowHandler) GetFollowing(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		utils.WriteInternalErrorResponse(w, err)
 		return
+	}
+
+	// SAFETY CHECK: Ensure never nil
+	if following == nil {
+		following = make([]*models.UserResponse, 0)
 	}
 
 	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{

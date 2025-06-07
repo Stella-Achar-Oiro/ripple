@@ -19,16 +19,17 @@ func NewPostRepository(db *sql.DB) *PostRepository {
 
 type Post struct {
 	BaseModel
-	UserID       int     `json:"user_id" db:"user_id"`
-	Content      string  `json:"content" db:"content"`
-	ImagePath    *string `json:"image_path" db:"image_path"`
-	PrivacyLevel string  `json:"privacy_level" db:"privacy_level"`
+	UserID       int       `json:"user_id" db:"user_id"`
+	Content      string    `json:"content" db:"content"`
+	ImagePath    *string   `json:"image_path" db:"image_path"`
+	PrivacyLevel string    `json:"privacy_level" db:"privacy_level"`
 	CreatedAt    time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
 
 	// Joined fields
 	Author       *UserResponse `json:"author,omitempty"`
 	CommentCount int           `json:"comment_count"`
+	LikesCount   int           `json:"likes_count"`
 	CanView      bool          `json:"can_view"`
 	CanComment   bool          `json:"can_comment"`
 }
@@ -143,8 +144,9 @@ func (pr *PostRepository) CreatePost(userID int, req *CreatePostRequest) (*Post,
 func (pr *PostRepository) GetPost(postID, viewerID int) (*Post, error) {
 	query := `
 		SELECT p.id, p.user_id, p.content, p.image_path, p.privacy_level, p.created_at, p.updated_at,
-		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.is_public, u.created_at,
-		       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count
+		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.cover_path, u.is_public, u.created_at,
+		       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
+		       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
 		WHERE p.id = ?
@@ -155,8 +157,8 @@ func (pr *PostRepository) GetPost(postID, viewerID int) (*Post, error) {
 
 	err := pr.db.QueryRow(query, postID).Scan(
 		&post.ID, &post.UserID, &post.Content, &post.ImagePath, &post.PrivacyLevel, &post.CreatedAt, &post.UpdatedAt,
-		&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.IsPublic, &author.CreatedAt,
-		&post.CommentCount,
+		&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.CoverPath, &author.IsPublic, &author.CreatedAt,
+		&post.CommentCount, &post.LikesCount,
 	)
 
 	if err != nil {
@@ -188,8 +190,9 @@ func (pr *PostRepository) GetPost(postID, viewerID int) (*Post, error) {
 func (pr *PostRepository) GetFeed(options *FeedOptions) ([]*Post, error) {
 	query := `
 		SELECT p.id, p.user_id, p.content, p.image_path, p.privacy_level, p.created_at, p.updated_at,
-		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.is_public, u.created_at,
-		       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count
+		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.cover_path, u.is_public, u.created_at,
+		       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
+		       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
 		WHERE (
@@ -199,7 +202,7 @@ func (pr *PostRepository) GetFeed(options *FeedOptions) ([]*Post, error) {
 			p.user_id = ? OR
 			-- Almost private posts from followed users
 			(p.privacy_level = ? AND p.user_id IN (
-				SELECT following_id FROM follows 
+				SELECT following_id FROM follows
 				WHERE follower_id = ? AND status = ?
 			)) OR
 			-- Private posts where user is explicitly allowed
@@ -235,8 +238,8 @@ func (pr *PostRepository) GetFeed(options *FeedOptions) ([]*Post, error) {
 
 		err := rows.Scan(
 			&post.ID, &post.UserID, &post.Content, &post.ImagePath, &post.PrivacyLevel, &post.CreatedAt, &post.UpdatedAt,
-			&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.IsPublic, &author.CreatedAt,
-			&post.CommentCount,
+			&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.CoverPath, &author.IsPublic, &author.CreatedAt,
+			&post.CommentCount, &post.LikesCount,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan post: %w", err)
@@ -257,7 +260,8 @@ func (pr *PostRepository) GetUserPosts(userID, viewerID int, limit, offset int) 
 	query := `
 		SELECT p.id, p.user_id, p.content, p.image_path, p.privacy_level, p.created_at, p.updated_at,
 		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.is_public, u.created_at,
-		       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count
+		       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
+		       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
 		WHERE p.user_id = ?
@@ -279,7 +283,7 @@ func (pr *PostRepository) GetUserPosts(userID, viewerID int, limit, offset int) 
 		err := rows.Scan(
 			&post.ID, &post.UserID, &post.Content, &post.ImagePath, &post.PrivacyLevel, &post.CreatedAt, &post.UpdatedAt,
 			&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.IsPublic, &author.CreatedAt,
-			&post.CommentCount,
+			&post.CommentCount, &post.LikesCount,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan post: %w", err)
@@ -429,7 +433,7 @@ func (pr *PostRepository) GetComments(postID, viewerID int, limit, offset int) (
 
 	query := `
 		SELECT c.id, c.post_id, c.user_id, c.content, c.image_path, c.created_at, c.updated_at,
-		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.is_public, u.created_at
+		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.cover_path, u.is_public, u.created_at
 		FROM comments c
 		JOIN users u ON c.user_id = u.id
 		WHERE c.post_id = ?
@@ -450,7 +454,7 @@ func (pr *PostRepository) GetComments(postID, viewerID int, limit, offset int) (
 
 		err := rows.Scan(
 			&comment.ID, &comment.PostID, &comment.UserID, &comment.Content, &comment.ImagePath, &comment.CreatedAt, &comment.UpdatedAt,
-			&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.IsPublic, &author.CreatedAt,
+			&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.CoverPath, &author.IsPublic, &author.CreatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan comment: %w", err)
@@ -461,6 +465,20 @@ func (pr *PostRepository) GetComments(postID, viewerID int, limit, offset int) (
 	}
 
 	return comments, nil
+}
+
+// GetPostCount gets the number of posts by a user
+func (pr *PostRepository) GetPostCount(userID int) (int, error) {
+	var count int
+	err := pr.db.QueryRow(`
+		SELECT COUNT(*) FROM posts WHERE user_id = ?
+	`, userID).Scan(&count)
+
+	if err != nil {
+		return 0, fmt.Errorf("failed to get post count: %w", err)
+	}
+
+	return count, nil
 }
 
 // DeleteComment deletes a comment (only by author or post author)

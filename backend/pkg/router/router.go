@@ -15,6 +15,7 @@ func SetupRoutes(
 	authHandler *handlers.AuthHandler,
 	followHandler *handlers.FollowHandler,
 	postHandler *handlers.PostHandler,
+	likeHandler *handlers.LikeHandler,
 	groupHandler *handlers.GroupHandler,
 	eventHandler *handlers.EventHandler,
 	notificationHandler *handlers.NotificationHandler,
@@ -40,12 +41,16 @@ func SetupRoutes(
 	// User routes
 	mux.Handle("/api/auth/profile", authMiddleware(http.HandlerFunc(authHandler.GetProfile)))
 	mux.Handle("/api/auth/profile/update", authMiddleware(http.HandlerFunc(authHandler.UpdateProfile)))
+	mux.Handle("/api/users/", authMiddleware(http.HandlerFunc(authHandler.GetUserProfile)))
 
 	// Follow routes
 	setupFollowRoutes(mux, followHandler, authMiddleware)
 
 	// Post routes
 	setupPostRoutes(mux, postHandler, authMiddleware)
+
+	// Like routes
+	setupLikeRoutes(mux, likeHandler, authMiddleware)
 
 	// Group routes
 	setupGroupRoutes(mux, groupHandler, authMiddleware)

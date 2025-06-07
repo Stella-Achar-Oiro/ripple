@@ -8,13 +8,13 @@ import (
 )
 
 type Config struct {
-	DatabasePath     string
-	MigrationsPath   string
-	ServerPort       string
-	SessionSecret    string
-	UploadsPath      string
-	AllowedOrigins   []string
-	MaxFileSize      int64
+	DatabasePath   string
+	MigrationsPath string
+	ServerPort     string
+	SessionSecret  string
+	UploadsPath    string
+	AllowedOrigins []string
+	MaxFileSize    int64
 }
 
 func LoadConfig() *Config {
@@ -36,7 +36,7 @@ func LoadConfig() *Config {
 	}
 
 	// Create subdirectories for different upload types
-	uploadDirs := []string{"avatars", "posts", "comments"}
+	uploadDirs := []string{"avatars", "covers", "posts", "comments"}
 	for _, dir := range uploadDirs {
 		fullPath := config.UploadsPath + "/" + dir
 		if err := os.MkdirAll(fullPath, 0755); err != nil {
