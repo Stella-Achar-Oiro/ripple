@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useAuth } from '../../contexts/AuthContext'
 import styles from './LoginForm.module.css'
 
 export default function LoginForm() {
@@ -11,42 +12,31 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
-  
-  // Get API URL from environment variable
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+  const { login } = useAuth()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     // Reset error state
     setError('')
-    
+
     // Basic validation
     if (!email || !password) {
       setError('Email and password are required')
       return
     }
-    
+
     setIsLoading(true)
-    
+
     try {
-      const response = await fetch(`${API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-        credentials: 'include', // Important for cookies ( ensure cookies are sent with the request)
-      })
-      
-      const data = await response.json()
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Invalid email or password')
+      const result = await login(email, password)
+
+      if (result.success) {
+        // Login successful - redirect to feed page
+        router.push('/feed')
+      } else {
+        setError(result.error || 'An error occurred during login')
       }
-      
-      // Login successful - redirect to feed page
-      router.push('/feed')
     } catch (err) {
       setError(err.message || 'An error occurred during login')
       console.error('Login error:', err)
