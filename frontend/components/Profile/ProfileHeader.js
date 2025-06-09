@@ -14,12 +14,13 @@ export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle,
     
     try {
       const endpoint = isFollowing 
-        ? `${API_URL}/api/follows/${profile.id}/unfollow` 
-        : `${API_URL}/api/follows/${profile.id}/follow`
+        ? `${API_URL}/api/unfollow` 
+        : `${API_URL}/api/follow`
       
       const response = await fetch(endpoint, {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
+        body: JSON.stringify({ user_id: profile.id }),
       })
       
       if (!response.ok) {
