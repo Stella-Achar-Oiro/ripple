@@ -1,4 +1,5 @@
 import './globals.css'
+import { AuthProvider } from '../contexts/AuthContext'
 
 export const metadata = {
   title: 'Ripple - Social Network',
@@ -9,12 +10,16 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <link 
-          rel="stylesheet" 
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
+        <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   )
 }

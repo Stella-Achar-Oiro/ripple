@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import RouteGuard from '../../components/Auth/RouteGuard'
 import MainLayout from '../../components/Layout/MainLayout'
 import ChatSidebar from '../../components/Chat/ChatSidebar'
 import ChatMain from '../../components/Chat/ChatMain'
@@ -83,18 +84,20 @@ export default function ChatPage() {
   const activeConversation = conversations.find(conv => conv.id === selectedChat)
 
   return (
-    <MainLayout currentPage="chat">
-      <div className={styles.chatLayout}>
-        <ChatSidebar 
-          conversations={conversations}
-          selectedChat={selectedChat}
-          onSelectChat={setSelectedChat}
-        />
-        <ChatMain 
-          conversation={activeConversation}
-          messages={messages}
-        />
-      </div>
-    </MainLayout>
+    <RouteGuard requireAuth={true}>
+      <MainLayout currentPage="chat">
+        <div className={styles.chatLayout}>
+          <ChatSidebar
+            conversations={conversations}
+            selectedChat={selectedChat}
+            onSelectChat={setSelectedChat}
+          />
+          <ChatMain
+            conversation={activeConversation}
+            messages={messages}
+          />
+        </div>
+      </MainLayout>
+    </RouteGuard>
   )
 }

@@ -1,5 +1,6 @@
 'use client'
 
+import RouteGuard from '../../components/Auth/RouteGuard'
 import MainLayout from '../../components/Layout/MainLayout'
 import GroupCard from '../../components/Groups/GroupCard'
 import styles from './page.module.css'
@@ -30,22 +31,24 @@ export default function GroupsPage() {
   ]
 
   return (
-    <MainLayout currentPage="groups">
-      <div className={styles.contentWrapper}>
-        <div className="card">
-          <div className="card-header">
-            <h2 className="card-title">Your Groups</h2>
-            <button className="btn-primary">Create Group</button>
-          </div>
-          <div className="card-body">
-            <div className={styles.groupsGrid}>
-              {groups.map(group => (
-                <GroupCard key={group.id} group={group} />
-              ))}
+    <RouteGuard requireAuth={true}>
+      <MainLayout currentPage="groups">
+        <div className={styles.contentWrapper}>
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-title">Your Groups</h2>
+              <button className="btn-primary">Create Group</button>
+            </div>
+            <div className="card-body">
+              <div className={styles.groupsGrid}>
+                {groups.map(group => (
+                  <GroupCard key={group.id} group={group} />
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </MainLayout>
+      </MainLayout>
+    </RouteGuard>
   )
 }
