@@ -38,6 +38,7 @@ type RegisterRequest struct {
 	LastName    string  `json:"last_name"`
 	DateOfBirth string  `json:"date_of_birth"`
 	Nickname    *string `json:"nickname"`
+	AvatarPath  *string `json:"avatar_path"`
 	AboutMe     *string `json:"about_me"`
 }
 
@@ -103,6 +104,7 @@ func (ah *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		LastName:    strings.TrimSpace(req.LastName),
 		DateOfBirth: req.DateOfBirth,
 		Nickname:    req.Nickname,
+		AvatarPath:  req.AvatarPath,
 		AboutMe:     req.AboutMe,
 	}
 
