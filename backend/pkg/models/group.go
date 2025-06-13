@@ -4,9 +4,9 @@ package models
 import (
 	"database/sql"
 	"fmt"
+	"ripple/pkg/constants"
 	"strings"
 	"time"
-	"ripple/pkg/constants"
 )
 
 type GroupRepository struct {
@@ -18,34 +18,35 @@ func NewGroupRepository(db *sql.DB) *GroupRepository {
 }
 
 type Group struct {
-	ID        int       `json:"id" db:"id"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
-	CreatorID   int    `json:"creator_id" db:"creator_id"`
-	Title       string `json:"title" db:"title"`
-	Description string `json:"description" db:"description"`
-	
+	ID          int       `json:"id" db:"id"`
+	CreatedAt   time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
+	CreatorID   int       `json:"creator_id" db:"creator_id"`
+	Title       string    `json:"title" db:"title"`
+	Description string    `json:"description" db:"description"`
+	AvatarPath  *string   `json:"avatar_path" db:"avatar_path"`
+	CoverPath   *string   `json:"cover_path" db:"cover_path"`
+
 	// Joined fields
-	Creator     *UserResponse `json:"creator,omitempty"`
-	MemberCount int           `json:"member_count"`
-	IsCreator   bool          `json:"is_creator"`
-	IsMember    bool          `json:"is_member"`
-	MemberStatus string       `json:"member_status"` // "accepted", "pending", "not_member"
+	Creator      *UserResponse `json:"creator,omitempty"`
+	MemberCount  int           `json:"member_count"`
+	IsCreator    bool          `json:"is_creator"`
+	IsMember     bool          `json:"is_member"`
+	MemberStatus string        `json:"member_status"` // "accepted", "pending", "not_member"
 }
 
 type GroupMember struct {
 	BaseModel
-	GroupID   int    `json:"group_id" db:"group_id"`
-	UserID    int    `json:"user_id" db:"user_id"`
-	Status    string `json:"status" db:"status"`
-	InvitedBy *int   `json:"invited_by" db:"invited_by"`
+	GroupID   int       `json:"group_id" db:"group_id"`
+	UserID    int       `json:"user_id" db:"user_id"`
+	Status    string    `json:"status" db:"status"`
+	InvitedBy *int      `json:"invited_by" db:"invited_by"`
 	JoinedAt  time.Time `json:"joined_at" db:"joined_at"`
-	
+
 	// Joined fields
-	User     *UserResponse `json:"user,omitempty"`
+	User          *UserResponse `json:"user,omitempty"`
 	InvitedByUser *UserResponse `json:"invited_by_user,omitempty"`
 }
-
 
 type GroupPostComment struct {
 	BaseModel
@@ -53,14 +54,16 @@ type GroupPostComment struct {
 	UserID      int     `json:"user_id" db:"user_id"`
 	Content     string  `json:"content" db:"content"`
 	ImagePath   *string `json:"image_path" db:"image_path"`
-	
+
 	// Joined fields
 	Author *UserResponse `json:"author,omitempty"`
 }
 
 type CreateGroupRequest struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	AvatarPath  *string `json:"avatar_path"`
+	CoverPath   *string `json:"cover_path"`
 }
 
 type InviteToGroupRequest struct {
@@ -102,8 +105,8 @@ func (gr *GroupRepository) CreateGroup(creatorID int, req *CreateGroupRequest) (
 
 	// Create group
 	query := `
-		INSERT INTO groups (creator_id, title, description, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?)
+		INSERT INTO groups (creator_id, title, description, avatar_path, cover_path, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
 		RETURNING id, created_at, updated_at
 	`
 
@@ -112,6 +115,8 @@ func (gr *GroupRepository) CreateGroup(creatorID int, req *CreateGroupRequest) (
 		CreatorID:   creatorID,
 		Title:       strings.TrimSpace(req.Title),
 		Description: strings.TrimSpace(req.Description),
+		AvatarPath:  req.AvatarPath,
+		CoverPath:   req.CoverPath,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
@@ -120,6 +125,8 @@ func (gr *GroupRepository) CreateGroup(creatorID int, req *CreateGroupRequest) (
 		group.CreatorID,
 		group.Title,
 		group.Description,
+		group.AvatarPath,
+		group.CoverPath,
 		group.CreatedAt,
 		group.UpdatedAt,
 	).Scan(&group.ID, &group.CreatedAt, &group.UpdatedAt)
@@ -133,7 +140,7 @@ func (gr *GroupRepository) CreateGroup(creatorID int, req *CreateGroupRequest) (
 		INSERT INTO group_members (group_id, user_id, status, joined_at)
 		VALUES (?, ?, ?, ?)
 	`
-	
+
 	_, err = tx.Exec(memberQuery, group.ID, creatorID, constants.GroupMemberStatusAccepted, now)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add creator as member: %w", err)
@@ -149,7 +156,7 @@ func (gr *GroupRepository) CreateGroup(creatorID int, req *CreateGroupRequest) (
 // GetGroup gets a group by ID with membership info for viewer
 func (gr *GroupRepository) GetGroup(groupID, viewerID int) (*Group, error) {
 	query := `
-		SELECT g.id, g.creator_id, g.title, g.description, g.created_at, g.updated_at,
+		SELECT g.id, g.creator_id, g.title, g.description, g.avatar_path, g.cover_path, g.created_at, g.updated_at,
 		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.is_public, u.created_at,
 		       (SELECT COUNT(*) FROM group_members WHERE group_id = g.id AND status = ?) as member_count
 		FROM groups g
@@ -161,7 +168,7 @@ func (gr *GroupRepository) GetGroup(groupID, viewerID int) (*Group, error) {
 	creator := &User{}
 
 	err := gr.db.QueryRow(query, constants.GroupMemberStatusAccepted, groupID).Scan(
-		&group.ID, &group.CreatorID, &group.Title, &group.Description, &group.CreatedAt, &group.UpdatedAt,
+		&group.ID, &group.CreatorID, &group.Title, &group.Description, &group.AvatarPath, &group.CoverPath, &group.CreatedAt, &group.UpdatedAt,
 		&creator.ID, &creator.Email, &creator.FirstName, &creator.LastName, &creator.DateOfBirth, &creator.Nickname, &creator.AboutMe, &creator.AvatarPath, &creator.IsPublic, &creator.CreatedAt,
 		&group.MemberCount,
 	)
@@ -191,7 +198,7 @@ func (gr *GroupRepository) GetGroup(groupID, viewerID int) (*Group, error) {
 // GetAllGroups gets all groups (for browsing)
 func (gr *GroupRepository) GetAllGroups(viewerID int, limit, offset int) ([]*Group, error) {
 	query := `
-		SELECT g.id, g.creator_id, g.title, g.description, g.created_at, g.updated_at,
+		SELECT g.id, g.creator_id, g.title, g.description, g.avatar_path, g.cover_path, g.created_at, g.updated_at,
 		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.is_public, u.created_at,
 		       (SELECT COUNT(*) FROM group_members WHERE group_id = g.id AND status = ?) as member_count
 		FROM groups g
@@ -212,7 +219,7 @@ func (gr *GroupRepository) GetAllGroups(viewerID int, limit, offset int) ([]*Gro
 		creator := &User{}
 
 		err := rows.Scan(
-			&group.ID, &group.CreatorID, &group.Title, &group.Description, &group.CreatedAt, &group.UpdatedAt,
+			&group.ID, &group.CreatorID, &group.Title, &group.Description, &group.AvatarPath, &group.CoverPath, &group.CreatedAt, &group.UpdatedAt,
 			&creator.ID, &creator.Email, &creator.FirstName, &creator.LastName, &creator.DateOfBirth, &creator.Nickname, &creator.AboutMe, &creator.AvatarPath, &creator.IsPublic, &creator.CreatedAt,
 			&group.MemberCount,
 		)
@@ -237,7 +244,7 @@ func (gr *GroupRepository) GetAllGroups(viewerID int, limit, offset int) ([]*Gro
 // GetUserGroups gets groups that a user is a member of
 func (gr *GroupRepository) GetUserGroups(userID int, limit, offset int) ([]*Group, error) {
 	query := `
-		SELECT g.id, g.creator_id, g.title, g.description, g.created_at, g.updated_at,
+		SELECT g.id, g.creator_id, g.title, g.description, g.avatar_path, g.cover_path, g.created_at, g.updated_at,
 		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.is_public, u.created_at,
 		       (SELECT COUNT(*) FROM group_members WHERE group_id = g.id AND status = ?) as member_count
 		FROM groups g
@@ -260,7 +267,7 @@ func (gr *GroupRepository) GetUserGroups(userID int, limit, offset int) ([]*Grou
 		creator := &User{}
 
 		err := rows.Scan(
-			&group.ID, &group.CreatorID, &group.Title, &group.Description, &group.CreatedAt, &group.UpdatedAt,
+			&group.ID, &group.CreatorID, &group.Title, &group.Description, &group.AvatarPath, &group.CoverPath, &group.CreatedAt, &group.UpdatedAt,
 			&creator.ID, &creator.Email, &creator.FirstName, &creator.LastName, &creator.DateOfBirth, &creator.Nickname, &creator.AboutMe, &creator.AvatarPath, &creator.IsPublic, &creator.CreatedAt,
 			&group.MemberCount,
 		)
@@ -307,7 +314,7 @@ func (gr *GroupRepository) InviteUsersToGroup(groupID, inviterID int, userIDs []
 			INSERT INTO group_members (group_id, user_id, status, invited_by, joined_at)
 			VALUES (?, ?, ?, ?, ?)
 		`
-		
+
 		_, err = tx.Exec(query, groupID, userID, constants.GroupMemberStatusPending, inviterID, time.Now())
 		if err != nil {
 			return fmt.Errorf("failed to create invitation: %w", err)
@@ -336,7 +343,7 @@ func (gr *GroupRepository) RequestToJoinGroup(groupID, userID int) error {
 		INSERT INTO group_members (group_id, user_id, status, joined_at)
 		VALUES (?, ?, ?, ?)
 	`
-	
+
 	_, err = gr.db.Exec(query, groupID, userID, constants.GroupMemberStatusPending, time.Now())
 	if err != nil {
 		return fmt.Errorf("failed to create join request: %w", err)
@@ -350,7 +357,7 @@ func (gr *GroupRepository) HandleMembershipRequest(membershipID, userID int, act
 	// Get membership details first
 	var groupID, memberUserID, invitedBy sql.NullInt64
 	var status string
-	
+
 	query := `SELECT group_id, user_id, invited_by, status FROM group_members WHERE id = ?`
 	err := gr.db.QueryRow(query, membershipID).Scan(&groupID, &memberUserID, &invitedBy, &status)
 	if err != nil {
@@ -523,7 +530,7 @@ func (gr *GroupRepository) IsMember(groupID, userID int) (bool, error) {
 		SELECT COUNT(*) FROM group_members 
 		WHERE group_id = ? AND user_id = ? AND status = ?
 	`, groupID, userID, constants.GroupMemberStatusAccepted).Scan(&count)
-	
+
 	return count > 0, err
 }
 
@@ -533,7 +540,7 @@ func (gr *GroupRepository) IsCreator(groupID, userID int) (bool, error) {
 		SELECT COUNT(*) FROM groups 
 		WHERE id = ? AND creator_id = ?
 	`, groupID, userID).Scan(&count)
-	
+
 	return count > 0, err
 }
 
@@ -543,7 +550,7 @@ func (gr *GroupRepository) MembershipExists(groupID, userID int) (bool, error) {
 		SELECT COUNT(*) FROM group_members 
 		WHERE group_id = ? AND user_id = ?
 	`, groupID, userID).Scan(&count)
-	
+
 	return count > 0, err
 }
 
@@ -553,13 +560,13 @@ func (gr *GroupRepository) GetMembershipStatus(groupID, userID int) (string, err
 		SELECT status FROM group_members 
 		WHERE group_id = ? AND user_id = ?
 	`, groupID, userID).Scan(&status)
-	
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return "not_member", nil
 		}
 		return "", err
 	}
-	
+
 	return status, nil
 }

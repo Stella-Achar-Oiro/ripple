@@ -64,6 +64,8 @@ func setupUploadRoutes(mux *http.ServeMux, h *handlers.UploadHandler, auth func(
 	mux.Handle("/api/upload/cover", auth(http.HandlerFunc(h.UploadCover)))
 	mux.Handle("/api/upload/post", auth(http.HandlerFunc(h.UploadPostImage)))
 	mux.Handle("/api/upload/comment", auth(http.HandlerFunc(h.UploadCommentImage)))
+	mux.Handle("/api/upload/group-avatar", auth(http.HandlerFunc(h.UploadGroupAvatar)))
+	mux.Handle("/api/upload/group-cover", auth(http.HandlerFunc(h.UploadGroupCover)))
 }
 
 func setupNotificationRoutes(mux *http.ServeMux, h *handlers.NotificationHandler, auth func(http.Handler) http.Handler) {

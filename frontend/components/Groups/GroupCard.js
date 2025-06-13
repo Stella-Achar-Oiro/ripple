@@ -1,6 +1,8 @@
 import styles from './GroupCard.module.css'
 
 export default function GroupCard({ group }) {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+
   // Generate a default icon based on group title
   const getGroupIcon = (title) => {
     const firstLetter = title?.charAt(0)?.toUpperCase() || 'G'
@@ -17,9 +19,24 @@ export default function GroupCard({ group }) {
 
   return (
     <div className={styles.groupCard}>
-      <div className={styles.groupHeader}>
+      <div
+        className={styles.groupHeader}
+        style={{
+          backgroundImage: group.cover_path
+            ? `url(${API_URL}${group.cover_path})`
+            : 'linear-gradient(135deg, var(--primary-navy), var(--secondary-navy))'
+        }}
+      >
         <div className={styles.groupIcon}>
-          {getGroupIcon(group.title)}
+          {group.avatar_path ? (
+            <img
+              src={`${API_URL}${group.avatar_path}`}
+              alt={`${group.title} avatar`}
+              className={styles.groupAvatarImage}
+            />
+          ) : (
+            getGroupIcon(group.title)
+          )}
         </div>
       </div>
       <div className={styles.groupInfo}>
