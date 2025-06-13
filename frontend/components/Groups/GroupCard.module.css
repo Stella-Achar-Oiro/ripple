@@ -3,6 +3,12 @@
   border-radius: 12px;
   box-shadow: var(--shadow);
   overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.groupCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .groupHeader {
@@ -14,26 +20,102 @@
   justify-content: center;
 }
 
+.groupIcon {
+  width: 50px;
+  height: 50px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 600;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
 .groupInfo {
-  padding: 15px;
+  padding: 16px;
   text-align: center;
 }
 
 .groupName {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--primary-navy);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.groupDescription {
+  font-size: 13px;
+  color: var(--text-light);
+  margin-bottom: 12px;
+  line-height: 1.4;
+  text-align: left;
 }
 
 .groupMeta {
   font-size: 12px;
   color: var(--text-light);
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.creatorBadge {
+  background-color: #fef3c7;
+  color: #d97706;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.creatorBadge i {
+  font-size: 10px;
 }
 
 .groupActions {
   display: flex;
   gap: 8px;
   justify-content: center;
+  flex-wrap: wrap;
+}
+
+.groupActions button {
+  font-size: 13px;
+  padding: 8px 16px;
+  flex: 1;
+  min-width: 80px;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .groupInfo {
+    padding: 14px;
+  }
+
+  .groupName {
+    font-size: 15px;
+  }
+
+  .groupDescription {
+    font-size: 12px;
+  }
+
+  .groupActions {
+    flex-direction: column;
+  }
+
+  .groupActions button {
+    flex: none;
+    width: 100%;
+  }
 }
