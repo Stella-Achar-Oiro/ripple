@@ -190,19 +190,21 @@ export default function GroupDetailPage() {
                   )}
                 </div>
               </div>
-              {group.is_creator && (
+              {(group.is_member || group.is_creator) && (
                 <div className={styles.groupActions}>
-                  <button 
+                  <button
                     className="btn-primary"
                     onClick={handleInviteUsers}
                   >
                     <i className="fas fa-user-plus"></i>
                     Invite Users
                   </button>
-                  <button className="btn-outline">
-                    <i className="fas fa-cog"></i>
-                    Settings
-                  </button>
+                  {group.is_creator && (
+                    <button className="btn-outline">
+                      <i className="fas fa-cog"></i>
+                      Settings
+                    </button>
+                  )}
                 </div>
               )}
             </div>

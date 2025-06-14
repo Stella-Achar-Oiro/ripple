@@ -1,13 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import RouteGuard from '../../components/Auth/RouteGuard'
 import MainLayout from '../../components/Layout/MainLayout'
 import GroupCard from '../../components/Groups/GroupCard'
 import CreateGroupModal from '../../components/Groups/CreateGroupModal'
+import PendingInvitations from '../../components/Groups/PendingInvitations'
 import styles from './page.module.css'
 
 export default function GroupsPage() {
+  const router = useRouter()
   const [groups, setGroups] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -45,9 +48,20 @@ export default function GroupsPage() {
     setGroups(prev => [newGroup, ...prev])
   }
 
+  // Handle invitation acceptance/decline
+  const handleInvitationHandled = () => {
+    // Refresh groups list when user accepts an invitation
+    fetchGroups()
+  }
+
   // Handle create group button click
   const handleCreateGroupClick = () => {
     setIsCreateModalOpen(true)
+  }
+
+  // Handle browse groups button click
+  const handleBrowseGroupsClick = () => {
+    router.push('/groups/browse')
   }
 
   // Handle modal close
@@ -59,15 +73,28 @@ export default function GroupsPage() {
     <RouteGuard requireAuth={true}>
       <MainLayout currentPage="groups">
         <div className={styles.contentWrapper}>
+          {/* Pending Invitations */}
+          <PendingInvitations onInvitationHandled={handleInvitationHandled} />
+
           <div className="card">
             <div className="card-header">
               <h2 className="card-title">Your Groups</h2>
-              <button
-                className="btn-primary"
-                onClick={handleCreateGroupClick}
-              >
-                Create Group
-              </button>
+              <div className={styles.headerActions}>
+                <button
+                  className="btn-outline"
+                  onClick={handleBrowseGroupsClick}
+                >
+                  <i className="fas fa-search"></i>
+                  Browse Groups
+                </button>
+                <button
+                  className="btn-primary"
+                  onClick={handleCreateGroupClick}
+                >
+                  <i className="fas fa-plus"></i>
+                  Create Group
+                </button>
+              </div>
             </div>
             <div className="card-body">
               {isLoading ? (
@@ -90,13 +117,23 @@ export default function GroupsPage() {
                 <div className={styles.emptyState}>
                   <i className="fas fa-users"></i>
                   <h3>No groups yet</h3>
-                  <p>Create your first group to start connecting with others who share your interests.</p>
-                  <button
-                    className="btn-primary"
-                    onClick={handleCreateGroupClick}
-                  >
-                    Create Your First Group
-                  </button>
+                  <p>Create your first group or browse existing groups to start connecting with others who share your interests.</p>
+                  <div className={styles.emptyStateActions}>
+                    <button
+                      className="btn-primary"
+                      onClick={handleCreateGroupClick}
+                    >
+                      <i className="fas fa-plus"></i>
+                      Create Your First Group
+                    </button>
+                    <button
+                      className="btn-outline"
+                      onClick={handleBrowseGroupsClick}
+                    >
+                      <i className="fas fa-search"></i>
+                      Browse Existing Groups
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className={styles.groupsGrid}>

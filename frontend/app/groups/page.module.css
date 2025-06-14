@@ -3,6 +3,12 @@
   margin: 0 auto;
 }
 
+.headerActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
 .groupsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -78,8 +84,15 @@
 .emptyState p {
   margin: 0;
   font-size: 1rem;
-  max-width: 400px;
+  max-width: 500px;
   line-height: 1.5;
+}
+
+.emptyStateActions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 /* Responsive Design */
@@ -108,5 +121,25 @@
 
   .emptyState p {
     font-size: 0.875rem;
+  }
+
+  .headerActions {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .headerActions button {
+    width: 100%;
+  }
+
+  .emptyStateActions {
+    flex-direction: column;
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .emptyStateActions button {
+    width: 100%;
   }
 }

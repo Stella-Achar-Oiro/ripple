@@ -141,7 +141,10 @@ export default function InviteUsersModal({ isOpen, onClose, onSuccess, groupId, 
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2>Invite Users to {groupTitle}</h2>
-          <button 
+          <p className={styles.modalSubtitle}>
+            Invited users will receive an invitation they can accept or decline
+          </p>
+          <button
             className={styles.closeButton}
             onClick={handleClose}
             disabled={isInviting}

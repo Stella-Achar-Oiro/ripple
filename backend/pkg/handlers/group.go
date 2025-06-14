@@ -842,19 +842,15 @@ func (gh *GroupHandler) InviteUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if user is the group creator
-	group, err := gh.groupRepo.GetGroup(groupID, userID)
+	// Check if user is a member of the group (members can invite others)
+	isMember, err := gh.groupRepo.IsMember(groupID, userID)
 	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
-			utils.WriteErrorResponse(w, http.StatusNotFound, "Group not found")
-		} else {
-			utils.WriteInternalErrorResponse(w, err)
-		}
+		utils.WriteInternalErrorResponse(w, err)
 		return
 	}
 
-	if !group.IsCreator {
-		utils.WriteErrorResponse(w, http.StatusForbidden, "Only group creators can invite users")
+	if !isMember {
+		utils.WriteErrorResponse(w, http.StatusForbidden, "Only group members can invite users")
 		return
 	}
 

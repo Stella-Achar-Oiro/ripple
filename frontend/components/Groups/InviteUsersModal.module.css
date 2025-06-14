@@ -55,6 +55,13 @@
   color: #1f2937;
 }
 
+.modalSubtitle {
+  margin: 4px 0 0 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 400;
+}
+
 .closeButton {
   background: none;
   border: none;
