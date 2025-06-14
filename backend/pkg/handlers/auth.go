@@ -531,3 +531,63 @@ func (ah *AuthHandler) clearSessionCookie(w http.ResponseWriter) {
 	http.SetCookie(w, cookie)
 	log.Printf("Session cookie cleared")
 }
+
+// SearchUsers searches for users by name or email
+func (ah *AuthHandler) SearchUsers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	// Get search query from URL parameters
+	query := r.URL.Query().Get("q")
+	if strings.TrimSpace(query) == "" {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Search query is required")
+		return
+	}
+
+	// Parse pagination parameters
+	limit := 20
+	offset := 0
+
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 && parsedLimit <= 50 {
+			limit = parsedLimit
+		}
+	}
+
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if parsedOffset, err := strconv.Atoi(offsetStr); err == nil && parsedOffset >= 0 {
+			offset = parsedOffset
+		}
+	}
+
+	// Search users
+	users, err := ah.userRepo.SearchUsers(query, limit, offset)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	// Convert to response format and exclude current user
+	var userResponses []*models.UserResponse
+	for _, user := range users {
+		if user.ID != userID { // Exclude current user from search results
+			userResponses = append(userResponses, user.ToResponse())
+		}
+	}
+
+	utils.WriteSuccessResponse(w, http.StatusOK, map[string]any{
+		"users":  userResponses,
+		"query":  query,
+		"limit":  limit,
+		"offset": offset,
+		"count":  len(userResponses),
+	})
+}

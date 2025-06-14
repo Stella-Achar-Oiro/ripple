@@ -805,3 +805,68 @@ func (gh *GroupHandler) validateCreateGroupCommentRequest(req *models.CreateGrou
 	return errors
 }
 
+// InviteUsers invites users to join a group (new endpoint for frontend)
+func (gh *GroupHandler) InviteUsers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	// Extract group ID from URL
+	groupIDStr := strings.TrimPrefix(r.URL.Path, "/api/groups/")
+	groupIDStr = strings.TrimSuffix(groupIDStr, "/invite")
+	groupID, err := strconv.Atoi(groupIDStr)
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid group ID")
+		return
+	}
+
+	// Parse request body
+	var req struct {
+		UserIDs []int `json:"user_ids"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if len(req.UserIDs) == 0 {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "No users specified for invitation")
+		return
+	}
+
+	// Check if user is the group creator
+	group, err := gh.groupRepo.GetGroup(groupID, userID)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			utils.WriteErrorResponse(w, http.StatusNotFound, "Group not found")
+		} else {
+			utils.WriteInternalErrorResponse(w, err)
+		}
+		return
+	}
+
+	if !group.IsCreator {
+		utils.WriteErrorResponse(w, http.StatusForbidden, "Only group creators can invite users")
+		return
+	}
+
+	// Invite users to the group using existing method
+	err = gh.groupRepo.InviteUsersToGroup(groupID, userID, req.UserIDs)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
+		"message":       "Invitations sent successfully",
+		"invited_count": len(req.UserIDs),
+	})
+}

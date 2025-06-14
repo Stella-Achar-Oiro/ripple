@@ -1,6 +1,8 @@
+import { useRouter } from 'next/navigation'
 import styles from './GroupCard.module.css'
 
 export default function GroupCard({ group }) {
+  const router = useRouter()
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
   // Generate a default icon based on group title
@@ -15,6 +17,10 @@ export default function GroupCard({ group }) {
       return `${(count / 1000).toFixed(1)}k`
     }
     return count?.toString() || '0'
+  }
+
+  const handleViewGroup = () => {
+    router.push(`/groups/${group.id}`)
   }
 
   return (
@@ -58,7 +64,9 @@ export default function GroupCard({ group }) {
           )}
         </div>
         <div className={styles.groupActions}>
-          <button className="btn-primary">View Group</button>
+          <button className="btn-primary" onClick={handleViewGroup}>
+            View Group
+          </button>
           {group.is_creator && (
             <button className="btn-outline">Settings</button>
           )}

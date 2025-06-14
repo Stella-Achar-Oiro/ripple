@@ -2,6 +2,7 @@ package router
 
 import (
 	"net/http"
+	"strings"
 
 	"ripple/pkg/handlers"
 )
@@ -36,7 +37,6 @@ func setupLikeRoutes(mux *http.ServeMux, h *handlers.LikeHandler, auth func(http
 
 func setupGroupRoutes(mux *http.ServeMux, h *handlers.GroupHandler, auth func(http.Handler) http.Handler) {
 	mux.Handle("/api/groups", auth(http.HandlerFunc(h.CreateGroup)))
-	mux.Handle("/api/groups/", auth(http.HandlerFunc(h.GetGroup)))
 	mux.Handle("/api/groups/all", auth(http.HandlerFunc(h.GetAllGroups)))
 	mux.Handle("/api/groups/user", auth(http.HandlerFunc(h.GetUserGroups)))
 	mux.Handle("/api/groups/invite", auth(http.HandlerFunc(h.InviteToGroup)))
@@ -49,6 +49,17 @@ func setupGroupRoutes(mux *http.ServeMux, h *handlers.GroupHandler, auth func(ht
 	mux.Handle("/api/groups/posts/get/", auth(http.HandlerFunc(h.GetGroupPosts)))
 	mux.Handle("/api/groups/comments/", auth(http.HandlerFunc(h.CreateGroupComment)))
 	mux.Handle("/api/groups/comments/get/", auth(http.HandlerFunc(h.GetGroupComments)))
+	// Handle group detail and invite endpoints
+	mux.HandleFunc("/api/groups/", func(w http.ResponseWriter, r *http.Request) {
+		authHandler := auth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if strings.HasSuffix(r.URL.Path, "/invite") && r.Method == "POST" {
+				h.InviteUsers(w, r)
+			} else {
+				h.GetGroup(w, r)
+			}
+		}))
+		authHandler.ServeHTTP(w, r)
+	})
 }
 
 func setupEventRoutes(mux *http.ServeMux, h *handlers.EventHandler, auth func(http.Handler) http.Handler) {

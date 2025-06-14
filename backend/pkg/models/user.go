@@ -223,6 +223,50 @@ func (ur *UserRepository) UpdateProfile(userID int, updates map[string]interface
 	return nil
 }
 
+// SearchUsers searches for users by name or email
+func (ur *UserRepository) SearchUsers(query string, limit, offset int) ([]*User, error) {
+	searchQuery := `
+		SELECT id, email, first_name, last_name, date_of_birth, nickname, about_me, avatar_path, cover_path, is_public, created_at, updated_at
+		FROM users
+		WHERE (first_name LIKE ? OR last_name LIKE ? OR email LIKE ? OR nickname LIKE ?)
+		AND is_public = 1
+		ORDER BY first_name, last_name
+		LIMIT ? OFFSET ?
+	`
+
+	searchTerm := "%" + strings.ToLower(query) + "%"
+	rows, err := ur.db.Query(searchQuery, searchTerm, searchTerm, searchTerm, searchTerm, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search users: %w", err)
+	}
+	defer rows.Close()
+
+	var users []*User
+	for rows.Next() {
+		user := &User{}
+		err := rows.Scan(
+			&user.ID,
+			&user.Email,
+			&user.FirstName,
+			&user.LastName,
+			&user.DateOfBirth,
+			&user.Nickname,
+			&user.AboutMe,
+			&user.AvatarPath,
+			&user.CoverPath,
+			&user.IsPublic,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan user: %w", err)
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
 func (u *User) ToResponse() *UserResponse {
 	return &UserResponse{
 		ID:          u.ID,
