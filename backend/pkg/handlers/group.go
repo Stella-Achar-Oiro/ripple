@@ -536,7 +536,7 @@ func (gh *GroupHandler) CreateGroupPost(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	groupID, err := strconv.Atoi(pathParts[3])
+	groupID, err := strconv.Atoi(pathParts[5])
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid group ID")
 		return
@@ -602,7 +602,7 @@ func (gh *GroupHandler) GetGroupPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groupID, err := strconv.Atoi(pathParts[3])
+	groupID, err := strconv.Atoi(pathParts[5])
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid group ID")
 		return

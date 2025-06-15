@@ -6,6 +6,7 @@ import RouteGuard from '../../../components/Auth/RouteGuard'
 import MainLayout from '../../../components/Layout/MainLayout'
 import InviteUsersModal from '../../../components/Groups/InviteUsersModal'
 import JoinRequestsManager from '../../../components/Groups/JoinRequestsManager'
+import GroupPostList from '../../../components/Groups/GroupPostList'
 import styles from './page.module.css'
 
 export default function GroupDetailPage() {
@@ -20,6 +21,7 @@ export default function GroupDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState('members')
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -226,85 +228,110 @@ export default function GroupDetailPage() {
           {/* Content Tabs */}
           <div className={styles.contentTabs}>
             <div className={styles.tabList}>
-              <button className={`${styles.tab} ${styles.active}`}>
+              <button
+                className={`${styles.tab} ${activeTab === 'members' ? styles.active : ''}`}
+                onClick={() => setActiveTab('members')}
+              >
                 <i className="fas fa-users"></i>
                 Members ({members.length})
               </button>
-              <button className={styles.tab}>
+              <button
+                className={`${styles.tab} ${activeTab === 'posts' ? styles.active : ''}`}
+                onClick={() => setActiveTab('posts')}
+              >
                 <i className="fas fa-comments"></i>
                 Posts
               </button>
-              <button className={styles.tab}>
+              <button
+                className={`${styles.tab} ${activeTab === 'events' ? styles.active : ''}`}
+                onClick={() => setActiveTab('events')}
+              >
                 <i className="fas fa-calendar"></i>
                 Events
               </button>
             </div>
 
-            {/* Members Tab Content */}
+            {/* Tab Content */}
             <div className={styles.tabContent}>
-              <div className={styles.membersList}>
-                {members.length === 0 ? (
-                    <div className={styles.emptyState}>
-                      <i className="fas fa-users"></i>
-                      <p>No members yet</p>
-                      {group.is_creator && (
-                        <button
-                          className="btn-primary"
-                          onClick={handleInviteUsers}
-                        >
-                          Invite the first members
-                        </button>
-                      )}
-                    </div>
-                  ) : (
-                    <div className={styles.membersGrid}>
-                      {members.map(member => {
-                        // Check if this member is the creator
-                        const isCreator = member.user_id === group.creator_id
-                        const memberUser = member.user || member // Handle different response structures
+              {activeTab === 'members' && (
+                <div className={styles.membersList}>
+                  {members.length === 0 ? (
+                      <div className={styles.emptyState}>
+                        <i className="fas fa-users"></i>
+                        <p>No members yet</p>
+                        {group.is_creator && (
+                          <button
+                            className="btn-primary"
+                            onClick={handleInviteUsers}
+                          >
+                            Invite the first members
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <div className={styles.membersGrid}>
+                        {members.map(member => {
+                          // Check if this member is the creator
+                          const isCreator = member.user_id === group.creator_id
+                          const memberUser = member.user || member // Handle different response structures
 
-                        return (
-                          <div key={member.id} className={styles.memberCard}>
-                            <div className={styles.memberAvatar}>
-                              {memberUser.avatar_path ? (
-                                <img
-                                  src={`${API_URL}${memberUser.avatar_path}`}
-                                  alt={`${memberUser.first_name} ${memberUser.last_name}`}
-                                />
-                              ) : (
-                                <div className={styles.memberAvatarPlaceholder}>
-                                  {memberUser.first_name?.charAt(0)?.toUpperCase() || 'U'}
-                                </div>
-                              )}
-                            </div>
-                            <div className={styles.memberInfo}>
-                              <button
-                                className={styles.memberNameButton}
-                                onClick={() => router.push(`/profile/${memberUser.id}`)}
-                              >
-                                {memberUser.first_name} {memberUser.last_name}
-                              </button>
-                              {memberUser.nickname && (
-                                <p className={styles.memberNickname}>@{memberUser.nickname}</p>
-                              )}
-                              <span className={styles.memberRole}>
-                                {isCreator ? (
-                                  <>
-                                    <i className="fas fa-crown"></i>
-                                    Creator
-                                  </>
+                          return (
+                            <div key={member.id} className={styles.memberCard}>
+                              <div className={styles.memberAvatar}>
+                                {memberUser.avatar_path ? (
+                                  <img
+                                    src={`${API_URL}${memberUser.avatar_path}`}
+                                    alt={`${memberUser.first_name} ${memberUser.last_name}`}
+                                  />
                                 ) : (
-                                  'Member'
+                                  <div className={styles.memberAvatarPlaceholder}>
+                                    {memberUser.first_name?.charAt(0)?.toUpperCase() || 'U'}
+                                  </div>
                                 )}
-                              </span>
+                              </div>
+                              <div className={styles.memberInfo}>
+                                <button
+                                  className={styles.memberNameButton}
+                                  onClick={() => router.push(`/profile/${memberUser.id}`)}
+                                >
+                                  {memberUser.first_name} {memberUser.last_name}
+                                </button>
+                                {memberUser.nickname && (
+                                  <p className={styles.memberNickname}>@{memberUser.nickname}</p>
+                                )}
+                                <span className={styles.memberRole}>
+                                  {isCreator ? (
+                                    <>
+                                      <i className="fas fa-crown"></i>
+                                      Creator
+                                    </>
+                                  ) : (
+                                    'Member'
+                                  )}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )
-                }
-              </div>
+                          )
+                        })}
+                      </div>
+                    )
+                  }
+                </div>
+              )}
+
+              {activeTab === 'posts' && (
+                <GroupPostList
+                  groupId={groupId}
+                  isGroupMember={group.is_member || group.is_creator}
+                />
+              )}
+
+              {activeTab === 'events' && (
+                <div className={styles.emptyState}>
+                  <i className="fas fa-calendar"></i>
+                  <p>Events feature coming soon!</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
