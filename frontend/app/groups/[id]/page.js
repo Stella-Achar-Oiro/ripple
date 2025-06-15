@@ -244,47 +244,66 @@ export default function GroupDetailPage() {
             <div className={styles.tabContent}>
               <div className={styles.membersList}>
                 {members.length === 0 ? (
-                  <div className={styles.emptyState}>
-                    <i className="fas fa-users"></i>
-                    <p>No members yet</p>
-                    {group.is_creator && (
-                      <button 
-                        className="btn-primary"
-                        onClick={handleInviteUsers}
-                      >
-                        Invite the first members
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <div className={styles.membersGrid}>
-                    {members.map(member => (
-                      <div key={member.id} className={styles.memberCard}>
-                        <div className={styles.memberAvatar}>
-                          {member.avatar_path ? (
-                            <img 
-                              src={`${API_URL}${member.avatar_path}`} 
-                              alt={`${member.first_name} ${member.last_name}`}
-                            />
-                          ) : (
-                            <div className={styles.memberAvatarPlaceholder}>
-                              {member.first_name?.charAt(0)?.toUpperCase() || 'U'}
+                    <div className={styles.emptyState}>
+                      <i className="fas fa-users"></i>
+                      <p>No members yet</p>
+                      {group.is_creator && (
+                        <button
+                          className="btn-primary"
+                          onClick={handleInviteUsers}
+                        >
+                          Invite the first members
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className={styles.membersGrid}>
+                      {members.map(member => {
+                        // Check if this member is the creator
+                        const isCreator = member.user_id === group.creator_id
+                        const memberUser = member.user || member // Handle different response structures
+
+                        return (
+                          <div key={member.id} className={styles.memberCard}>
+                            <div className={styles.memberAvatar}>
+                              {memberUser.avatar_path ? (
+                                <img
+                                  src={`${API_URL}${memberUser.avatar_path}`}
+                                  alt={`${memberUser.first_name} ${memberUser.last_name}`}
+                                />
+                              ) : (
+                                <div className={styles.memberAvatarPlaceholder}>
+                                  {memberUser.first_name?.charAt(0)?.toUpperCase() || 'U'}
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                        <div className={styles.memberInfo}>
-                          <h4>{member.first_name} {member.last_name}</h4>
-                          {member.nickname && (
-                            <p className={styles.memberNickname}>@{member.nickname}</p>
-                          )}
-                          <span className={styles.memberRole}>
-                            {member.is_creator ? 'Creator' : 'Member'}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                            <div className={styles.memberInfo}>
+                              <button
+                                className={styles.memberNameButton}
+                                onClick={() => router.push(`/profile/${memberUser.id}`)}
+                              >
+                                {memberUser.first_name} {memberUser.last_name}
+                              </button>
+                              {memberUser.nickname && (
+                                <p className={styles.memberNickname}>@{memberUser.nickname}</p>
+                              )}
+                              <span className={styles.memberRole}>
+                                {isCreator ? (
+                                  <>
+                                    <i className="fas fa-crown"></i>
+                                    Creator
+                                  </>
+                                ) : (
+                                  'Member'
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                }
               </div>
             </div>
           </div>

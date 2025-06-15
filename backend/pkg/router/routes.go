@@ -42,7 +42,7 @@ func setupGroupRoutes(mux *http.ServeMux, h *handlers.GroupHandler, auth func(ht
 	mux.Handle("/api/groups/invite", auth(http.HandlerFunc(h.InviteToGroup)))
 	mux.Handle("/api/groups/join", auth(http.HandlerFunc(h.JoinGroup)))
 	mux.Handle("/api/groups/handle", auth(http.HandlerFunc(h.HandleMembershipRequest)))
-	mux.Handle("/api/groups/members/", auth(http.HandlerFunc(h.GetGroupMembers)))
+
 	mux.Handle("/api/groups/invitations", auth(http.HandlerFunc(h.GetPendingInvitations)))
 	// Handle group requests endpoint with proper routing
 	mux.HandleFunc("/api/groups/", func(w http.ResponseWriter, r *http.Request) {
@@ -51,6 +51,8 @@ func setupGroupRoutes(mux *http.ServeMux, h *handlers.GroupHandler, auth func(ht
 				h.GetPendingJoinRequests(w, r)
 			} else if strings.HasSuffix(r.URL.Path, "/invite") && r.Method == "POST" {
 				h.InviteUsers(w, r)
+			} else if strings.HasSuffix(r.URL.Path, "/members") && r.Method == "GET" {
+				h.GetGroupMembers(w, r)
 			} else {
 				h.GetGroup(w, r)
 			}
