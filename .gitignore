@@ -58,3 +58,6 @@ go.work
 *.webp
 
 deviceInfo.json
+
+# seed data
+seed*
