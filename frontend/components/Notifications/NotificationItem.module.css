@@ -1,0 +1,123 @@
+.notificationItem {
+  padding: 15px;
+  border-bottom: 1px solid var(--border-gray);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  background-color: var(--white);
+}
+
+.notificationItem:hover {
+  background-color: var(--light-gray);
+}
+
+.notificationItem:last-child {
+  border-bottom: none;
+}
+
+.notificationItem.unread {
+  background-color: #f8f9ff;
+  border-left: 4px solid var(--primary-navy);
+}
+
+.notificationContent {
+  margin-bottom: 10px;
+}
+
+.notificationHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.notificationHeader i {
+  color: var(--primary-navy);
+  font-size: 14px;
+  width: 16px;
+  text-align: center;
+}
+
+.notificationTitle {
+  font-weight: 600;
+  color: var(--primary-navy);
+  font-size: 14px;
+}
+
+.notificationMessage {
+  font-size: 13px;
+  color: var(--text-dark);
+  line-height: 1.4;
+  margin-bottom: 5px;
+}
+
+.notificationTime {
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.notificationActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.actionButton {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 70px;
+  justify-content: center;
+}
+
+.actionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.acceptButton {
+  background-color: var(--success-green);
+  color: var(--white);
+}
+
+.acceptButton:hover:not(:disabled) {
+  background-color: #218838;
+  transform: translateY(-1px);
+}
+
+.declineButton {
+  background-color: var(--error-red);
+  color: var(--white);
+}
+
+.declineButton:hover:not(:disabled) {
+  background-color: #c82333;
+  transform: translateY(-1px);
+}
+
+.actionButton i {
+  font-size: 10px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .notificationItem {
+    padding: 12px;
+  }
+  
+  .notificationActions {
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .actionButton {
+    width: 100%;
+    padding: 8px 12px;
+  }
+}

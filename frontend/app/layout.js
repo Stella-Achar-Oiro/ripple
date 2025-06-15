@@ -1,5 +1,6 @@
 import './globals.css'
 import { AuthProvider } from '../contexts/AuthContext'
+import { NotificationProvider } from '../contexts/NotificationContext'
 
 export const metadata = {
   title: 'Ripple - Social Network',
@@ -17,7 +18,9 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <AuthProvider>
-          {children}
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
         </AuthProvider>
       </body>
     </html>

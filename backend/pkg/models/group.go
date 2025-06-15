@@ -311,11 +311,12 @@ func (gr *GroupRepository) InviteUsersToGroup(groupID, inviterID int, userIDs []
 		}
 
 		query := `
-			INSERT INTO group_members (group_id, user_id, status, invited_by, joined_at)
-			VALUES (?, ?, ?, ?, ?)
+			INSERT INTO group_members (group_id, user_id, status, invited_by, joined_at, created_at, updated_at)
+			VALUES (?, ?, ?, ?, ?, ?, ?)
 		`
 
-		_, err = tx.Exec(query, groupID, userID, constants.GroupMemberStatusPending, inviterID, time.Now())
+		now := time.Now()
+		_, err = tx.Exec(query, groupID, userID, constants.GroupMemberStatusPending, inviterID, now, now, now)
 		if err != nil {
 			return fmt.Errorf("failed to create invitation: %w", err)
 		}
@@ -340,11 +341,12 @@ func (gr *GroupRepository) RequestToJoinGroup(groupID, userID int) error {
 	}
 
 	query := `
-		INSERT INTO group_members (group_id, user_id, status, joined_at)
-		VALUES (?, ?, ?, ?)
+		INSERT INTO group_members (group_id, user_id, status, joined_at, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?)
 	`
 
-	_, err = gr.db.Exec(query, groupID, userID, constants.GroupMemberStatusPending, time.Now())
+	now := time.Now()
+	_, err = gr.db.Exec(query, groupID, userID, constants.GroupMemberStatusPending, now, now, now)
 	if err != nil {
 		return fmt.Errorf("failed to create join request: %w", err)
 	}
@@ -391,12 +393,13 @@ func (gr *GroupRepository) HandleMembershipRequest(membershipID, userID int, act
 	}
 
 	updateQuery := `
-		UPDATE group_members 
-		SET status = ?, joined_at = ?
+		UPDATE group_members
+		SET status = ?, joined_at = ?, updated_at = ?
 		WHERE id = ? AND status = ?
 	`
 
-	result, err := gr.db.Exec(updateQuery, newStatus, time.Now(), membershipID, constants.GroupMemberStatusPending)
+	now := time.Now()
+	result, err := gr.db.Exec(updateQuery, newStatus, now, now, membershipID, constants.GroupMemberStatusPending)
 	if err != nil {
 		return fmt.Errorf("failed to update membership: %w", err)
 	}

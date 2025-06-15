@@ -58,7 +58,7 @@ func main() {
 	followHandler := handlers.NewFollowHandler(followRepo, userRepo, notificationRepo)
 	postHandler := handlers.NewPostHandler(postRepo)
 	likeHandler := handlers.NewLikeHandler(likeRepo, postRepo)
-	groupHandler := handlers.NewGroupHandler(groupRepo, groupPostRepo, notificationRepo)
+	groupHandler := handlers.NewGroupHandler(groupRepo, groupPostRepo, notificationRepo, userRepo)
 	eventHandler := handlers.NewEventHandler(eventRepo, groupRepo, notificationRepo)
 	notificationHandler := handlers.NewNotificationHandler(notificationRepo)
 	uploadHandler := handlers.NewUploadHandler(cfg)

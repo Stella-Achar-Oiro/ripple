@@ -16,13 +16,14 @@ export default function PendingInvitations({ onInvitationHandled }) {
       const response = await fetch(`${API_URL}/api/groups/invitations`, {
         credentials: 'include',
       })
+      console.log("response <<< ", response)
 
       if (!response.ok) {
         throw new Error('Failed to fetch invitations')
       }
 
       const data = await response.json()
-      setInvitations(data.data.invitations || [])
+      setInvitations(data.data?.invitations || [])
     } catch (err) {
       console.error('Error fetching invitations:', err)
     } finally {

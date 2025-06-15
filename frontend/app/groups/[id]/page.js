@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import RouteGuard from '../../../components/Auth/RouteGuard'
 import MainLayout from '../../../components/Layout/MainLayout'
 import InviteUsersModal from '../../../components/Groups/InviteUsersModal'
+import JoinRequestsManager from '../../../components/Groups/JoinRequestsManager'
 import styles from './page.module.css'
 
 export default function GroupDetailPage() {
@@ -209,6 +210,18 @@ export default function GroupDetailPage() {
               )}
             </div>
           </div>
+
+          {/* Join Requests Manager (for group creators only) */}
+          {group.is_creator && (
+            <JoinRequestsManager
+              groupId={groupId}
+              isVisible={true}
+              onRequestHandled={() => {
+                // Refresh members list when a request is handled
+                fetchMembers()
+              }}
+            />
+          )}
 
           {/* Content Tabs */}
           <div className={styles.contentTabs}>

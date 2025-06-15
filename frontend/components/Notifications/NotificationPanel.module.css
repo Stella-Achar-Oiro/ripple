@@ -1,0 +1,156 @@
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.1);
+  z-index: 999;
+}
+
+.notificationPanel {
+  position: fixed;
+  top: 60px;
+  right: 20px;
+  width: 380px;
+  max-width: calc(100vw - 40px);
+  background-color: var(--white);
+  border-radius: 12px;
+  box-shadow: var(--shadow-heavy);
+  z-index: 1000;
+  max-height: 500px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panelHeader {
+  padding: 20px;
+  border-bottom: 1px solid var(--border-gray);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--white);
+}
+
+.panelHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary-navy);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.markAllButton {
+  background: none;
+  border: none;
+  color: var(--primary-navy);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.markAllButton:hover {
+  background-color: var(--light-gray);
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.3s ease;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton:hover {
+  color: var(--text-dark);
+}
+
+.panelContent {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.notificationList {
+  /* No additional styles needed - items handle their own styling */
+}
+
+.loadingState,
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: var(--text-light);
+  gap: 10px;
+}
+
+.loadingState i,
+.emptyState i {
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.loadingState span,
+.emptyState span {
+  font-size: 14px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .notificationPanel {
+    top: 50px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-width: none;
+    max-height: 70vh;
+  }
+  
+  .panelHeader {
+    padding: 15px;
+  }
+  
+  .panelHeader h3 {
+    font-size: 16px;
+  }
+  
+  .markAllButton {
+    font-size: 11px;
+  }
+}
+
+/* Custom scrollbar */
+.panelContent::-webkit-scrollbar {
+  width: 6px;
+}
+
+.panelContent::-webkit-scrollbar-track {
+  background: var(--light-gray);
+}
+
+.panelContent::-webkit-scrollbar-thumb {
+  background: var(--border-gray);
+  border-radius: 3px;
+}
+
+.panelContent::-webkit-scrollbar-thumb:hover {
+  background: var(--text-light);
+}

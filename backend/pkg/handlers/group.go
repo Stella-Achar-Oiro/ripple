@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -16,13 +17,15 @@ type GroupHandler struct {
 	groupRepo        *models.GroupRepository
 	groupPostRepo    *models.GroupPostRepository
 	notificationRepo *models.NotificationRepository
+	userRepo         *models.UserRepository
 }
 
-func NewGroupHandler(groupRepo *models.GroupRepository, groupPostRepo *models.GroupPostRepository, notificationRepo *models.NotificationRepository) *GroupHandler {
+func NewGroupHandler(groupRepo *models.GroupRepository, groupPostRepo *models.GroupPostRepository, notificationRepo *models.NotificationRepository, userRepo *models.UserRepository) *GroupHandler {
 	return &GroupHandler{
 		groupRepo:        groupRepo,
 		groupPostRepo:    groupPostRepo,
 		notificationRepo: notificationRepo,
+		userRepo:         userRepo,
 	}
 }
 
@@ -219,6 +222,20 @@ func (gh *GroupHandler) InviteToGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get group details for notification
+	group, err := gh.groupRepo.GetGroup(req.GroupID, userID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	// Get inviter details for notification
+	inviterUser, err := gh.userRepo.GetUserByID(userID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
 	err = gh.groupRepo.InviteUsersToGroup(req.GroupID, userID, req.UserIDs)
 	if err != nil {
 		if strings.Contains(err.Error(), "only group members") {
@@ -229,7 +246,21 @@ func (gh *GroupHandler) InviteToGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Create notifications for invited users
+	// Create notifications for invited users
+	inviterName := inviterUser.FirstName + " " + inviterUser.LastName
+	for _, invitedUserID := range req.UserIDs {
+		err = gh.notificationRepo.CreateGroupInvitationNotification(
+			invitedUserID,
+			req.GroupID,
+			group.Title,
+			inviterName,
+		)
+		if err != nil {
+			// Log error but don't fail the request
+			// TODO: Add proper logging
+		}
+	}
+
 	utils.WriteSuccessResponse(w, http.StatusOK, map[string]string{
 		"message": "Invitations sent successfully",
 	})
@@ -259,6 +290,20 @@ func (gh *GroupHandler) JoinGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get group details for notification
+	group, err := gh.groupRepo.GetGroup(req.GroupID, userID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	// Get requester details for notification
+	requesterUser, err := gh.userRepo.GetUserByID(userID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
 	err = gh.groupRepo.RequestToJoinGroup(req.GroupID, userID)
 	if err != nil {
 		if strings.Contains(err.Error(), "already has a membership") {
@@ -269,7 +314,20 @@ func (gh *GroupHandler) JoinGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Create notification for group creator
+	// Create notification for group creator
+	requesterName := requesterUser.FirstName + " " + requesterUser.LastName
+	err = gh.notificationRepo.CreateGroupJoinRequestNotification(
+		group.CreatorID,
+		userID,
+		req.GroupID,
+		requesterName,
+		group.Title,
+	)
+	if err != nil {
+		// Log error but don't fail the request
+		// TODO: Add proper logging
+	}
+
 	utils.WriteSuccessResponse(w, http.StatusOK, map[string]string{
 		"message": "Join request sent successfully",
 	})
@@ -392,6 +450,10 @@ func (gh *GroupHandler) GetPendingInvitations(w http.ResponseWriter, r *http.Req
 	}
 
 	invitations, err := gh.groupRepo.GetPendingInvitations(userID)
+	fmt.Println()
+	fmt.Println("invitations <<< ", invitations)
+	fmt.Println()
+
 	if err != nil {
 		utils.WriteInternalErrorResponse(w, err)
 		return
@@ -854,11 +916,40 @@ func (gh *GroupHandler) InviteUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get group details for notification
+	group, err := gh.groupRepo.GetGroup(groupID, userID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	// Get inviter details for notification
+	inviterUser, err := gh.userRepo.GetUserByID(userID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
 	// Invite users to the group using existing method
 	err = gh.groupRepo.InviteUsersToGroup(groupID, userID, req.UserIDs)
 	if err != nil {
 		utils.WriteInternalErrorResponse(w, err)
 		return
+	}
+
+	// Create notifications for invited users
+	inviterName := inviterUser.FirstName + " " + inviterUser.LastName
+	for _, invitedUserID := range req.UserIDs {
+		err = gh.notificationRepo.CreateGroupInvitationNotification(
+			invitedUserID,
+			groupID,
+			group.Title,
+			inviterName,
+		)
+		if err != nil {
+			// Log error but don't fail the request
+			// TODO: Add proper logging
+		}
 	}
 
 	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
