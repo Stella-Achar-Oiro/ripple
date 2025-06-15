@@ -44,15 +44,12 @@ func setupGroupRoutes(mux *http.ServeMux, h *handlers.GroupHandler, auth func(ht
 	mux.Handle("/api/groups/handle", auth(http.HandlerFunc(h.HandleMembershipRequest)))
 	mux.Handle("/api/groups/members/", auth(http.HandlerFunc(h.GetGroupMembers)))
 	mux.Handle("/api/groups/invitations", auth(http.HandlerFunc(h.GetPendingInvitations)))
-	mux.Handle("/api/groups/requests/", auth(http.HandlerFunc(h.GetPendingJoinRequests)))
-	mux.Handle("/api/groups/posts/", auth(http.HandlerFunc(h.CreateGroupPost)))
-	mux.Handle("/api/groups/posts/get/", auth(http.HandlerFunc(h.GetGroupPosts)))
-	mux.Handle("/api/groups/comments/", auth(http.HandlerFunc(h.CreateGroupComment)))
-	mux.Handle("/api/groups/comments/get/", auth(http.HandlerFunc(h.GetGroupComments)))
-	// Handle group detail and invite endpoints
+	// Handle group requests endpoint with proper routing
 	mux.HandleFunc("/api/groups/", func(w http.ResponseWriter, r *http.Request) {
 		authHandler := auth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if strings.HasSuffix(r.URL.Path, "/invite") && r.Method == "POST" {
+			if strings.HasSuffix(r.URL.Path, "/requests") && r.Method == "GET" {
+				h.GetPendingJoinRequests(w, r)
+			} else if strings.HasSuffix(r.URL.Path, "/invite") && r.Method == "POST" {
 				h.InviteUsers(w, r)
 			} else {
 				h.GetGroup(w, r)
@@ -60,6 +57,11 @@ func setupGroupRoutes(mux *http.ServeMux, h *handlers.GroupHandler, auth func(ht
 		}))
 		authHandler.ServeHTTP(w, r)
 	})
+	mux.Handle("/api/groups/posts/", auth(http.HandlerFunc(h.CreateGroupPost)))
+	mux.Handle("/api/groups/posts/get/", auth(http.HandlerFunc(h.GetGroupPosts)))
+	mux.Handle("/api/groups/comments/", auth(http.HandlerFunc(h.CreateGroupComment)))
+	mux.Handle("/api/groups/comments/get/", auth(http.HandlerFunc(h.GetGroupComments)))
+
 }
 
 func setupEventRoutes(mux *http.ServeMux, h *handlers.EventHandler, auth func(http.Handler) http.Handler) {

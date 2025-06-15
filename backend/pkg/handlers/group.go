@@ -236,7 +236,7 @@ func (gh *GroupHandler) InviteToGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = gh.groupRepo.InviteUsersToGroup(req.GroupID, userID, req.UserIDs)
+	membershipIDs, err := gh.groupRepo.InviteUsersToGroup(req.GroupID, userID, req.UserIDs)
 	if err != nil {
 		if strings.Contains(err.Error(), "only group members") {
 			utils.WriteErrorResponse(w, http.StatusForbidden, err.Error())
@@ -249,15 +249,18 @@ func (gh *GroupHandler) InviteToGroup(w http.ResponseWriter, r *http.Request) {
 	// Create notifications for invited users
 	inviterName := inviterUser.FirstName + " " + inviterUser.LastName
 	for _, invitedUserID := range req.UserIDs {
-		err = gh.notificationRepo.CreateGroupInvitationNotification(
-			invitedUserID,
-			req.GroupID,
-			group.Title,
-			inviterName,
-		)
-		if err != nil {
-			// Log error but don't fail the request
-			// TODO: Add proper logging
+		if membershipID, exists := membershipIDs[invitedUserID]; exists {
+			err = gh.notificationRepo.CreateGroupInvitationNotification(
+				invitedUserID,
+				req.GroupID,
+				membershipID,
+				group.Title,
+				inviterName,
+			)
+			if err != nil {
+				// Log error but don't fail the request
+				// TODO: Add proper logging
+			}
 		}
 	}
 
@@ -304,7 +307,7 @@ func (gh *GroupHandler) JoinGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = gh.groupRepo.RequestToJoinGroup(req.GroupID, userID)
+	membershipID, err := gh.groupRepo.RequestToJoinGroup(req.GroupID, userID)
 	if err != nil {
 		if strings.Contains(err.Error(), "already has a membership") {
 			utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -320,6 +323,7 @@ func (gh *GroupHandler) JoinGroup(w http.ResponseWriter, r *http.Request) {
 		group.CreatorID,
 		userID,
 		req.GroupID,
+		membershipID,
 		requesterName,
 		group.Title,
 	)
@@ -931,7 +935,7 @@ func (gh *GroupHandler) InviteUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Invite users to the group using existing method
-	err = gh.groupRepo.InviteUsersToGroup(groupID, userID, req.UserIDs)
+	membershipIDs, err := gh.groupRepo.InviteUsersToGroup(groupID, userID, req.UserIDs)
 	if err != nil {
 		utils.WriteInternalErrorResponse(w, err)
 		return
@@ -940,15 +944,18 @@ func (gh *GroupHandler) InviteUsers(w http.ResponseWriter, r *http.Request) {
 	// Create notifications for invited users
 	inviterName := inviterUser.FirstName + " " + inviterUser.LastName
 	for _, invitedUserID := range req.UserIDs {
-		err = gh.notificationRepo.CreateGroupInvitationNotification(
-			invitedUserID,
-			groupID,
-			group.Title,
-			inviterName,
-		)
-		if err != nil {
-			// Log error but don't fail the request
-			// TODO: Add proper logging
+		if membershipID, exists := membershipIDs[invitedUserID]; exists {
+			err = gh.notificationRepo.CreateGroupInvitationNotification(
+				invitedUserID,
+				groupID,
+				membershipID,
+				group.Title,
+				inviterName,
+			)
+			if err != nil {
+				// Log error but don't fail the request
+				// TODO: Add proper logging
+			}
 		}
 	}
 

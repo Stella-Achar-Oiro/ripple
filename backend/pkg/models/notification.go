@@ -203,14 +203,14 @@ func (nr *NotificationRepository) CreateFollowRequestNotification(followerID, fo
 }
 
 // CreateGroupInvitationNotification creates notification for group invitation
-func (nr *NotificationRepository) CreateGroupInvitationNotification(userID, groupID int, groupTitle, inviterName string) error {
+func (nr *NotificationRepository) CreateGroupInvitationNotification(userID, groupID, membershipID int, groupTitle, inviterName string) error {
 	req := &CreateNotificationRequest{
 		UserID:      userID,
 		Type:        NotificationGroupInvite,
 		Title:       "Group Invitation",
 		Message:     fmt.Sprintf("%s invited you to join '%s'", inviterName, groupTitle),
-		RelatedID:   &groupID,
-		RelatedType: stringPtr("group"),
+		RelatedID:   &membershipID, // Use membership ID for handling
+		RelatedType: stringPtr("membership"),
 	}
 
 	_, err := nr.CreateNotification(req)
@@ -218,14 +218,14 @@ func (nr *NotificationRepository) CreateGroupInvitationNotification(userID, grou
 }
 
 // CreateGroupJoinRequestNotification creates notification for group join request
-func (nr *NotificationRepository) CreateGroupJoinRequestNotification(creatorID, userID, groupID int, userName, groupTitle string) error {
+func (nr *NotificationRepository) CreateGroupJoinRequestNotification(creatorID, userID, groupID, membershipID int, userName, groupTitle string) error {
 	req := &CreateNotificationRequest{
 		UserID:      creatorID,
 		Type:        NotificationGroupRequest,
 		Title:       "Group Join Request",
 		Message:     fmt.Sprintf("%s wants to join '%s'", userName, groupTitle),
-		RelatedID:   &groupID,
-		RelatedType: stringPtr("group"),
+		RelatedID:   &membershipID, // Use membership ID instead of group ID for handling
+		RelatedType: stringPtr("membership"),
 	}
 
 	_, err := nr.CreateNotification(req)

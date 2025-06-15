@@ -46,6 +46,7 @@ type GroupMember struct {
 	// Joined fields
 	User          *UserResponse `json:"user,omitempty"`
 	InvitedByUser *UserResponse `json:"invited_by_user,omitempty"`
+	Group         *Group        `json:"group,omitempty"`
 }
 
 type GroupPostComment struct {
@@ -286,22 +287,24 @@ func (gr *GroupRepository) GetUserGroups(userID int, limit, offset int) ([]*Grou
 	return groups, nil
 }
 
-// InviteUsersToGroup invites users to join a group
-func (gr *GroupRepository) InviteUsersToGroup(groupID, inviterID int, userIDs []int) error {
+// InviteUsersToGroup invites users to join a group and returns membership IDs
+func (gr *GroupRepository) InviteUsersToGroup(groupID, inviterID int, userIDs []int) (map[int]int, error) {
 	// Check if inviter is a member of the group
 	isMember, err := gr.IsMember(groupID, inviterID)
 	if err != nil {
-		return fmt.Errorf("failed to check membership: %w", err)
+		return nil, fmt.Errorf("failed to check membership: %w", err)
 	}
 	if !isMember {
-		return fmt.Errorf("only group members can invite others")
+		return nil, fmt.Errorf("only group members can invite others")
 	}
 
 	tx, err := gr.db.Begin()
 	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer tx.Rollback()
+
+	membershipIDs := make(map[int]int) // userID -> membershipID
 
 	for _, userID := range userIDs {
 		// Skip if user is already a member or has pending invitation
@@ -316,28 +319,35 @@ func (gr *GroupRepository) InviteUsersToGroup(groupID, inviterID int, userIDs []
 		`
 
 		now := time.Now()
-		_, err = tx.Exec(query, groupID, userID, constants.GroupMemberStatusPending, inviterID, now, now, now)
+		result, err := tx.Exec(query, groupID, userID, constants.GroupMemberStatusPending, inviterID, now, now, now)
 		if err != nil {
-			return fmt.Errorf("failed to create invitation: %w", err)
+			return nil, fmt.Errorf("failed to create invitation: %w", err)
 		}
+
+		membershipID, err := result.LastInsertId()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get membership ID: %w", err)
+		}
+
+		membershipIDs[userID] = int(membershipID)
 	}
 
 	if err = tx.Commit(); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
+		return nil, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
-	return nil
+	return membershipIDs, nil
 }
 
-// RequestToJoinGroup creates a join request for a group
-func (gr *GroupRepository) RequestToJoinGroup(groupID, userID int) error {
+// RequestToJoinGroup creates a join request for a group and returns the membership ID
+func (gr *GroupRepository) RequestToJoinGroup(groupID, userID int) (int, error) {
 	// Check if user is already a member or has pending request
 	exists, err := gr.MembershipExists(groupID, userID)
 	if err != nil {
-		return fmt.Errorf("failed to check membership: %w", err)
+		return 0, fmt.Errorf("failed to check membership: %w", err)
 	}
 	if exists {
-		return fmt.Errorf("user already has a membership or pending request")
+		return 0, fmt.Errorf("user already has a membership or pending request")
 	}
 
 	query := `
@@ -346,12 +356,17 @@ func (gr *GroupRepository) RequestToJoinGroup(groupID, userID int) error {
 	`
 
 	now := time.Now()
-	_, err = gr.db.Exec(query, groupID, userID, constants.GroupMemberStatusPending, now, now, now)
+	result, err := gr.db.Exec(query, groupID, userID, constants.GroupMemberStatusPending, now, now, now)
 	if err != nil {
-		return fmt.Errorf("failed to create join request: %w", err)
+		return 0, fmt.Errorf("failed to create join request: %w", err)
 	}
 
-	return nil
+	membershipID, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("failed to get membership ID: %w", err)
+	}
+
+	return int(membershipID), nil
 }
 
 // HandleMembershipRequest accepts or declines a membership request/invitation
@@ -457,14 +472,15 @@ func (gr *GroupRepository) GetGroupMembers(groupID int) ([]*GroupMember, error) 
 func (gr *GroupRepository) GetPendingInvitations(userID int) ([]*GroupMember, error) {
 	query := `
 		SELECT gm.id, gm.group_id, gm.user_id, gm.status, gm.invited_by, gm.joined_at, gm.created_at, gm.updated_at,
-		       g.title, g.description
+		       g.id, g.title, g.description, g.avatar_path, g.cover_path, g.creator_id, g.created_at,
+		       (SELECT COUNT(*) FROM group_members WHERE group_id = g.id AND status = ?) as member_count
 		FROM group_members gm
 		JOIN groups g ON gm.group_id = g.id
 		WHERE gm.user_id = ? AND gm.status = ? AND gm.invited_by IS NOT NULL
 		ORDER BY gm.created_at DESC
 	`
 
-	rows, err := gr.db.Query(query, userID, constants.GroupMemberStatusPending)
+	rows, err := gr.db.Query(query, constants.GroupMemberStatusAccepted, userID, constants.GroupMemberStatusPending)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get pending invitations: %w", err)
 	}
@@ -473,16 +489,20 @@ func (gr *GroupRepository) GetPendingInvitations(userID int) ([]*GroupMember, er
 	var invitations []*GroupMember
 	for rows.Next() {
 		invitation := &GroupMember{}
-		var groupTitle, groupDescription string
+		group := &Group{}
+		var memberCount int
 
 		err := rows.Scan(
 			&invitation.ID, &invitation.GroupID, &invitation.UserID, &invitation.Status, &invitation.InvitedBy, &invitation.JoinedAt, &invitation.CreatedAt, &invitation.UpdatedAt,
-			&groupTitle, &groupDescription,
+			&group.ID, &group.Title, &group.Description, &group.AvatarPath, &group.CoverPath, &group.CreatorID, &group.CreatedAt,
+			&memberCount,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan invitation: %w", err)
 		}
 
+		group.MemberCount = memberCount
+		invitation.Group = group
 		invitations = append(invitations, invitation)
 	}
 

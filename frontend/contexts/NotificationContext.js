@@ -85,7 +85,7 @@ export function NotificationProvider({ children }) {
     }
   }
 
-  // Handle group invitation response
+  // Handle group invitation/join request response
   const handleGroupInvitation = async (membershipId, action) => {
     try {
       const response = await fetch(`${API_URL}/api/groups/handle`, {
@@ -101,15 +101,15 @@ export function NotificationProvider({ children }) {
       })
 
       if (response.ok) {
-        // Refresh notifications after handling invitation
+        // Refresh notifications after handling invitation/request
         await fetchNotifications()
         return true
       } else {
         const errorData = await response.json()
-        throw new Error(errorData.error?.message || 'Failed to handle invitation')
+        throw new Error(errorData.error?.message || 'Failed to handle request')
       }
     } catch (error) {
-      console.error('Error handling group invitation:', error)
+      console.error('Error handling group request:', error)
       throw error
     }
   }

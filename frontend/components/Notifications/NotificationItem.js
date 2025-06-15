@@ -59,10 +59,14 @@ export default function NotificationItem({ notification }) {
     )
   }
 
-  const renderGroupInvitationActions = () => {
-    if (notification.type !== 'group_invitation' || notification.is_read) {
+  const renderGroupActions = () => {
+    // Show actions for both group invitations and join requests if not read
+    if ((notification.type !== 'group_invitation' && notification.type !== 'group_request') || notification.is_read) {
       return null
     }
+
+    const isInvitation = notification.type === 'group_invitation'
+    const isJoinRequest = notification.type === 'group_request'
 
     return (
       <div className={styles.notificationActions}>
@@ -79,7 +83,7 @@ export default function NotificationItem({ notification }) {
           ) : (
             <>
               <i className="fas fa-check"></i>
-              Accept
+              {isInvitation ? 'Accept' : 'Approve'}
             </>
           )}
         </button>
@@ -96,7 +100,7 @@ export default function NotificationItem({ notification }) {
           ) : (
             <>
               <i className="fas fa-times"></i>
-              Decline
+              {isInvitation ? 'Decline' : 'Reject'}
             </>
           )}
         </button>
@@ -105,12 +109,12 @@ export default function NotificationItem({ notification }) {
   }
 
   return (
-    <div 
+    <div
       className={`${styles.notificationItem} ${!notification.is_read ? styles.unread : ''}`}
       onClick={handleClick}
     >
       {renderNotificationContent()}
-      {renderGroupInvitationActions()}
+      {renderGroupActions()}
     </div>
   )
 }
