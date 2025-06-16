@@ -24,64 +24,82 @@ func SetupRoutes(
 	sessionManager *auth.SessionManager,
 	wsHub *websocket.Hub,
 ) http.Handler {
-	mux := http.NewServeMux()
+	mainMux := http.NewServeMux()
 
-	// Serve static files
-	fs := http.FileServer(http.Dir(cfg.UploadsPath))
-	mux.Handle("/uploads/", http.StripPrefix("/uploads/", fs))
+	// Create separate mux for API routes that need JSON middleware
+	apiMux := http.NewServeMux()
 
 	// Auth routes (no auth required)
-	mux.HandleFunc("/api/auth/register", authHandler.Register)
-	mux.HandleFunc("/api/auth/login", authHandler.Login)
-	mux.HandleFunc("/api/auth/logout", authHandler.Logout)
+	apiMux.HandleFunc("/api/auth/register", authHandler.Register)
+	apiMux.HandleFunc("/api/auth/login", authHandler.Login)
+	apiMux.HandleFunc("/api/auth/logout", authHandler.Logout)
 
 	// Protected routes (auth required)
 	authMiddleware := sessionManager.AuthMiddleware
 
 	// User routes
-	mux.Handle("/api/auth/profile", authMiddleware(http.HandlerFunc(authHandler.GetProfile)))
-	mux.Handle("/api/auth/profile/update", authMiddleware(http.HandlerFunc(authHandler.UpdateProfile)))
-	mux.Handle("/api/auth/search", authMiddleware(http.HandlerFunc(authHandler.SearchUsers)))
-	mux.Handle("/api/users/", authMiddleware(http.HandlerFunc(authHandler.GetUserProfile)))
+	apiMux.Handle("/api/auth/profile", authMiddleware(http.HandlerFunc(authHandler.GetProfile)))
+	apiMux.Handle("/api/auth/profile/update", authMiddleware(http.HandlerFunc(authHandler.UpdateProfile)))
+	apiMux.Handle("/api/auth/search", authMiddleware(http.HandlerFunc(authHandler.SearchUsers)))
+	apiMux.Handle("/api/users/", authMiddleware(http.HandlerFunc(authHandler.GetUserProfile)))
 
 	// Follow routes
-	setupFollowRoutes(mux, followHandler, authMiddleware)
+	setupFollowRoutes(apiMux, followHandler, authMiddleware)
 
 	// Post routes
-	setupPostRoutes(mux, postHandler, authMiddleware)
+	setupPostRoutes(apiMux, postHandler, authMiddleware)
 
 	// Like routes
-	setupLikeRoutes(mux, likeHandler, authMiddleware)
+	setupLikeRoutes(apiMux, likeHandler, authMiddleware)
 
 	// Group routes
-	setupGroupRoutes(mux, groupHandler, authMiddleware)
+	setupGroupRoutes(apiMux, groupHandler, authMiddleware)
 
 	// Event routes
-	setupEventRoutes(mux, eventHandler, authMiddleware)
+	setupEventRoutes(apiMux, eventHandler, authMiddleware)
 
 	// Upload routes
-	setupUploadRoutes(mux, uploadHandler, authMiddleware)
+	setupUploadRoutes(apiMux, uploadHandler, authMiddleware)
 
 	// Notification routes
-	setupNotificationRoutes(mux, notificationHandler, authMiddleware)
+	setupNotificationRoutes(apiMux, notificationHandler, authMiddleware)
 
 	// Chat API routes (REST endpoints)
-	setupChatRoutes(mux, chatHandler, authMiddleware)
+	setupChatRoutes(apiMux, chatHandler, authMiddleware)
 
-	// WebSocket route
-	mux.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+	// WebSocket route (no JSON middleware needed)
+	apiMux.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		websocket.HandleWebSocket(wsHub, sessionManager, w, r)
 	})
 
-	// Apply middleware stack in the following order:
+	// Apply middleware stack to API routes only:
 	// 1. PanicRecoveryMiddleware: Recovers from panics and logs them.
 	// 2. SecurityHeadersMiddleware: Adds security-related headers to responses.
 	// 3. corsMiddleware: Handles Cross-Origin Resource Sharing (CORS) based on allowed origins.
-	// 4. JSONMiddleware: Ensures all responses are in JSON format.
-	return applyMiddleware(mux,
+	// 4. JSONMiddleware: Ensures all API responses are in JSON format.
+	apiHandler := applyMiddleware(apiMux,
 		handlers.PanicRecoveryMiddleware,
 		handlers.SecurityHeadersMiddleware,
 		corsMiddleware(cfg.AllowedOrigins),
 		handlers.JSONMiddleware,
 	)
+
+	// Mount API routes with middleware
+	mainMux.Handle("/api/", apiHandler)
+	mainMux.Handle("/ws", apiHandler)
+
+	// Serve static files without JSON middleware (preserves proper MIME types)
+	fs := http.FileServer(http.Dir(cfg.UploadsPath))
+	staticHandler := http.StripPrefix("/uploads/", fs)
+
+	// Apply only basic middleware to static files (no JSON middleware)
+	staticWithMiddleware := applyMiddleware(staticHandler,
+		handlers.PanicRecoveryMiddleware,
+		handlers.SecurityHeadersMiddleware,
+		corsMiddleware(cfg.AllowedOrigins),
+	)
+
+	mainMux.Handle("/uploads/", staticWithMiddleware)
+
+	return mainMux
 }
