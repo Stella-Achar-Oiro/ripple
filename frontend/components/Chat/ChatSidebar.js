@@ -1,14 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import styles from './ChatSidebar.module.css'
 
 export default function ChatSidebar({ conversations, selectedChat, onSelectChat }) {
   const [searchQuery, setSearchQuery] = useState('')
+  const [filteredConversations, setFilteredConversations] = useState(conversations)
 
-  const filteredConversations = conversations.filter(conv =>
-    conv.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  useEffect(() => {
+    if (searchQuery) {
+      const filtered = conversations.filter(conv =>
+        conv.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      setFilteredConversations(filtered)
+    } else {
+      setFilteredConversations(conversations)
+    }
+  }, [searchQuery, conversations])
 
   return (
     <div className={styles.chatSidebar}>
@@ -22,18 +31,22 @@ export default function ChatSidebar({ conversations, selectedChat, onSelectChat 
       </div>
       <div className={styles.chatList}>
         {filteredConversations.map(conversation => (
-          <div 
+          <Link 
             key={conversation.id}
+            href={`/chat/private/${conversation.id}`}
             className={`${styles.chatItem} ${conversation.id === selectedChat ? styles.active : ''}`}
-            onClick={() => onSelectChat(conversation.id)}
+            onClick={(e) => {
+              e.preventDefault()
+              onSelectChat(conversation.id)
+            }}
           >
-            <div className="friend-avatar">
+            <div className={styles.friendAvatar}>
               {conversation.isGroup ? (
                 <i className="fas fa-users"></i>
               ) : (
                 <>
                   {conversation.initials}
-                  {conversation.isOnline && <div className="online-indicator"></div>}
+                  {conversation.isOnline && <div className={styles.onlineIndicator}></div>}
                 </>
               )}
             </div>
@@ -41,13 +54,13 @@ export default function ChatSidebar({ conversations, selectedChat, onSelectChat 
               <div className={styles.chatItemName}>{conversation.name}</div>
               <div className={styles.chatItemPreview}>{conversation.lastMessage}</div>
             </div>
-            <div style={{ textAlign: 'right' }}>
+            <div className={styles.chatItemMeta}>
               <div className={styles.chatItemTime}>{conversation.time}</div>
               {conversation.unread > 0 && (
                 <div className={styles.unreadBadge}>{conversation.unread}</div>
               )}
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
