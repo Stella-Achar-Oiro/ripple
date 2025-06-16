@@ -47,21 +47,21 @@ export default function GroupPost({ post, onPostDeleted, isGroupMember }) {
         <div className={styles.postHeader}>
           <div className={styles.postUser}>
             <div className={styles.userAvatar}>
-              {post.author?.avatar_path ? (
+              {post.Author?.avatar_path ? (
                 <img
-                  src={`${API_URL}${post.author.avatar_path}`}
-                  alt={`${post.author.first_name} ${post.author.last_name}`}
+                  src={`${API_URL}${post.Author.avatar_path}`}
+                  alt={`${post.Author.first_name} ${post.Author.last_name}`}
                 />
               ) : (
                 <div className={styles.avatarPlaceholder}>
-                  {getAuthorInitials(post.author)}
+                  {getAuthorInitials(post.Author)}
                 </div>
               )}
             </div>
             <div className={styles.postUserInfo}>
-              <h4>{post.author?.first_name} {post.author?.last_name}</h4>
+              <h4>{post.Author?.first_name} {post.Author?.last_name}</h4>
               <div className={styles.postMeta}>
-                {formatDate(post.created_at)} • <i className="fas fa-users"></i> Group Post
+                {formatDate(post.CreatedAt)} • <i className="fas fa-users"></i> Group Post
               </div>
             </div>
           </div>
@@ -71,13 +71,13 @@ export default function GroupPost({ post, onPostDeleted, isGroupMember }) {
         </div>
 
         <div className={styles.postContent}>
-          {post.content}
+          {post.Content}
         </div>
 
-        {post.image_path && (
+        {post.ImagePath && (
           <div className={styles.postImage}>
             <img
-              src={`${API_URL}${post.image_path}`}
+              src={`${API_URL}${post.ImagePath}`}
               alt="Post attachment"
             />
           </div>
@@ -100,7 +100,7 @@ export default function GroupPost({ post, onPostDeleted, isGroupMember }) {
         {/* Comments Section */}
         {showComments && (
           <GroupComments 
-            postId={post.id}
+            postId={post.ID}
             isGroupMember={isGroupMember}
             onCommentAdded={handleCommentAdded}
           />

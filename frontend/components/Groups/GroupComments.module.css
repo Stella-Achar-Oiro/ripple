@@ -14,7 +14,7 @@
 }
 
 .loadingContainer i {
-  color: var(--primary-color);
+  color: var(--primary-navy);
 }
 
 .errorMessage {
@@ -62,7 +62,7 @@
 .avatarPlaceholder {
   width: 100%;
   height: 100%;
-  background: var(--primary-color);
+  background: var(--primary-navy);
   color: white;
   display: flex;
   align-items: center;
@@ -179,7 +179,7 @@
 
 .commentInput:focus {
   outline: none;
-  border-color: var(--primary-color);
+  border-color: var(--primary-navy);
 }
 
 .commentInput:disabled {
@@ -208,8 +208,8 @@
 
 .imageUploadButton:hover {
   background: var(--hover-background);
-  color: var(--primary-color);
-  border-color: var(--primary-color);
+  color: var(--primary-navy);
+  border-color: var(--primary-navy);
 }
 
 .imageUploadButton i {
@@ -221,7 +221,7 @@
   height: 36px;
   border-radius: 50%;
   border: none;
-  background: var(--primary-color);
+  background: var(--primary-navy);
   color: white;
   display: flex;
   align-items: center;

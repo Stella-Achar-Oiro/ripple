@@ -3,7 +3,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -454,9 +453,6 @@ func (gh *GroupHandler) GetPendingInvitations(w http.ResponseWriter, r *http.Req
 	}
 
 	invitations, err := gh.groupRepo.GetPendingInvitations(userID)
-	fmt.Println()
-	fmt.Println("invitations <<< ", invitations)
-	fmt.Println()
 
 	if err != nil {
 		utils.WriteInternalErrorResponse(w, err)
@@ -536,7 +532,7 @@ func (gh *GroupHandler) CreateGroupPost(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	groupID, err := strconv.Atoi(pathParts[5])
+	groupID, err := strconv.Atoi(pathParts[4])
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid group ID")
 		return
@@ -544,6 +540,7 @@ func (gh *GroupHandler) CreateGroupPost(w http.ResponseWriter, r *http.Request) 
 
 	// Check if user is a member of the group
 	isMember, err := gh.groupRepo.IsMember(groupID, userID)
+
 	if err != nil {
 		utils.WriteInternalErrorResponse(w, err)
 		return

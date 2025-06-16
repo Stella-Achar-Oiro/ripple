@@ -11,7 +11,6 @@ import styles from './page.module.css'
 
 export default function GroupDetailPage() {
   const params = useParams()
-  console.log('GroupDetailPage: Params:', params)
 
   const router = useRouter()
   const groupId = params.id

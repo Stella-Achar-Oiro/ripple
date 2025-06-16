@@ -26,7 +26,7 @@
 
 .postInput:focus {
   outline: none;
-  border-color: var(--primary-color);
+  border-color: var(--primary-navy);
 }
 
 .postInput:disabled {
@@ -111,7 +111,7 @@
 
 .postOption:hover {
   background: var(--hover-background);
-  color: var(--primary-color);
+  color: var(--primary-navy);
 }
 
 .postOption i {

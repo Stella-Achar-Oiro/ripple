@@ -25,6 +25,7 @@ export default function GroupPostList({ groupId, isGroupMember }) {
       }
 
       const data = await response.json()
+      
       if (data.success && data.data && data.data.posts) {
         setPosts(data.data.posts)
       } else {
@@ -101,7 +102,7 @@ export default function GroupPostList({ groupId, isGroupMember }) {
         <div className={styles.postsContainer}>
           {posts.map((post) => (
             <GroupPost 
-              key={post.id} 
+              key={post.ID} 
               post={post} 
               onPostDeleted={handlePostDeleted}
               isGroupMember={isGroupMember}

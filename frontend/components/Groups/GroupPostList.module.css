@@ -16,7 +16,7 @@
 
 .loadingContainer i {
   font-size: 1.2rem;
-  color: var(--primary-color);
+  color: var(--primary-navy);
 }
 
 .errorContainer {
