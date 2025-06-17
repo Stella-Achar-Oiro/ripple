@@ -13,36 +13,31 @@ import (
 	"ripple/pkg/auth"
 	"ripple/pkg/handlers"
 	"ripple/pkg/models"
-	"ripple/pkg/websocket"
+	rippleWS "ripple/pkg/websocket"
 
+	"github.com/gorilla/websocket"
 )
 
 func TestCompleteWebSocketIntegration(t *testing.T) {
-	db := setupTestDB(t)
-	defer db.Close()
+	database, cleanup := setupTestDB()
+	defer cleanup()
 
 	// Setup all repositories
-	userRepo := models.NewUserRepository(db.DB)
-	followRepo := models.NewFollowRepository(db.DB)
-	groupRepo := models.NewGroupRepository(db.DB)
-	messageRepo := models.NewMessageRepository(db.DB)
-	notificationRepo := models.NewNotificationRepository(db.DB)
-	sessionManager := auth.NewSessionManager(db.DB)
+	userRepo := models.NewUserRepository(database.DB)
+	followRepo := models.NewFollowRepository(database.DB)
+	groupRepo := models.NewGroupRepository(database.DB)
+	messageRepo := models.NewMessageRepository(database.DB)
+	sessionManager := auth.NewSessionManager(database.DB)
 
 	// Create WebSocket hub
-	hub := websocket.NewHub(db.DB)
+	hub := rippleWS.NewHub(database.DB)
 	go hub.Run()
 	defer hub.Stop()
 
 	// Create test users
-	alice := createTestUser(t, userRepo, "alice@test.com", "Alice", "Wonder")
-	bob := createTestUser(t, userRepo, "bob@test.com", "Bob", "Builder")
-	charlie := createTestUser(t, userRepo, "charlie@test.com", "Charlie", "Brown")
-
-	// Create sessions
-	aliceSession, _ := sessionManager.CreateSession(alice.ID)
-	bobSession, _ := sessionManager.CreateSession(bob.ID)
-	charlieSession, _ := sessionManager.CreateSession(charlie.ID)
+	alice, aliceSession := createTestUser(t, userRepo, sessionManager, "alice@test.com", true)
+	bob, bobSession := createTestUser(t, userRepo, sessionManager, "bob@test.com", true)
+	charlie, _ := createTestUser(t, userRepo, sessionManager, "charlie@test.com", true)
 
 	// Make all users public for easier testing
 	userRepo.UpdateProfile(alice.ID, map[string]interface{}{"is_public": true})
@@ -64,7 +59,7 @@ func TestCompleteWebSocketIntegration(t *testing.T) {
 	}
 
 	// Add Bob to the group
-	err = groupRepo.InviteUsersToGroup(group.ID, alice.ID, []int{bob.ID})
+	_, err = groupRepo.InviteUsersToGroup(group.ID, alice.ID, []int{bob.ID})
 	if err != nil {
 		t.Fatalf("Failed to invite Bob to group: %v", err)
 	}
@@ -77,7 +72,7 @@ func TestCompleteWebSocketIntegration(t *testing.T) {
 
 	// Create WebSocket server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		websocket.HandleWebSocket(hub, sessionManager, w, r)
+		rippleWS.HandleWebSocket(hub, sessionManager, w, r)
 	}))
 	defer server.Close()
 	wsURL := "ws" + strings.TrimPrefix(server.URL, "http")
@@ -474,24 +469,23 @@ func TestWebSocketLoadAndPerformance(t *testing.T) {
 		t.Skip("Skipping load test in short mode")
 	}
 
-	db := setupTestDB(t)
-	defer db.Close()
+	database, cleanup := setupTestDB()
+	defer cleanup()
 
-	userRepo := models.NewUserRepository(db.DB)
-	sessionManager := auth.NewSessionManager(db.DB)
+	userRepo := models.NewUserRepository(database.DB)
+	sessionManager := auth.NewSessionManager(database.DB)
 
 	// Create test user
-	user := createTestUser(t, userRepo, "load@test.com", "Load", "Test")
-	session, _ := sessionManager.CreateSession(user.ID)
+	user, session := createTestUser(t, userRepo, sessionManager, "load@test.com", true)
 
 	// Create WebSocket hub
-	hub := websocket.NewHub(db.DB)
+	hub := rippleWS.NewHub(database.DB)
 	go hub.Run()
 	defer hub.Stop()
 
 	// Create WebSocket server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		websocket.HandleWebSocket(hub, sessionManager, w, r)
+		rippleWS.HandleWebSocket(hub, sessionManager, w, r)
 	}))
 	defer server.Close()
 	wsURL := "ws" + strings.TrimPrefix(server.URL, "http")

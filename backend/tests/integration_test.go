@@ -28,7 +28,7 @@ func TestPhase4Integration(t *testing.T) {
 	sessionManager := auth.NewSessionManager(database.DB)
 
 	// Initialize handlers
-	groupHandler := handlers.NewGroupHandler(groupRepo, groupPostRepo, notificationRepo)
+	groupHandler := handlers.NewGroupHandler(groupRepo, groupPostRepo, notificationRepo, userRepo)
 	eventHandler := handlers.NewEventHandler(eventRepo, groupRepo, notificationRepo)
 
 	// Create test users

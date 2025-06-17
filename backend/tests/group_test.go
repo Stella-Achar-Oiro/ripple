@@ -23,7 +23,7 @@ func TestGroupSystem(t *testing.T) {
 	groupPostRepo := models.NewGroupPostRepository(database.DB)
 	notificationRepo := models.NewNotificationRepository(database.DB)
 	sessionManager := auth.NewSessionManager(database.DB)
-	groupHandler := handlers.NewGroupHandler(groupRepo, groupPostRepo, notificationRepo)
+	groupHandler := handlers.NewGroupHandler(groupRepo, groupPostRepo, notificationRepo, userRepo)
 
 	// Create test users
 	user1, session1 := createTestUser(t, userRepo, sessionManager, "alice@test.com", true)  // group creator
