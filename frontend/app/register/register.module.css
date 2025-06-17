@@ -1,0 +1,146 @@
+.registerContainer {
+  min-height: 100vh;
+  background: var(--purple-gradient-light);
+  background-attachment: fixed;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  overflow: hidden;
+}
+
+.registerContainer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill-opacity='0.03'%3E%3Cpolygon fill='%236366f1' points='50 0 60 40 100 50 60 60 50 100 40 60 0 50 40 40'/%3E%3C/g%3E%3C/svg%3E") repeat;
+  animation: float 30s linear infinite;
+}
+
+.registerContent {
+  background: var(--card);
+  border-radius: var(--radius-2xl);
+  box-shadow: 0 20px 40px rgba(99, 102, 241, 0.1);
+  padding: var(--spacing-2xl);
+  width: 100%;
+  max-width: 600px;
+  position: relative;
+  z-index: 10;
+  border: 1px solid var(--border);
+}
+
+.registerHeader {
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.registerTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-sm);
+  background: var(--purple-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.registerSubtitle {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  margin-bottom: 0;
+}
+
+.backgroundDecoration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.floatingCard {
+  position: absolute;
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.1);
+  border: 1px solid var(--border);
+  text-align: center;
+  min-width: 200px;
+  opacity: 0.7;
+}
+
+.floatingCard h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: var(--spacing-md) 0 var(--spacing-sm) 0;
+}
+
+.floatingCard p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.cardIcon {
+  font-size: 2rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+.card1 {
+  top: 10%;
+  left: 5%;
+  animation: float 6s ease-in-out infinite;
+}
+
+.card2 {
+  top: 60%;
+  right: 5%;
+  animation: float 8s ease-in-out infinite reverse;
+}
+
+.card3 {
+  bottom: 15%;
+  left: 10%;
+  animation: float 7s ease-in-out infinite;
+  animation-delay: -2s;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-20px) rotate(1deg); }
+  66% { transform: translateY(-10px) rotate(-1deg); }
+}
+
+@media (max-width: 768px) {
+  .registerContainer {
+    padding: var(--spacing-lg);
+  }
+  
+  .registerContent {
+    padding: var(--spacing-xl);
+    max-width: 100%;
+  }
+  
+  .registerTitle {
+    font-size: 2rem;
+  }
+  
+  .floatingCard {
+    display: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  .card1, .card2, .card3 {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+}

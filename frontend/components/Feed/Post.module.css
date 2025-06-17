@@ -1,72 +1,86 @@
 .post {
-  padding: 15px;
+  padding: var(--spacing-lg) var(--spacing-xl);
 }
 
 .postHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: var(--spacing-md);
 }
 
 .postUser {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--spacing-md);
 }
 
 .postUserInfo h4 {
   font-size: 14px;
   font-weight: 600;
-  color: var(--primary-navy);
+  color: var(--text-primary);
   margin-bottom: 2px;
+  line-height: 1.25;
 }
 
 .postMeta {
-  font-size: 11px;
-  color: var(--text-light);
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.33;
 }
 
 .postMenu {
-  padding: 8px;
-  border-radius: 50%;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-full);
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.15s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
 }
 
 .postMenu:hover {
-  background-color: var(--light-gray);
+  background-color: var(--card-hover);
 }
 
 .postContent {
-  margin-bottom: 12px;
+  margin-bottom: var(--spacing-md);
   font-size: 14px;
-  line-height: 1.4;
-  color: var(--primary-navy);
+  line-height: 1.5;
+  color: var(--text-primary);
 }
 
 .postImage {
   width: 100%;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  background-color: var(--light-gray);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-md);
+  background-color: var(--background);
   height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-light);
+  color: var(--text-muted);
+  overflow: hidden;
+  transition: all 0.15s ease-in-out;
+}
+
+.postImage:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-lg);
 }
 
 .postStats {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 0;
-  border-top: 1px solid var(--border-gray);
-  border-bottom: 1px solid var(--border-gray);
-  margin-bottom: 8px;
-  font-size: 13px;
-  color: var(--text-light);
+  padding: var(--spacing-sm) 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--spacing-sm);
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 .postActionsRow {
@@ -77,20 +91,26 @@
 .postAction {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border-radius: 6px;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: background-color 0.3s;
-  color: var(--text-light);
-  font-size: 13px;
-  font-weight: 500;
+  transition: all 0.15s ease-in-out;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  min-height: 40px;
+  justify-content: center;
 }
 
 .postAction:hover {
-  background-color: var(--light-gray);
+  background-color: var(--card-hover);
+  color: var(--primary-purple);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 .postAction.liked {
-  color: var(--primary-navy);
+  color: var(--primary-purple);
+  background-color: var(--purple-gradient-light);
 }

@@ -1,21 +1,31 @@
 .chatSidebar {
-  background-color: var(--light-gray);
-  border-right: 1px solid var(--border-gray);
+  background-color: var(--background);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
 }
 
 .chatSearch {
-  padding: 15px;
-  border-bottom: 1px solid var(--border-gray);
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--card);
 }
 
 .chatSearch input {
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--border-gray);
-  border-radius: 20px;
-  font-size: 13px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-full);
+  font-size: 14px;
+  background-color: var(--background);
+  color: var(--text-primary);
+  transition: all 0.15s ease-in-out;
+}
+
+.chatSearch input:focus {
+  outline: none;
+  border-color: var(--primary-purple);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .chatList {
@@ -26,16 +36,21 @@
 .chatItem {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 15px;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
   cursor: pointer;
-  transition: background-color 0.3s;
-  border-bottom: 1px solid var(--border-gray);
+  transition: all 0.15s ease-in-out;
+  border-bottom: 1px solid var(--border);
 }
 
-.chatItem:hover,
+.chatItem:hover {
+  background-color: var(--card-hover);
+  transform: translateX(4px);
+}
+
 .chatItem.active {
-  background-color: var(--white);
+  background-color: var(--purple-gradient-light);
+  border-right: 3px solid var(--primary-purple);
 }
 
 .chatItemInfo {
@@ -44,33 +59,35 @@
 
 .chatItemName {
   font-size: 14px;
-  font-weight: 500;
-  color: var(--primary-navy);
-  margin-bottom: 3px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
 }
 
 .chatItemPreview {
   font-size: 12px;
-  color: var(--text-light);
+  color: var(--text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .chatItemTime {
-  font-size: 10px;
-  color: var(--text-light);
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
 .unreadBadge {
-  background-color: var(--primary-navy);
-  color: var(--white);
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  font-size: 10px;
+  background: var(--purple-gradient);
+  color: white;
+  border-radius: var(--radius-full);
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 3px;
+  margin-top: var(--spacing-xs);
+  box-shadow: var(--shadow-sm);
 }
