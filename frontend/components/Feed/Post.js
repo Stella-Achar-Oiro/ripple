@@ -49,13 +49,16 @@ export default function Post({ post }) {
         {post.image_path ? (
           <div className={styles.postImage}>
             <img
-              src={post.image_path}
+              src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/uploads${post.image_path}`}
               alt="Post attachment"
               style={{
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
                 borderRadius: '8px'
+              }}
+              onError={(e) => {
+                e.target.style.display = 'none'
               }}
             />
           </div>
