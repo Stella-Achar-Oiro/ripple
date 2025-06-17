@@ -67,6 +67,7 @@ func setupGroupRoutes(mux *http.ServeMux, h *handlers.GroupHandler, auth func(ht
 }
 
 func setupEventRoutes(mux *http.ServeMux, h *handlers.EventHandler, auth func(http.Handler) http.Handler) {
+	mux.Handle("/api/events", auth(http.HandlerFunc(h.GetUserEvents)))
 	mux.Handle("/api/events/", auth(http.HandlerFunc(h.CreateEvent)))
 	mux.Handle("/api/events/get/", auth(http.HandlerFunc(h.GetEvent)))
 	mux.Handle("/api/events/group/", auth(http.HandlerFunc(h.GetGroupEvents)))
