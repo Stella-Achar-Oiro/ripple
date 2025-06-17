@@ -41,7 +41,7 @@ func TestEventSystem(t *testing.T) {
 	}
 
 	// Add user2 to the group
-	err = groupRepo.RequestToJoinGroup(group.ID, user2.ID)
+	_, err = groupRepo.RequestToJoinGroup(group.ID, user2.ID)
 	if err != nil {
 		t.Fatalf("Failed to request group membership: %v", err)
 	}

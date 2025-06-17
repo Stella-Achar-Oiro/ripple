@@ -314,3 +314,88 @@ func (er *EventRepository) DeleteEvent(eventID, userID int) error {
 
 	return nil
 }
+
+// GetUserEvents gets all events from groups the user is a member of
+func (er *EventRepository) GetUserEvents(userID int, limit, offset int) ([]*Event, error) {
+	query := `
+		SELECT DISTINCT 
+			e.id, e.group_id, e.creator_id, e.title, e.description, e.event_date, 
+			e.created_at, e.updated_at,
+			g.title as group_title,
+			CASE WHEN e.creator_id = ? THEN 1 ELSE 0 END as is_creator,
+			(SELECT response FROM event_responses WHERE event_id = e.id AND user_id = ?) as user_response,
+			(SELECT COUNT(*) FROM event_responses WHERE event_id = e.id AND response = 'going') as going_count,
+			(SELECT COUNT(*) FROM event_responses WHERE event_id = e.id AND response = 'not_going') as not_going_count,
+			cu.first_name as creator_first_name,
+			cu.last_name as creator_last_name,
+			cu.avatar_path as creator_avatar_path
+		FROM events e
+		INNER JOIN groups g ON e.group_id = g.id
+		INNER JOIN group_members gm ON g.id = gm.group_id 
+		INNER JOIN users cu ON e.creator_id = cu.id
+		WHERE gm.user_id = ? AND gm.status = 'member'
+		ORDER BY e.event_date ASC
+		LIMIT ? OFFSET ?
+	`
+
+	rows, err := er.db.Query(query, userID, userID, userID, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user events: %w", err)
+	}
+	defer rows.Close()
+
+	var events []*Event
+	for rows.Next() {
+		event := &Event{}
+		var userResponse sql.NullString
+		var creatorFirstName, creatorLastName, creatorAvatarPath sql.NullString
+
+		err := rows.Scan(
+			&event.ID,
+			&event.GroupID,
+			&event.CreatorID,
+			&event.Title,
+			&event.Description,
+			&event.EventDate,
+			&event.CreatedAt,
+			&event.UpdatedAt,
+			&event.GroupTitle,
+			&event.IsCreator,
+			&userResponse,
+			&event.GoingCount,
+			&event.NotGoingCount,
+			&creatorFirstName,
+			&creatorLastName,
+			&creatorAvatarPath,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan event row: %w", err)
+		}
+
+		// Set user response
+		if userResponse.Valid {
+			event.UserResponse = &userResponse.String
+		}
+
+		// Set creator info
+		if creatorFirstName.Valid && creatorLastName.Valid {
+			creator := &UserResponse{
+				ID:        event.CreatorID,
+				FirstName: creatorFirstName.String,
+				LastName:  creatorLastName.String,
+			}
+			if creatorAvatarPath.Valid {
+				creator.AvatarPath = &creatorAvatarPath.String
+			}
+			event.Creator = creator
+		}
+
+		events = append(events, event)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating event rows: %w", err)
+	}
+
+	return events, nil
+}

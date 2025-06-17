@@ -354,6 +354,46 @@ func (eh *EventHandler) GetEventResponses(w http.ResponseWriter, r *http.Request
 	})
 }
 
+// GetUserEvents gets all events for a user from their groups
+func (eh *EventHandler) GetUserEvents(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	// Parse query parameters
+	limitStr := r.URL.Query().Get("limit")
+	offsetStr := r.URL.Query().Get("offset")
+
+	limit := 10 // default limit
+	if limitStr != "" {
+		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 && parsedLimit <= 50 {
+			limit = parsedLimit
+		}
+	}
+
+	offset := 0 // default offset
+	if offsetStr != "" {
+		if parsedOffset, err := strconv.Atoi(offsetStr); err == nil && parsedOffset >= 0 {
+			offset = parsedOffset
+		}
+	}
+
+	events, err := eh.eventRepo.GetUserEvents(userID, limit, offset)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	utils.WriteSuccessResponse(w, http.StatusOK, events)
+}
+
 // Validation helper methods
 func (eh *EventHandler) validateCreateEventRequest(req *models.CreateEventRequest) utils.ValidationErrors {
 	var errors utils.ValidationErrors

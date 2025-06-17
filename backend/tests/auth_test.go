@@ -58,8 +58,10 @@ func TestUserRegistration(t *testing.T) {
 	defer cleanup()
 
 	userRepo := models.NewUserRepository(database.DB)
+	followRepo := models.NewFollowRepository(database.DB)
+	postRepo := models.NewPostRepository(database.DB)
 	sessionManager := auth.NewSessionManager(database.DB)
-	authHandler := handlers.NewAuthHandler(userRepo, sessionManager)
+	authHandler := handlers.NewAuthHandler(userRepo, followRepo, postRepo, sessionManager)
 
 	tests := []struct {
 		name           string
@@ -170,8 +172,10 @@ func TestUserLogin(t *testing.T) {
 	defer cleanup()
 
 	userRepo := models.NewUserRepository(database.DB)
+	followRepo := models.NewFollowRepository(database.DB)
+	postRepo := models.NewPostRepository(database.DB)
 	sessionManager := auth.NewSessionManager(database.DB)
-	authHandler := handlers.NewAuthHandler(userRepo, sessionManager)
+	authHandler := handlers.NewAuthHandler(userRepo, followRepo, postRepo, sessionManager)
 
 	// First register a user
 	_, err := createAuthTestUser(userRepo)
@@ -255,8 +259,10 @@ func TestCompleteAuthFlow(t *testing.T) {
 	defer cleanup()
 
 	userRepo := models.NewUserRepository(database.DB)
+	followRepo := models.NewFollowRepository(database.DB)
+	postRepo := models.NewPostRepository(database.DB)
 	sessionManager := auth.NewSessionManager(database.DB)
-	authHandler := handlers.NewAuthHandler(userRepo, sessionManager)
+	authHandler := handlers.NewAuthHandler(userRepo, followRepo, postRepo, sessionManager)
 
 	// Test registration
 	regPayload := map[string]interface{}{

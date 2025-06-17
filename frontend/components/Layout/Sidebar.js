@@ -76,10 +76,13 @@ export default function Sidebar({ currentPage, isOpen, onClose }) {
       
       <div className={styles.sidebarSection}>
         <div className={styles.sidebarTitle}>More</div>
-        <a href="#" className={styles.sidebarItem}>
+        <Link 
+          href="/settings" 
+          className={`${styles.sidebarItem} ${currentPage === 'settings' ? styles.active : ''}`}
+        >
           <i className="fas fa-cog"></i>
           Settings
-        </a>
+        </Link>
         <a href="#" className={styles.sidebarItem}>
           <i className="fas fa-question-circle"></i>
           Help
