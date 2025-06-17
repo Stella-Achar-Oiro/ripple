@@ -1,14 +1,21 @@
 .profileHeader {
-  background-color: var(--white);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
+  background-color: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
   overflow: hidden;
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-xl);
+  transition: all 0.15s ease-in-out;
+}
+
+.profileHeader:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .profileCover {
-  height: 150px;
-  background-color: var(--primary-navy);
+  height: 200px;
+  background: var(--purple-gradient);
   position: relative;
 }
 
@@ -25,7 +32,7 @@
 .coverPlaceholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, var(--primary-navy) 0%, var(--secondary-navy) 100%);
+  background: var(--purple-gradient);
 }
 
 .coverEditOverlay {
@@ -34,44 +41,48 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity 0.15s ease-in-out;
 }
 
 .coverEditButton {
-  background-color: rgba(255, 255, 255, 0.9);
-  color: var(--text-dark);
-  border: none;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
+  background-color: var(--card);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  width: 48px;
+  height: 48px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
-  transition: all 0.3s;
+  transition: all 0.15s ease-in-out;
+  box-shadow: var(--shadow-md);
 }
 
 .coverEditButton:hover {
-  background-color: white;
-  transform: scale(1.1);
+  background-color: var(--card-hover);
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg);
+  color: var(--primary-purple);
 }
 
 .profileAvatar {
   position: absolute;
-  bottom: -50px;
-  left: 30px;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  border: 4px solid var(--white);
+  bottom: -60px;
+  left: var(--spacing-2xl);
+  width: 120px;
+  height: 120px;
+  border-radius: var(--radius-full);
+  border: 4px solid var(--card);
   overflow: hidden;
-  background-color: var(--light-gray);
+  background: var(--purple-gradient);
+  box-shadow: var(--shadow-lg);
 }
 
 .profileAvatar:hover .avatarEditButton {
@@ -90,115 +101,128 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--secondary-navy);
-  color: var(--white);
-  font-size: 36px;
-  font-weight: bold;
+  background: var(--purple-gradient);
+  color: white;
+  font-size: 48px;
+  font-weight: 600;
 }
 
 .avatarEditButton {
   position: absolute;
-  bottom: 5px;
-  right: 5px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background-color: var(--primary-navy);
+  bottom: var(--spacing-sm);
+  right: var(--spacing-sm);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background-color: var(--primary-purple);
   color: white;
-  border: 2px solid white;
+  border: 2px solid var(--card);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 14px;
   opacity: 0;
-  transition: all 0.3s;
+  transition: all 0.15s ease-in-out;
+  box-shadow: var(--shadow-md);
 }
 
 .avatarEditButton:hover {
-  background-color: var(--secondary-navy);
-  transform: scale(1.1);
+  background-color: var(--accent-purple);
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg);
 }
 
 .profileInfo {
-  padding: 60px 30px 30px;
+  padding: 80px var(--spacing-2xl) var(--spacing-2xl);
 }
 
 .profileNameRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-xl);
 }
 
 .profileName {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text-dark);
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.25;
 }
 
 .nickname {
-  font-weight: normal;
-  color: var(--text-light);
-  margin-left: 8px;
-  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-left: var(--spacing-sm);
+  font-size: 20px;
 }
 
 .followButton {
-  background-color: var(--primary-navy);
-  color: var(--white);
-  border: none;
-  border-radius: 8px;
-  padding: 10px 20px;
+  background-color: var(--primary-purple);
+  color: white;
+  border: 1px solid var(--primary-purple);
+  border-radius: var(--radius-full);
+  padding: var(--spacing-sm) var(--spacing-xl);
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-  transition: background-color 0.3s;
+  gap: var(--spacing-sm);
+  transition: all 0.15s ease-in-out;
+  min-height: 32px;
+  font-size: 16px;
 }
 
 .followButton:hover {
-  background-color: var(--secondary-navy);
+  background-color: var(--accent-purple);
+  border-color: var(--accent-purple);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .followButton.following {
-  background-color: var(--light-gray);
-  color: var(--text-dark);
+  background-color: var(--card-hover);
+  color: var(--text-primary);
+  border-color: var(--border);
 }
 
 .buttonLoader {
   width: 16px;
   height: 16px;
   border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: var(--white);
+  border-radius: var(--radius-full);
+  border-top-color: white;
   animation: spin 1s linear infinite;
 }
 
 .profileActions {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: var(--spacing-lg);
 }
 
 .editButton {
-  background-color: var(--primary-navy);
-  color: var(--white);
-  border: none;
-  border-radius: 8px;
-  padding: 10px 16px;
+  background-color: var(--card-hover);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  padding: var(--spacing-sm) var(--spacing-lg);
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-  transition: background-color 0.3s;
-  font-size: 14px;
+  gap: var(--spacing-sm);
+  transition: all 0.15s ease-in-out;
+  font-size: 16px;
+  min-height: 32px;
 }
 
 .editButton:hover {
-  background-color: var(--secondary-navy);
+  background-color: var(--purple-gradient-light);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+  color: var(--primary-purple);
 }
 
 .privacyToggle {
@@ -225,10 +249,10 @@
   display: inline-block;
   width: 50px;
   height: 24px;
-  background-color: var(--border-gray);
+  background-color: var(--border);
   border-radius: 24px;
-  margin-left: 10px;
-  transition: 0.3s;
+  margin-left: var(--spacing-md);
+  transition: 0.15s ease-in-out;
 }
 
 .toggleSwitch:after {
@@ -238,13 +262,13 @@
   left: 2px;
   width: 20px;
   height: 20px;
-  background-color: var(--white);
-  border-radius: 50%;
-  transition: 0.3s;
+  background-color: var(--card);
+  border-radius: var(--radius-full);
+  transition: 0.15s ease-in-out;
 }
 
 .toggleCheckbox:checked + .toggleSwitch {
-  background-color: var(--success-green);
+  background-color: var(--primary-purple);
 }
 
 .toggleCheckbox:checked + .toggleSwitch:after {
@@ -254,49 +278,53 @@
 
 .profileStats {
   display: flex;
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-xl);
+  gap: var(--spacing-xl);
 }
 
 .statItem {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  margin-right: 30px;
+  align-items: flex-start;
 }
 
 .statValue {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-dark);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.25;
 }
 
 .statLabel {
   font-size: 14px;
-  color: var(--text-light);
+  color: var(--text-secondary);
+  line-height: 1.33;
 }
 
 .profileBio {
-  margin-bottom: 20px;
-  padding: 15px;
-  background-color: var(--light-gray);
-  border-radius: 8px;
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background-color: var(--background);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  line-height: 1.5;
 }
 
 .profileMeta {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: var(--spacing-lg);
 }
 
 .metaItem {
   display: flex;
   align-items: center;
-  color: var(--text-light);
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
 .metaItem i {
-  margin-right: 8px;
+  margin-right: var(--spacing-sm);
   width: 16px;
 }
 
