@@ -25,7 +25,7 @@ export default function EventList({ groupId, showGroupInfo = false, title = "Eve
 
       const url = groupId 
         ? `${API_URL}/api/groups/${groupId}/events?limit=${EVENTS_PER_PAGE}&offset=${offset}`
-        : `${API_URL}/api/events?limit=${EVENTS_PER_PAGE}&offset=${offset}` // Future: global events endpoint
+        : `${API_URL}/api/events?limit=${EVENTS_PER_PAGE}&offset=${offset}`
 
       const response = await fetch(url, {
         credentials: 'include',
@@ -99,12 +99,12 @@ export default function EventList({ groupId, showGroupInfo = false, title = "Eve
   }, [fetchEvents])
 
   // Add new event to the list (called from parent components)
-  const addNewEvent = useCallback((newEvent) => {
-    setEvents(prev => {
-      const prevEvents = Array.isArray(prev) ? prev : []
-      return [newEvent, ...prevEvents]
-    })
-  }, [])
+  // const addNewEvent = useCallback((newEvent) => {
+  //   setEvents(prev => {
+  //     const prevEvents = Array.isArray(prev) ? prev : []
+  //     return [newEvent, ...prevEvents]
+  //   })
+  // }, [])
 
   useEffect(() => {
     if (groupId) {
@@ -244,8 +244,4 @@ export default function EventList({ groupId, showGroupInfo = false, title = "Eve
       </div>
     </div>
   )
-
-  // Expose methods for parent components
-  EventList.refresh = refreshEvents
-  EventList.addEvent = addNewEvent
 }

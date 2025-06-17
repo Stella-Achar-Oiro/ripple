@@ -142,6 +142,10 @@ func (c *Client) handleIncomingMessage(msg *WSMessage) {
 		c.handleTypingIndicator(msg)
 	case MessageTypeReadStatus:
 		c.handleReadStatusUpdate(msg)
+	case MessageTypePing:
+		c.handlePing(msg)
+	case MessageTypePong:
+		c.handlePong(msg)
 	default:
 		log.Printf("WebSocket: Unknown message type from user %d: %s", c.userID, msg.Type)
 		c.sendError("Unknown message type")
@@ -323,6 +327,23 @@ func (c *Client) handleReadStatusUpdate(msg *WSMessage) {
 		}
 		c.hub.mu.RUnlock()
 	}
+}
+
+// handlePing responds to ping messages from the client
+func (c *Client) handlePing(msg *WSMessage) {
+	// Respond with pong
+	pongMessage := WSMessage{
+		Type:      MessageTypePong,
+		Timestamp: time.Now(),
+	}
+	c.hub.sendToClient(c, pongMessage)
+}
+
+// handlePong handles pong messages from the client (acknowledges our ping)
+func (c *Client) handlePong(msg *WSMessage) {
+	// Update last seen time (already done in readPump)
+	c.lastSeen = time.Now()
+	// No further action needed for pong messages
 }
 
 // canSendPrivateMessage checks if user can send private message using follow system
