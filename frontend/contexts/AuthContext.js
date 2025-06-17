@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || 'Invalid email or password')
+        throw new Error(data.error?.message || data.message || 'Invalid email or password')
       }
 
       // Update auth state
@@ -69,6 +69,7 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true, user: data.data.user }
     } catch (error) {
+      console.error('Login error:', error)
       return { success: false, error: error.message }
     }
   }
