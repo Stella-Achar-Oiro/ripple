@@ -1,0 +1,241 @@
+.eventCard {
+  background-color: var(--white);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin-bottom: 16px;
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.eventCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-heavy);
+}
+
+.pastEvent {
+  opacity: 0.7;
+  background-color: #f8f9fa;
+}
+
+.eventHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.eventTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.eventTitle h3 {
+  margin: 0;
+  color: var(--primary-navy);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.creatorBadge {
+  background-color: #ffd700;
+  color: #333;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.groupInfo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-light);
+  font-size: 12px;
+  background-color: var(--light-gray);
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.eventDateTime {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 12px;
+  background-color: var(--light-gray);
+  border-radius: 8px;
+}
+
+.dateTime {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.date,
+.time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary-navy);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.date i,
+.time i {
+  color: var(--text-light);
+  width: 16px;
+}
+
+.timeInfo {
+  background-color: var(--primary-navy);
+  color: var(--white);
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pastTime {
+  background-color: var(--text-light);
+}
+
+.eventDescription {
+  margin-bottom: 15px;
+  color: var(--text-dark);
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.eventStats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border-gray);
+}
+
+.responseStats {
+  display: flex;
+  gap: 15px;
+}
+
+.goingCount,
+.notGoingCount {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.goingCount {
+  color: #27ae60;
+}
+
+.notGoingCount {
+  color: #e74c3c;
+}
+
+.creatorInfo {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.eventActions {
+  display: flex;
+  gap: 10px;
+}
+
+.responseBtn {
+  flex: 1;
+  padding: 10px 16px;
+  border: 2px solid;
+  border-radius: 8px;
+  background-color: transparent;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.goingBtn {
+  border-color: #27ae60;
+  color: #27ae60;
+}
+
+.goingBtn:hover,
+.goingBtn.active {
+  background-color: #27ae60;
+  color: var(--white);
+}
+
+.notGoingBtn {
+  border-color: #e74c3c;
+  color: #e74c3c;
+}
+
+.notGoingBtn:hover,
+.notGoingBtn.active {
+  background-color: #e74c3c;
+  color: var(--white);
+}
+
+.responseBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 18px;
+  color: var(--primary-navy);
+}
+
+@media (max-width: 768px) {
+  .eventCard {
+    padding: 16px;
+  }
+  
+  .eventHeader {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .eventDateTime {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .eventStats {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .eventTitle h3 {
+    font-size: 16px;
+  }
+}

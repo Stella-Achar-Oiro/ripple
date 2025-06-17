@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useNotifications } from '../../contexts/NotificationContext'
+import { useWebSocket } from '../../contexts/WebSocketContext'
 import NotificationPanel from '../Notifications/NotificationPanel'
 import styles from './Navbar.module.css'
 
@@ -12,11 +13,16 @@ export default function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false)
   const router = useRouter()
   const { unreadCount } = useNotifications()
+  const { isConnected } = useWebSocket()
+
+  // Calculate total unread message count
+  const messageUnreadCount = 0 // This would need to be calculated from all conversations
 
   const handleSearch = (e) => {
     e.preventDefault()
-    // Handle search functionality
-    console.log('Searching for:', searchQuery)
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+    }
   }
 
   const handleLogout = () => {
@@ -48,9 +54,14 @@ export default function Navbar() {
           <Link href="/groups" className={styles.navIcon}>
             <i className="fas fa-users"></i>
           </Link>
-          <Link href="/chat" className={styles.navIcon}>
+          <Link href="/chat" className={`${styles.navIcon} ${styles.chatIcon}`}>
             <i className="fas fa-comments"></i>
-            <span className="notification-badge">3</span>
+            {!isConnected && (
+              <i className={`fas fa-exclamation-triangle ${styles.connectionWarning}`} title="Chat offline"></i>
+            )}
+            {messageUnreadCount > 0 && (
+              <span className="notification-badge">{messageUnreadCount}</span>
+            )}
           </Link>
           <div
             className={styles.navIcon}

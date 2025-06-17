@@ -8,14 +8,29 @@
 .chatSearch {
   padding: 15px;
   border-bottom: 1px solid var(--border-gray);
+  position: relative;
+}
+
+.chatSearch i {
+  position: absolute;
+  left: 25px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  font-size: 12px;
 }
 
 .chatSearch input {
   width: 100%;
-  padding: 8px 12px;
+  padding: 8px 12px 8px 32px;
   border: 1px solid var(--border-gray);
   border-radius: 20px;
   font-size: 13px;
+}
+
+.chatSearch input:disabled {
+  background-color: var(--light-gray);
+  cursor: not-allowed;
 }
 
 .chatList {
@@ -62,6 +77,13 @@
   color: var(--text-light);
 }
 
+.chatItemMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
 .unreadBadge {
   background-color: var(--primary-navy);
   color: var(--white);
@@ -72,5 +94,49 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 3px;
+  font-weight: 600;
+}
+
+.groupIndicator {
+  margin-left: 4px;
+  color: var(--text-light);
+  font-size: 11px;
+}
+
+.loadingState,
+.errorState,
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-light);
+  gap: 10px;
+}
+
+.loadingState i,
+.errorState i,
+.emptyState i {
+  font-size: 32px;
+  color: var(--border-gray);
+  margin-bottom: 10px;
+}
+
+.errorState button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  font-size: 12px;
+}
+
+.emptyState p {
+  margin: 0;
+  font-weight: 500;
+  color: var(--primary-navy);
+}
+
+.emptyState span {
+  margin: 0;
+  font-size: 12px;
 }

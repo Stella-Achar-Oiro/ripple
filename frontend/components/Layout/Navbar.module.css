@@ -78,6 +78,21 @@
   background-color: var(--secondary-navy);
 }
 
+.chatIcon {
+  position: relative;
+}
+
+.connectionWarning {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  font-size: 10px;
+  color: #f39c12;
+  background-color: var(--primary-navy);
+  border-radius: 50%;
+  padding: 2px;
+}
+
 .profileAvatar {
   width: 32px;
   height: 32px;

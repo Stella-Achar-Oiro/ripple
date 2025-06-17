@@ -8,9 +8,10 @@ export default function PostList() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+
   const fetchPosts = async () => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
       const response = await fetch(`${API_URL}/api/posts/feed`, {
         credentials: 'include',
       })
@@ -76,7 +77,7 @@ export default function PostList() {
           <div className={styles.postContent}>{post.content}</div>
           {post.image_path && (
             <div className={styles.postImage}>
-              <img src={post.image_path} alt="Post attachment" />
+              <img src={`${API_URL}${post.image_path}`} alt="Post attachment" />
             </div>
           )}
           <div className={styles.postActions}>

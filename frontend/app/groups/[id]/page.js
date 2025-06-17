@@ -7,6 +7,8 @@ import MainLayout from '../../../components/Layout/MainLayout'
 import InviteUsersModal from '../../../components/Groups/InviteUsersModal'
 import JoinRequestsManager from '../../../components/Groups/JoinRequestsManager'
 import GroupPostList from '../../../components/Groups/GroupPostList'
+import EventList from '../../../components/Events/EventList'
+import CreateEventModal from '../../../components/Events/CreateEventModal'
 import styles from './page.module.css'
 
 export default function GroupDetailPage() {
@@ -20,6 +22,7 @@ export default function GroupDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
+  const [isCreateEventModalOpen, setIsCreateEventModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('members')
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
@@ -86,6 +89,20 @@ export default function GroupDetailPage() {
     // Refresh members list after successful invite
     fetchMembers()
     setIsInviteModalOpen(false)
+  }
+
+  const handleCreateEvent = () => {
+    setIsCreateEventModalOpen(true)
+  }
+
+  const handleCreateEventClose = () => {
+    setIsCreateEventModalOpen(false)
+  }
+
+  const handleEventCreated = (newEvent) => {
+    // Optionally switch to events tab to show the new event
+    setActiveTab('events')
+    setIsCreateEventModalOpen(false)
   }
 
   const handleBackToGroups = () => {
@@ -200,6 +217,13 @@ export default function GroupDetailPage() {
                   >
                     <i className="fas fa-user-plus"></i>
                     Invite Users
+                  </button>
+                  <button
+                    className="btn-outline"
+                    onClick={handleCreateEvent}
+                  >
+                    <i className="fas fa-calendar-plus"></i>
+                    Create Event
                   </button>
                   {group.is_creator && (
                     <button className="btn-outline">
@@ -326,10 +350,10 @@ export default function GroupDetailPage() {
               )}
 
               {activeTab === 'events' && (
-                <div className={styles.emptyState}>
-                  <i className="fas fa-calendar"></i>
-                  <p>Events feature coming soon!</p>
-                </div>
+                <EventList
+                  groupId={groupId}
+                  title="Group Events"
+                />
               )}
             </div>
           </div>
@@ -340,6 +364,15 @@ export default function GroupDetailPage() {
           isOpen={isInviteModalOpen}
           onClose={handleInviteModalClose}
           onSuccess={handleInviteSuccess}
+          groupId={groupId}
+          groupTitle={group.title}
+        />
+
+        {/* Create Event Modal */}
+        <CreateEventModal
+          isOpen={isCreateEventModalOpen}
+          onClose={handleCreateEventClose}
+          onSuccess={handleEventCreated}
           groupId={groupId}
           groupTitle={group.title}
         />

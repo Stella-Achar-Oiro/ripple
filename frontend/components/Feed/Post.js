@@ -7,6 +7,8 @@ export default function Post({ post }) {
   const [isLiked, setIsLiked] = useState(post.isLiked)
   const [likeCount, setLikeCount] = useState(post.likes_count)
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+
   const handleLike = () => {
     setIsLiked(!isLiked)
     setLikeCount(prev => isLiked ? prev - 1 : prev + 1)
@@ -49,7 +51,7 @@ export default function Post({ post }) {
         {post.image_path ? (
           <div className={styles.postImage}>
             <img
-              src={post.image_path}
+              src={`${API_URL}${post.image_path}`}
               alt="Post attachment"
               style={{
                 width: '100%',
