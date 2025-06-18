@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import WorkingPost from './WorkingPost'
 import styles from './PostList.module.css'
 
-export default function PostList() {
+export default function PostList({ refreshTrigger }) {
   const [posts, setPosts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -37,7 +38,7 @@ export default function PostList() {
 
   useEffect(() => {
     fetchPosts()
-  }, [])
+  }, [refreshTrigger])
 
   if (isLoading) {
     return <div className={styles.loading}>Loading posts...</div>
@@ -54,43 +55,7 @@ export default function PostList() {
   return (
     <div className={styles.postList}>
       {posts.map((post) => (
-        <div key={post.id} className={styles.postCard}>
-          <div className={styles.postHeader}>
-            <div className={styles.userInfo}>
-              <div className="user-avatar">
-                {post.author?.nickname?.[0] || 'U'}
-              </div>
-              <div className={styles.userDetails}>
-                <span className={styles.userName}>
-                  {post.author?.first_name} {post.author?.last_name}
-                </span>
-                <span className={styles.postTime}>
-                  {new Date(post.created_at).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
-            <div className={styles.postPrivacy}>
-              <i className={`fas fa-${post.privacy_level === 'public' ? 'globe' : 'lock'}`}></i>
-            </div>
-          </div>
-          <div className={styles.postContent}>{post.content}</div>
-          {post.image_path && (
-            <div className={styles.postImage}>
-              <img src={post.image_path} alt="Post attachment" />
-            </div>
-          )}
-          <div className={styles.postActions}>
-            <button className={styles.actionButton}>
-              <i className="far fa-heart"></i> Like
-            </button>
-            <button className={styles.actionButton}>
-              <i className="far fa-comment"></i> Comment ({post.comment_count || 0})
-            </button>
-            <button className={styles.actionButton}>
-              <i className="far fa-share-square"></i> Share
-            </button>
-          </div>
-        </div>
+        <WorkingPost key={post.id} post={post} />
       ))}
     </div>
   )

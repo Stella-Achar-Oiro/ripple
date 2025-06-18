@@ -1,36 +1,29 @@
 import { useState } from 'react'
 import ProfileEditModal from './ProfileEditModal'
+import FollowButton from '../Social/FollowButton'
 import styles from './ProfileHeader.module.css'
 
 export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle, onProfileUpdate }) {
-  const [isFollowing, setIsFollowing] = useState(profile.is_following)
-  const [isLoading, setIsLoading] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [followerCount, setFollowerCount] = useState(profile.follower_count || 0)
   
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
-  
-  const handleFollowToggle = async () => {
-    setIsLoading(true)
-    
-    try {
-      const endpoint = isFollowing 
-        ? `${API_URL}/api/follows/${profile.id}/unfollow` 
-        : `${API_URL}/api/follows/${profile.id}/follow`
-      
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        credentials: 'include'
+
+  const handleFollowChange = ({ status, wasFollowing }) => {
+    // Update follower count based on follow status change
+    if (status === 'following' && !wasFollowing) {
+      setFollowerCount(prev => prev + 1)
+    } else if (!status && wasFollowing) {
+      setFollowerCount(prev => Math.max(0, prev - 1))
+    }
+
+    // Notify parent component if needed
+    if (onProfileUpdate) {
+      onProfileUpdate({
+        ...profile,
+        is_following: status === 'following',
+        follower_count: followerCount
       })
-      
-      if (!response.ok) {
-        throw new Error('Failed to update follow status')
-      }
-      
-      setIsFollowing(!isFollowing)
-    } catch (err) {
-      console.error('Error updating follow status:', err)
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -116,19 +109,14 @@ export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle,
               </div>
             </div>
           ) : (
-            <button 
-              className={`${styles.followButton} ${isFollowing ? styles.following : ''}`}
-              onClick={handleFollowToggle}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <span className={styles.buttonLoader}></span>
-              ) : isFollowing ? (
-                <>Following <i className="fas fa-check"></i></>
-              ) : (
-                <>Follow <i className="fas fa-plus"></i></>
-              )}
-            </button>
+            <FollowButton
+              userId={profile.id}
+              initialFollowStatus={profile.is_following ? 'following' : null}
+              isPrivateUser={!profile.is_public}
+              size="large"
+              variant="primary"
+              onFollowChange={handleFollowChange}
+            />
           )}
         </div>
         
@@ -138,7 +126,7 @@ export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle,
             <span className={styles.statLabel}>Posts</span>
           </div>
           <div className={styles.statItem}>
-            <span className={styles.statValue}>{profile.follower_count || 0}</span>
+            <span className={styles.statValue}>{followerCount}</span>
             <span className={styles.statLabel}>Followers</span>
           </div>
           <div className={styles.statItem}>

@@ -1,0 +1,161 @@
+.userCard {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  border: 1px solid transparent;
+}
+
+.userCard:hover {
+  background-color: var(--card-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.userAvatar {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatarImage {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  border: 2px solid var(--border);
+}
+
+.avatarPlaceholder {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: var(--purple-gradient);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 18px;
+  border: 2px solid var(--border);
+}
+
+.userInfo {
+  flex: 1;
+  min-width: 0; /* Allow text truncation */
+}
+
+.userName {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userSubtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.userStats {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.userActions {
+  flex-shrink: 0;
+}
+
+.followButton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: 2px solid var(--primary-purple);
+  border-radius: var(--radius-lg);
+  background-color: transparent;
+  color: var(--primary-purple);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  min-width: 100px;
+  justify-content: center;
+  height: 36px;
+}
+
+.followButton:hover {
+  background: var(--purple-gradient);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.followButton.following {
+  background: var(--purple-gradient);
+  color: white;
+}
+
+.followButton.following:hover {
+  background-color: var(--error);
+  border-color: var(--error);
+}
+
+.followButton.following:hover .followText {
+  display: none;
+}
+
+.followButton.following:hover::after {
+  content: 'Unfollow';
+}
+
+.followButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.followText {
+  font-size: 14px;
+}
+
+/* Compact variant for smaller spaces */
+.userCard.compact {
+  padding: var(--spacing-sm) var(--spacing-md);
+  gap: var(--spacing-sm);
+}
+
+.userCard.compact .avatarImage,
+.userCard.compact .avatarPlaceholder {
+  width: 36px;
+  height: 36px;
+}
+
+.userCard.compact .avatarPlaceholder {
+  font-size: 14px;
+}
+
+.userCard.compact .userName {
+  font-size: 14px;
+}
+
+.userCard.compact .userSubtitle {
+  font-size: 12px;
+}
+
+.userCard.compact .followButton {
+  min-width: 80px;
+  height: 32px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: 12px;
+}

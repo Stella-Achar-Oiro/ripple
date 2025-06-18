@@ -3,18 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import SearchBar from '../Search/SearchBar'
 import styles from './Navbar.module.css'
 
 export default function Navbar() {
-  const [searchQuery, setSearchQuery] = useState('')
   const [showNotifications, setShowNotifications] = useState(false)
   const router = useRouter()
-
-  const handleSearch = (e) => {
-    e.preventDefault()
-    // Handle search functionality
-    console.log('Searching for:', searchQuery)
-  }
 
   const handleLogout = () => {
     // Handle logout
@@ -28,15 +22,7 @@ export default function Navbar() {
           Ripple
         </Link>
         
-        <form className={styles.navSearch} onSubmit={handleSearch}>
-          <input 
-            type="text" 
-            placeholder="Search Ripple..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <i className="fas fa-search"></i>
-        </form>
+        <SearchBar />
         
         <div className={styles.navActions}>
           <Link href="/feed" className={styles.navIcon}>
