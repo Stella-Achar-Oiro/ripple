@@ -283,8 +283,8 @@ body {
   width: 32px;
   height: 32px;
   border-radius: var(--radius-full);
-  background-color: var(--linkedin-blue);
-  color: var(--linkedin-card);
+  background: var(--purple-gradient);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -292,6 +292,7 @@ body {
   font-weight: 600;
   overflow: hidden;
   flex-shrink: 0;
+  margin-right: 20px;
 }
 
 .online-indicator {
