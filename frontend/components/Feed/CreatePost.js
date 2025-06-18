@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import styles from './CreatePost.module.css'
 
-export default function CreatePost() {
+export default function CreatePost({ onPostCreated }) {
   const [postContent, setPostContent] = useState('')
   const [privacy, setPrivacy] = useState('public')
   const [isLoading, setIsLoading] = useState(false)
@@ -81,8 +81,11 @@ export default function CreatePost() {
       setPostContent('')
       setImageFile(null)
       setImagePreview(null)
-      // You might want to trigger a refresh of the posts list here
-      // This can be done through a callback prop or using a state management solution
+      
+      // Trigger refresh of posts list
+      if (onPostCreated) {
+        onPostCreated(data.data)
+      }
     } catch (err) {
       setError(err.message || 'An error occurred while creating the post')
       console.error('Post creation error:', err)
@@ -93,7 +96,7 @@ export default function CreatePost() {
 
   return (
     <div className="card">
-      <div className={styles.createPost}>
+      <form onSubmit={handleSubmit} className={styles.createPost}>
         <div className={styles.createPostHeader}>
           <div className="user-avatar">JD</div>
           <textarea 
@@ -154,15 +157,15 @@ export default function CreatePost() {
               </select>
             </div>
             <button 
+              type="submit"
               className="btn-primary"
-              onClick={handleSubmit}
               disabled={(!postContent.trim() && !imageFile) || isLoading}
             >
               {isLoading ? 'Posting...' : 'Post'}
             </button>
           </div>
         </div>
-      </div>
+      </form>
     </div>
   )
 }
