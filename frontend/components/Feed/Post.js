@@ -1,15 +1,129 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import CommentForm from './CommentForm'
 import styles from './Post.module.css'
 
 export default function Post({ post }) {
-  const [isLiked, setIsLiked] = useState(post.isLiked)
-  const [likeCount, setLikeCount] = useState(post.likes_count)
+  const [isLiked, setIsLiked] = useState(post.isLiked || false)
+  const [likeCount, setLikeCount] = useState(post.likes_count || 0)
+  const [isLikeLoading, setIsLikeLoading] = useState(false)
+  const [showComments, setShowComments] = useState(false)
+  const [comments, setComments] = useState([])
+  const [isCommentsLoading, setIsCommentsLoading] = useState(false)
+  const [commentCount, setCommentCount] = useState(post.comment_count || 0)
+  const [likeError, setLikeError] = useState('')
+  const [commentsError, setCommentsError] = useState('')
 
-  const handleLike = () => {
-    setIsLiked(!isLiked)
-    setLikeCount(prev => isLiked ? prev - 1 : prev + 1)
+  const router = useRouter()
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+
+  const handleLike = async () => {
+    if (isLikeLoading) return
+
+    // Optimistic update
+    const wasLiked = isLiked
+    const previousCount = likeCount
+    setIsLiked(!wasLiked)
+    setLikeCount(prev => wasLiked ? prev - 1 : prev + 1)
+    setLikeError('')
+    setIsLikeLoading(true)
+
+    try {
+      const endpoint = wasLiked 
+        ? `${API_URL}/api/posts/unlike/${post.id}`
+        : `${API_URL}/api/posts/like/${post.id}`
+      
+      const method = wasLiked ? 'DELETE' : 'POST'
+
+      const response = await fetch(endpoint, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          router.push('/')
+          return
+        }
+        throw new Error('Failed to update like status')
+      }
+
+      const data = await response.json()
+      // Update with actual counts from server if provided
+      if (data.data?.likes_count !== undefined) {
+        setLikeCount(data.data.likes_count)
+      }
+      if (data.data?.is_liked !== undefined) {
+        setIsLiked(data.data.is_liked)
+      }
+
+    } catch (error) {
+      console.error('Error updating like status:', error)
+      // Revert optimistic update on error
+      setIsLiked(wasLiked)
+      setLikeCount(previousCount)
+      setLikeError('Failed to update like. Please try again.')
+    } finally {
+      setIsLikeLoading(false)
+    }
+  }
+
+  const handleCommentToggle = async () => {
+    setShowComments(!showComments)
+    
+    // Fetch comments if showing for the first time
+    if (!showComments && comments.length === 0) {
+      await fetchComments()
+    }
+  }
+
+  const fetchComments = async () => {
+    setIsCommentsLoading(true)
+    setCommentsError('')
+
+    try {
+      const response = await fetch(`${API_URL}/api/posts/comments/${post.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          router.push('/')
+          return
+        }
+        throw new Error('Failed to fetch comments')
+      }
+
+      const data = await response.json()
+      setComments(data.data?.comments || [])
+      if (data.data?.comment_count !== undefined) {
+        setCommentCount(data.data.comment_count)
+      }
+
+    } catch (error) {
+      console.error('Error fetching comments:', error)
+      setCommentsError('Failed to load comments')
+    } finally {
+      setIsCommentsLoading(false)
+    }
+  }
+
+  const handleCommentAdded = (newComment) => {
+    if (newComment) {
+      setComments(prev => [newComment, ...prev])
+      setCommentCount(prev => prev + 1)
+    }
+    // Refresh comments to get latest data
+    fetchComments()
   }
 
   const getPrivacyIcon = (privacy) => {
@@ -65,19 +179,33 @@ export default function Post({ post }) {
         ) : null}
 
         <div className={styles.postStats}>
-          <span>{likeCount} likes • {post.comment_count || 0} comments</span>
+          <span>{likeCount} likes • {commentCount} comments</span>
           <span>{post.stats?.shares || 0} shares</span>
         </div>
 
+        {likeError && (
+          <div className={styles.errorMessage}>
+            {likeError}
+          </div>
+        )}
+
         <div className={styles.postActionsRow}>
           <div
-            className={`${styles.postAction} ${isLiked ? styles.liked : ''}`}
+            className={`${styles.postAction} ${isLiked ? styles.liked : ''} ${isLikeLoading ? styles.loading : ''}`}
             onClick={handleLike}
+            disabled={isLikeLoading}
           >
-            <i className={isLiked ? 'fas fa-heart' : 'far fa-heart'}></i>
+            {isLikeLoading ? (
+              <i className="fas fa-spinner fa-spin"></i>
+            ) : (
+              <i className={isLiked ? 'fas fa-heart' : 'far fa-heart'}></i>
+            )}
             Like
           </div>
-          <div className={styles.postAction}>
+          <div 
+            className={`${styles.postAction} ${showComments ? styles.active : ''}`}
+            onClick={handleCommentToggle}
+          >
             <i className="far fa-comment"></i>
             Comment
           </div>
@@ -86,6 +214,79 @@ export default function Post({ post }) {
             Share
           </div>
         </div>
+
+        {/* Comments Section */}
+        {showComments && (
+          <div className={styles.commentsSection}>
+            {commentsError && (
+              <div className={styles.errorMessage}>
+                {commentsError}
+                <button 
+                  className={styles.retryButton}
+                  onClick={fetchComments}
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+
+            {isCommentsLoading ? (
+              <div className={styles.commentsLoading}>
+                <i className="fas fa-spinner fa-spin"></i>
+                <span>Loading comments...</span>
+              </div>
+            ) : (
+              <>
+                {comments.length > 0 ? (
+                  <div className={styles.commentsList}>
+                    {comments.map((comment) => (
+                      <div key={comment.id} className={styles.commentItem}>
+                        <div className={styles.commentAvatar}>
+                          <div className="user-avatar">{getAuthorInitials(comment.author)}</div>
+                        </div>
+                        <div className={styles.commentContent}>
+                          <div className={styles.commentHeader}>
+                            <span className={styles.commentAuthor}>
+                              {comment.author?.first_name} {comment.author?.last_name}
+                            </span>
+                            <span className={styles.commentTime}>
+                              {new Date(comment.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <div className={styles.commentText}>
+                            {comment.content}
+                          </div>
+                          {comment.image_path && (
+                            <div className={styles.commentImage}>
+                              <img
+                                src={`${API_URL}/uploads${comment.image_path}`}
+                                alt="Comment attachment"
+                                onError={(e) => {
+                                  e.target.style.display = 'none'
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className={styles.noComments}>
+                    <i className="far fa-comment"></i>
+                    <span>No comments yet. Be the first to comment!</span>
+                  </div>
+                )}
+
+                {/* Comment Form */}
+                <CommentForm 
+                  postId={post.id}
+                  onCommentAdded={handleCommentAdded}
+                />
+              </>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
