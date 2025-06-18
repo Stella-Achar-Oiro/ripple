@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useWebSocket } from '../../contexts/WebSocketContext'
+import FollowingList from './FollowingList'
+import MessageNotifications from './MessageNotifications'
 import styles from './ChatSidebar.module.css'
 
 export default function ChatSidebar({ selectedChat, onSelectChat }) {
@@ -174,6 +176,12 @@ export default function ChatSidebar({ selectedChat, onSelectChat }) {
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
+      
+      <MessageNotifications 
+        onSelectConversation={onSelectChat} 
+        conversations={conversations}
+      />
+      <FollowingList onStartConversation={onSelectChat} />
       
       <div className={styles.chatList}>
         {sortedConversations.length === 0 ? (
