@@ -8,6 +8,7 @@ import styles from './RegisterForm.module.css'
 
 export default function RegisterForm() {
   const router = useRouter()
+  const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -20,8 +21,11 @@ export default function RegisterForm() {
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  const [isConflictError, setIsConflictError] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState(null)
   const fileInputRef = useRef(null)
+
+  const totalSteps = 3
 
   // Get API URL from environment variable
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
@@ -177,7 +181,10 @@ export default function RegisterForm() {
       const registerData = await registerResponse.json()
       
       if (!registerResponse.ok) {
-        throw new Error(registerData.error?.message || 'Registration failed')
+        if (registerResponse.status === 409) {
+          throw new Error('An account with this email already exists. Please try signing in instead.')
+        }
+        throw new Error(registerData.error?.message || registerData.message || 'Registration failed')
       }
       
       // Step 2: If we have an avatar, upload it
@@ -221,6 +228,7 @@ export default function RegisterForm() {
       router.push('/feed')
     } catch (error) {
       setSubmitError(error.message)
+      setIsConflictError(error.message.includes('already exists'))
       console.error('Registration error:', error)
     } finally {
       setIsSubmitting(false)
@@ -229,24 +237,93 @@ export default function RegisterForm() {
 
   const passwordStrength = getPasswordStrength()
 
-  return (
-    <form className={styles.registerForm} onSubmit={handleSubmit}>
-      <h2 className={styles.formTitle}>Create Your Account</h2>
+  const nextStep = () => {
+    if (validateCurrentStep()) {
+      setCurrentStep(prev => Math.min(prev + 1, totalSteps))
+    }
+  }
+
+  const prevStep = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 1))
+  }
+
+  const validateCurrentStep = () => {
+    const newErrors = {}
+    
+    if (currentStep === 1) {
+      // Step 1: Basic Info
+      if (!formData.email) {
+        newErrors.email = 'Email is required'
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        newErrors.email = 'Email is invalid'
+      }
       
-      {submitError && (
-        <div className={styles.errorMessage}>{submitError}</div>
-      )}
+      if (!formData.password) {
+        newErrors.password = 'Password is required'
+      } else if (formData.password.length < 8) {
+        newErrors.password = 'Password must be at least 8 characters'
+      } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+        newErrors.password = 'Password must contain uppercase, lowercase and number'
+      }
+    } else if (currentStep === 2) {
+      // Step 2: Personal Info
+      if (!formData.first_name) {
+        newErrors.first_name = 'First name is required'
+      }
+      if (!formData.last_name) {
+        newErrors.last_name = 'Last name is required'
+      }
+      if (!formData.date_of_birth) {
+        newErrors.date_of_birth = 'Date of birth is required'
+      } else {
+        const birthDate = new Date(formData.date_of_birth)
+        const today = new Date()
+        let age = today.getFullYear() - birthDate.getFullYear()
+        const monthDiff = today.getMonth() - birthDate.getMonth()
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+          age--
+        }
+        
+        if (age < 13) {
+          newErrors.date_of_birth = 'You must be at least 13 years old'
+        }
+      }
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const renderProgressBar = () => (
+    <div className={styles.progressContainer}>
+      <div className={styles.progressBar}>
+        <div 
+          className={styles.progressFill} 
+          style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+        />
+      </div>
+      <div className={styles.progressText}>
+        Step {currentStep} of {totalSteps}
+      </div>
+    </div>
+  )
+
+  const renderStep1 = () => (
+    <div className={styles.stepContent + ' fade-in'}>
+      <h3 className={styles.stepTitle}>Let's get started</h3>
+      <p className={styles.stepDescription}>Create your account with email and password</p>
       
       <div className={styles.formGroup}>
         <label className={styles.formLabel} htmlFor="email">
-          Email <span className={styles.required}>*</span>
+          Email Address <span className={styles.required}>*</span>
         </label>
         <input
           type="email"
           id="email"
           name="email"
           className={`${styles.formInput} ${errors.email ? styles.inputError : ''}`}
-          placeholder="Enter your email"
+          placeholder="you@company.com"
           value={formData.email}
           onChange={handleChange}
           required
@@ -263,7 +340,7 @@ export default function RegisterForm() {
           id="password"
           name="password"
           className={`${styles.formInput} ${errors.password ? styles.inputError : ''}`}
-          placeholder="Create a password"
+          placeholder="Create a strong password"
           value={formData.password}
           onChange={handleChange}
           required
@@ -276,9 +353,9 @@ export default function RegisterForm() {
                 style={{ 
                   width: `${(passwordStrength.strength / 5) * 100}%`,
                   backgroundColor: 
-                    passwordStrength.strength <= 1 ? 'var(--error-red)' :
-                    passwordStrength.strength <= 3 ? 'var(--warning-yellow)' : 
-                    'var(--success-green)'
+                    passwordStrength.strength <= 1 ? 'var(--error)' :
+                    passwordStrength.strength <= 3 ? 'var(--warning)' : 
+                    'var(--success)'
                 }}
               ></div>
             </div>
@@ -287,9 +364,16 @@ export default function RegisterForm() {
         )}
         {errors.password && <div className={styles.errorText}>{errors.password}</div>}
         <div className={styles.passwordHint}>
-          Password must be at least 8 characters and include uppercase, lowercase, and numbers
+          At least 8 characters with uppercase, lowercase, and numbers
         </div>
       </div>
+    </div>
+  )
+
+  const renderStep2 = () => (
+    <div className={styles.stepContent + ' fade-in'}>
+      <h3 className={styles.stepTitle}>Tell us about yourself</h3>
+      <p className={styles.stepDescription}>Help us personalize your experience</p>
       
       <div className={styles.nameFields}>
         <div className={styles.formGroup}>
@@ -301,7 +385,7 @@ export default function RegisterForm() {
             id="first_name"
             name="first_name"
             className={`${styles.formInput} ${errors.first_name ? styles.inputError : ''}`}
-            placeholder="First name"
+            placeholder="John"
             value={formData.first_name}
             onChange={handleChange}
             required
@@ -318,7 +402,7 @@ export default function RegisterForm() {
             id="last_name"
             name="last_name"
             className={`${styles.formInput} ${errors.last_name ? styles.inputError : ''}`}
-            placeholder="Last name"
+            placeholder="Doe"
             value={formData.last_name}
             onChange={handleChange}
             required
@@ -342,6 +426,13 @@ export default function RegisterForm() {
         />
         {errors.date_of_birth && <div className={styles.errorText}>{errors.date_of_birth}</div>}
       </div>
+    </div>
+  )
+
+  const renderStep3 = () => (
+    <div className={styles.stepContent + ' fade-in'}>
+      <h3 className={styles.stepTitle}>Complete your profile</h3>
+      <p className={styles.stepDescription}>Add optional details to make your profile stand out</p>
       
       <div className={styles.formGroup}>
         <label className={styles.formLabel} htmlFor="avatar">
@@ -356,13 +447,14 @@ export default function RegisterForm() {
               <Image 
                 src={avatarPreview} 
                 alt="Avatar preview" 
-                width={100} 
-                height={100}
+                width={120} 
+                height={120}
                 className={styles.avatarImage}
               />
             ) : (
               <div className={styles.avatarPlaceholder}>
-                <span>Click to upload</span>
+                <div className={styles.uploadIcon}>📸</div>
+                <span>Click to upload photo</span>
               </div>
             )}
           </div>
@@ -388,7 +480,7 @@ export default function RegisterForm() {
           id="nickname"
           name="nickname"
           className={`${styles.formInput} ${errors.nickname ? styles.inputError : ''}`}
-          placeholder="Your nickname"
+          placeholder="How would you like to be called?"
           value={formData.nickname}
           onChange={handleChange}
           maxLength={50}
@@ -407,7 +499,7 @@ export default function RegisterForm() {
           id="about_me"
           name="about_me"
           className={`${styles.formTextarea} ${errors.about_me ? styles.inputError : ''}`}
-          placeholder="Tell us about yourself"
+          placeholder="Tell us about your professional background and interests..."
           value={formData.about_me}
           onChange={handleChange}
           maxLength={500}
@@ -418,14 +510,78 @@ export default function RegisterForm() {
         </div>
         {errors.about_me && <div className={styles.errorText}>{errors.about_me}</div>}
       </div>
+    </div>
+  )
+
+  return (
+    <form className={styles.registerForm} onSubmit={handleSubmit}>
+      {renderProgressBar()}
       
-      <button 
-        type="submit" 
-        className={styles.btnRegister}
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? 'Creating Account...' : 'Create Account'}
-      </button>
+      {submitError && (
+        <div className={`${styles.errorMessage} ${isConflictError ? styles.conflict : ''}`}>
+          {submitError}
+          {isConflictError && (
+            <div className={styles.errorActions}>
+              <Link href="/" className="btn-outline">
+                Go to Sign In
+              </Link>
+              <button 
+                type="button" 
+                className="btn-secondary"
+                onClick={() => {
+                  setSubmitError('')
+                  setIsConflictError(false)
+                  setCurrentStep(1)
+                }}
+              >
+                Try Different Email
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Step Content */}
+      {currentStep === 1 && renderStep1()}
+      {currentStep === 2 && renderStep2()}
+      {currentStep === 3 && renderStep3()}
+
+      {/* Navigation Buttons */}
+      <div className={styles.stepNavigation}>
+        {currentStep > 1 && (
+          <button 
+            type="button" 
+            className={styles.btnSecondary}
+            onClick={prevStep}
+          >
+            ← Previous
+          </button>
+        )}
+        
+        {currentStep < totalSteps ? (
+          <button 
+            type="button" 
+            className={styles.btnPrimary}
+            onClick={nextStep}
+          >
+            Continue →
+          </button>
+        ) : (
+          <button 
+            type="submit" 
+            className={styles.btnRegister}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <span className="pulse">Creating Account...</span>
+              </>
+            ) : (
+              'Create Account 🚀'
+            )}
+          </button>
+        )}
+      </div>
       
       <div className={styles.registerFooter}>
         Already have an account? <Link href="/" className={styles.registerLink}>Sign in</Link>

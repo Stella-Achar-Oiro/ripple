@@ -1,57 +1,72 @@
 .widget {
-  background-color: var(--white);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
+  background-color: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
   overflow: hidden;
+  transition: all 0.15s ease-in-out;
+}
+
+.widget:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .widgetHeader {
-  padding: 12px 15px;
-  border-bottom: 1px solid var(--border-gray);
-  font-size: 14px;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-bottom: 1px solid var(--border);
+  font-size: 16px;
   font-weight: 600;
-  color: var(--primary-navy);
+  background: var(--purple-gradient-light);
+  color: var(--primary-purple);
 }
 
 .widgetContent {
-  padding: 15px;
+  padding: var(--spacing-lg) var(--spacing-xl);
 }
 
 .groupCard {
   margin: 0;
   box-shadow: none;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
+  border: 1px solid var(--border);
+  transition: all 0.15s ease-in-out;
+}
+
+.groupCard:hover {
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
 }
 
 .groupHeader {
   height: 60px;
-  background: linear-gradient(135deg, var(--primary-navy), var(--secondary-navy));
+  background: var(--purple-gradient);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .groupInfo {
-  padding: 12px;
+  padding: var(--spacing-md);
   text-align: center;
 }
 
 .groupName {
   font-size: 14px;
   font-weight: 600;
-  color: var(--primary-navy);
-  margin-bottom: 6px;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
 }
 
 .groupMeta {
   font-size: 12px;
-  color: var(--text-light);
-  margin-bottom: 10px;
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-sm);
 }
 
 .groupActions {
   display: flex;
-  gap: 8px;
+  gap: var(--spacing-sm);
   justify-content: center;
 }

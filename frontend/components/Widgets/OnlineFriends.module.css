@@ -1,20 +1,28 @@
 .widget {
-  background-color: var(--white);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
+  background-color: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
   overflow: hidden;
+  transition: all 0.15s ease-in-out;
+}
+
+.widget:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .widgetHeader {
-  padding: 12px 15px;
-  border-bottom: 1px solid var(--border-gray);
-  font-size: 14px;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-bottom: 1px solid var(--border);
+  font-size: 16px;
   font-weight: 600;
-  color: var(--primary-navy);
+  background: var(--purple-gradient-light);
+  color: var(--primary-purple);
 }
 
 .widgetContent {
-  padding: 15px;
+  padding: var(--spacing-lg) var(--spacing-xl);
 }
 
 .onlineFriends {
@@ -26,21 +34,23 @@
 .friendItem {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px;
-  border-radius: 6px;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.15s ease-in-out;
 }
 
 .friendItem:hover {
-  background-color: var(--light-gray);
+  background-color: var(--card-hover);
+  transform: translateX(4px);
+  box-shadow: var(--shadow-sm);
 }
 
 .friendName {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
-  color: var(--primary-navy);
+  color: var(--text-primary);
 }
 
 .loadingState,
