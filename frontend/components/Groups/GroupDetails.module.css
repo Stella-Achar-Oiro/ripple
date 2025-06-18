@@ -1,0 +1,412 @@
+.groupDetails {
+  width: 100%;
+}
+
+/* Group Header */
+.groupHeader {
+  margin-bottom: 32px;
+}
+
+.headerBackground {
+  background: linear-gradient(135deg, var(--primary-purple) 0%, #764ba2 100%);
+  border-radius: 16px;
+  padding: 40px;
+  color: white;
+  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
+}
+
+.headerContent {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.groupIcon {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  backdrop-filter: blur(10px);
+}
+
+.groupIcon i {
+  font-size: 32px;
+  color: white;
+}
+
+.groupInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.titleSection {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.groupName {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+  word-break: break-word;
+}
+
+.privateBadge {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+}
+
+.groupMeta {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.metaItem i {
+  font-size: 14px;
+}
+
+.groupDescription {
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 600px;
+}
+
+.headerActions {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.joinBtn,
+.settingsBtn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+}
+
+.joinBtn:hover:not(:disabled),
+.settingsBtn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.joinBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.loadingSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Tabs */
+.tabsContainer {
+  margin-bottom: 32px;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  gap: 4px;
+}
+
+.tab {
+  background: none;
+  border: none;
+  padding: 16px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 3px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab:hover {
+  color: var(--text-primary);
+  background: var(--card-hover);
+}
+
+.tab.active {
+  color: var(--primary-purple);
+  border-bottom-color: var(--primary-purple);
+  background: rgba(139, 92, 246, 0.05);
+}
+
+/* Tab Content */
+.tabContent {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* About Section */
+.aboutSection {
+  max-width: 800px;
+}
+
+.aboutCard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.aboutCard h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 20px 0;
+}
+
+.aboutContent {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.aboutItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.aboutItem strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.aboutItem p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Member Only Notice */
+.memberOnlyNotice {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--text-secondary);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-top: 32px;
+}
+
+.memberOnlyNotice i {
+  font-size: 48px;
+  color: var(--border);
+  margin-bottom: 20px;
+}
+
+.memberOnlyNotice h3 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 12px 0;
+}
+
+.memberOnlyNotice p {
+  font-size: 16px;
+  margin: 0 0 24px 0;
+}
+
+.memberOnlyNotice .joinBtn {
+  background: var(--primary-purple);
+  color: white;
+  border: none;
+}
+
+.memberOnlyNotice .joinBtn:hover:not(:disabled) {
+  background: var(--primary-purple-dark);
+  border: none;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .headerBackground {
+    padding: 24px;
+  }
+
+  .headerContent {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+
+  .groupIcon {
+    width: 64px;
+    height: 64px;
+    align-self: center;
+  }
+
+  .groupIcon i {
+    font-size: 24px;
+  }
+
+  .titleSection {
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .groupName {
+    font-size: 24px;
+    text-align: center;
+  }
+
+  .groupMeta {
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .headerActions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .joinBtn,
+  .settingsBtn {
+    flex: 1;
+    justify-content: center;
+    max-width: 200px;
+  }
+
+  .tabs {
+    flex-direction: column;
+    border-bottom: none;
+    gap: 0;
+  }
+
+  .tab {
+    border-bottom: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 4px;
+    justify-content: center;
+  }
+
+  .tab.active {
+    border-color: var(--primary-purple);
+  }
+
+  .aboutCard {
+    padding: 20px;
+  }
+
+  .memberOnlyNotice {
+    padding: 60px 20px;
+    margin-top: 24px;
+  }
+
+  .memberOnlyNotice i {
+    font-size: 40px;
+  }
+
+  .memberOnlyNotice h3 {
+    font-size: 20px;
+  }
+
+  .memberOnlyNotice p {
+    font-size: 14px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .headerBackground {
+    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4);
+  }
+
+  .joinBtn:hover:not(:disabled),
+  .settingsBtn:hover {
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .privateBadge {
+    border: 1px solid rgba(255, 255, 255, 0.5);
+  }
+
+  .joinBtn,
+  .settingsBtn {
+    border-width: 2px;
+  }
+
+  .aboutCard {
+    border-width: 2px;
+  }
+
+  .tab {
+    border: 1px solid transparent;
+  }
+
+  .tab.active {
+    border-color: var(--primary-purple);
+  }
+}
