@@ -15,6 +15,11 @@ export default function FollowButton({
   disabled = false
 }) {
   const [followStatus, setFollowStatus] = useState(initialFollowStatus)
+
+
+
+
+  
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()

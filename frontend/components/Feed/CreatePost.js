@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '../../contexts/AuthContext'
 import styles from './CreatePost.module.css'
 
 export default function CreatePost({ onPostCreated }) {
@@ -10,6 +12,8 @@ export default function CreatePost({ onPostCreated }) {
   const [error, setError] = useState('')
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
+  const router = useRouter()
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
 
   const handleImageChange = (e) => {
     const file = e.target.files[0]
@@ -29,6 +33,14 @@ export default function CreatePost({ onPostCreated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // Check authentication before allowing post creation
+    if (!isAuthenticated) {
+      setError('You must be logged in to create a post')
+      router.push('/')
+      return
+    }
+    
     if (!postContent.trim() && !imageFile) return
 
     setIsLoading(true)
@@ -50,6 +62,11 @@ export default function CreatePost({ onPostCreated }) {
         })
 
         if (!uploadResponse.ok) {
+          if (uploadResponse.status === 401) {
+            console.log('User not authenticated, redirecting to login')
+            router.push('/')
+            return
+          }
           throw new Error('Failed to upload image')
         }
 
@@ -62,6 +79,7 @@ export default function CreatePost({ onPostCreated }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify({
           content: postContent.trim(),
@@ -71,11 +89,24 @@ export default function CreatePost({ onPostCreated }) {
         credentials: 'include',
       })
 
-      const data = await response.json()
-
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to create post')
+        if (response.status === 401) {
+          console.log('User not authenticated, redirecting to login')
+          router.push('/')
+          return
+        }
+        
+        let errorMessage = 'Failed to create post'
+        try {
+          const data = await response.json()
+          errorMessage = data.message || errorMessage
+        } catch {
+          errorMessage = `Server error: ${response.status}`
+        }
+        throw new Error(errorMessage)
       }
+
+      const data = await response.json()
 
       // Clear the form after successful post
       setPostContent('')
@@ -94,6 +125,26 @@ export default function CreatePost({ onPostCreated }) {
     }
   }
 
+  // Show loading state while authentication is being verified
+  if (authLoading) {
+    return (
+      <div className="card">
+        <div className={styles.createPost}>
+          <div className={styles.createPostHeader}>
+            <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+              Loading...
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Don't show create post form if not authenticated
+  if (!isAuthenticated) {
+    return null
+  }
+
   return (
     <div className="card">
       <form onSubmit={handleSubmit} className={styles.createPost}>
@@ -104,7 +155,7 @@ export default function CreatePost({ onPostCreated }) {
             placeholder="What's on your mind, John?"
             value={postContent}
             onChange={(e) => setPostContent(e.target.value)}
-            disabled={isLoading}
+            disabled={isLoading || authLoading}
           />
         </div>
         {imagePreview && (
