@@ -51,11 +51,15 @@
 .chatItem {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-xl);
   padding: var(--spacing-md) var(--spacing-lg);
   cursor: pointer;
   transition: all 0.15s ease-in-out;
   border-bottom: 1px solid var(--border);
+}
+
+.chatItem .friend-avatar {
+  margin-right: 24px !important;
 }
 
 .chatItem:hover {
