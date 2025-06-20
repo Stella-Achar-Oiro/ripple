@@ -230,12 +230,12 @@ func (ph *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
 
 	// Get post ID from URL path
 	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
+	if len(pathParts) < 5 {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Post ID required")
 		return
 	}
 
-	postID, err := strconv.Atoi(pathParts[3])
+	postID, err := strconv.Atoi(pathParts[4])
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid post ID")
 		return
@@ -269,19 +269,6 @@ func (ph *PostHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get post ID from URL path
-	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
-		utils.WriteErrorResponse(w, http.StatusBadRequest, "Post ID required")
-		return
-	}
-
-	postID, err := strconv.Atoi(pathParts[3])
-	if err != nil {
-		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid post ID")
-		return
-	}
-
 	var req models.CreateCommentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid JSON format")
@@ -295,8 +282,12 @@ func (ph *PostHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	comment, err := ph.postRepo.CreateComment(postID, userID, &req)
+	comment, err := ph.postRepo.CreateComment(userID, &req)
 	if err != nil {
+		if strings.Contains(err.Error(), "post not found") {
+			utils.WriteErrorResponse(w, http.StatusBadRequest, "Post not found")
+			return
+		}
 		if strings.Contains(err.Error(), "cannot comment") ||
 			strings.Contains(err.Error(), "insufficient permissions") {
 			utils.WriteErrorResponse(w, http.StatusForbidden, err.Error())
@@ -331,12 +322,12 @@ func (ph *PostHandler) GetComments(w http.ResponseWriter, r *http.Request) {
 
 	// Get post ID from URL path
 	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
+	if len(pathParts) < 5 {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Post ID required")
 		return
 	}
 
-	postID, err := strconv.Atoi(pathParts[3])
+	postID, err := strconv.Atoi(pathParts[4])
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid post ID")
 		return

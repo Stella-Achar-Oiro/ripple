@@ -55,6 +55,7 @@ type CreatePostRequest struct {
 }
 
 type CreateCommentRequest struct {
+	PostID    int     `json:"postId"`
 	Content   string  `json:"content"`
 	ImagePath *string `json:"image_path"`
 }
@@ -375,20 +376,15 @@ func (pr *PostRepository) DeletePost(postID, userID int) error {
 }
 
 // CreateComment creates a new comment on a post
-func (pr *PostRepository) CreateComment(postID, userID int, req *CreateCommentRequest) (*Comment, error) {
-	// Validate content
-	if strings.TrimSpace(req.Content) == "" && req.ImagePath == nil {
-		return nil, fmt.Errorf("comment must have content or image")
-	}
-
-	// Check if user can comment on this post (same as view permission for now)
-	post, err := pr.GetPost(postID, userID)
+func (pr *PostRepository) CreateComment(userID int, req *CreateCommentRequest) (*Comment, error) {
+	// First, check if the user is allowed to comment on this post
+	post, err := pr.GetPost(req.PostID, userID)
 	if err != nil {
-		return nil, fmt.Errorf("cannot comment on post: %w", err)
+		return nil, fmt.Errorf("post not found or inaccessible: %w", err)
 	}
 
 	if !post.CanComment {
-		return nil, fmt.Errorf("insufficient permissions to comment on post")
+		return nil, fmt.Errorf("user not authorized to comment on this post")
 	}
 
 	query := `
@@ -399,9 +395,9 @@ func (pr *PostRepository) CreateComment(postID, userID int, req *CreateCommentRe
 
 	now := time.Now()
 	comment := &Comment{
-		PostID:    postID,
+		PostID:    req.PostID,
 		UserID:    userID,
-		Content:   strings.TrimSpace(req.Content),
+		Content:   req.Content,
 		ImagePath: req.ImagePath,
 		CreatedAt: now,
 		UpdatedAt: now,
@@ -420,10 +416,16 @@ func (pr *PostRepository) CreateComment(postID, userID int, req *CreateCommentRe
 		return nil, fmt.Errorf("failed to create comment: %w", err)
 	}
 
+	// Fetch author details for the response
+	author, err := NewUserRepository(pr.db).GetUserByID(userID)
+	if err == nil {
+		comment.Author = author.ToResponse()
+	}
+
 	return comment, nil
 }
 
-// GetComments gets comments for a post
+// GetComments gets all comments for a post
 func (pr *PostRepository) GetComments(postID, viewerID int, limit, offset int) ([]*Comment, error) {
 	// First check if user can view the post
 	_, err := pr.GetPost(postID, viewerID)
