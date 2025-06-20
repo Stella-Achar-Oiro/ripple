@@ -8,16 +8,16 @@ export default function CreatePost() {
   const [privacy, setPrivacy] = useState('public')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [imageFile, setImageFile] = useState(null)
-  const [imagePreview, setImagePreview] = useState(null)
+  const [mediaFile, setMediaFile] = useState(null)
+  const [mediaPreview, setMediaPreview] = useState(null)
 
-  const handleImageChange = (e) => {
+  const handleFileChange = (e) => {
     const file = e.target.files[0]
     if (file) {
-      setImageFile(file)
+      setMediaFile(file)
       const reader = new FileReader()
       reader.onloadend = () => {
-        setImagePreview(reader.result)
+        setMediaPreview(reader.result)
       }
       reader.readAsDataURL(file)
     }
@@ -29,7 +29,7 @@ export default function CreatePost() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!postContent.trim() && !imageFile) return
+    if (!postContent.trim() && !mediaFile) return
 
     setIsLoading(true)
     setError('')
@@ -38,10 +38,10 @@ export default function CreatePost() {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
       let imagePath = null
 
-      // If there's an image, upload it first
-      if (imageFile) {
+      // If there's a media file, upload it first
+      if (mediaFile) {
         const formData = new FormData()
-        formData.append('image', imageFile)
+        formData.append('image', mediaFile)
 
         const response = await fetch(`${API_URL}/api/upload/post`, {
           method: 'POST',
@@ -50,7 +50,7 @@ export default function CreatePost() {
         })
 
         if (!response.ok) {
-          throw new Error('Failed to upload image')
+          throw new Error('Failed to upload media')
         }
 
         const uploadData = await response.json()
@@ -79,8 +79,8 @@ export default function CreatePost() {
 
       // Clear the form after successful post
       setPostContent('')
-      setImageFile(null)
-      setImagePreview(null)
+      setMediaFile(null)
+      setMediaPreview(null)
       // You might want to trigger a refresh of the posts list here
       // This can be done through a callback prop or using a state management solution
     } catch (err) {
@@ -104,14 +104,18 @@ export default function CreatePost() {
             disabled={isLoading}
           />
         </div>
-        {imagePreview && (
+        {mediaPreview && (
           <div className={styles.imagePreview}>
-            <img src={imagePreview} alt="Preview" />
+            {mediaFile.type.startsWith('video/') ? (
+              <video src={mediaPreview} controls />
+            ) : (
+              <img src={mediaPreview} alt="Preview" />
+            )}
             <button 
               className={styles.removeImage}
               onClick={() => {
-                setImageFile(null)
-                setImagePreview(null)
+                setMediaFile(null)
+                setMediaPreview(null)
               }}
             >
               <i className="fas fa-times"></i>
@@ -124,18 +128,14 @@ export default function CreatePost() {
             <label className={styles.postOption}>
               <input
                 type="file"
-                accept="image/*"
-                onChange={handleImageChange}
+                accept="image/*,video/*"
+                onChange={handleFileChange}
                 style={{ display: 'none' }}
                 disabled={isLoading}
               />
-              <i className="fas fa-image"></i>
-              Photo
+              <i className="fas fa-photo-video"></i>
+              Photo/Video
             </label>
-            <div className={styles.postOption}>
-              <i className="fas fa-video"></i>
-              Video
-            </div>
             <div className={styles.postOption}>
               <i className="fas fa-smile"></i>
               Feeling
@@ -156,7 +156,7 @@ export default function CreatePost() {
             <button 
               className="btn-primary"
               onClick={handleSubmit}
-              disabled={(!postContent.trim() && !imageFile) || isLoading}
+              disabled={(!postContent.trim() && !mediaFile) || isLoading}
             >
               {isLoading ? 'Posting...' : 'Post'}
             </button>
