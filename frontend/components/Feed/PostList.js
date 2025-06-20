@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import styles from './PostList.module.css'
+import Comments from './Comments'
 
 export default function PostList() {
   const [posts, setPosts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [visibleCommentsPostId, setVisibleCommentsPostId] = useState(null)
 
   const fetchPosts = async () => {
     try {
@@ -83,13 +85,21 @@ export default function PostList() {
             <button className={styles.actionButton}>
               <i className="far fa-heart"></i> Like
             </button>
-            <button className={styles.actionButton}>
+            <button
+              className={styles.actionButton}
+              onClick={() =>
+                setVisibleCommentsPostId(
+                  visibleCommentsPostId === post.id ? null : post.id
+                )
+              }
+            >
               <i className="far fa-comment"></i> Comment ({post.comment_count || 0})
             </button>
             <button className={styles.actionButton}>
               <i className="far fa-share-square"></i> Share
             </button>
           </div>
+          {visibleCommentsPostId === post.id && <Comments postId={post.id} />}
         </div>
       ))}
     </div>
