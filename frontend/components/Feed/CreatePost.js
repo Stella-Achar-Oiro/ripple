@@ -43,22 +43,22 @@ export default function CreatePost() {
         const formData = new FormData()
         formData.append('image', imageFile)
 
-        const uploadResponse = await fetch(`${API_URL}/api/upload/post-image`, {
+        const response = await fetch(`${API_URL}/api/upload/post`, {
           method: 'POST',
           body: formData,
           credentials: 'include',
         })
 
-        if (!uploadResponse.ok) {
+        if (!response.ok) {
           throw new Error('Failed to upload image')
         }
 
-        const uploadData = await uploadResponse.json()
+        const uploadData = await response.json()
         imagePath = uploadData.data.file_path
       }
 
       // Create the post
-      const response = await fetch(`${API_URL}/api/posts`, {
+      const responsePost = await fetch(`${API_URL}/api/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -71,9 +71,9 @@ export default function CreatePost() {
         credentials: 'include',
       })
 
-      const data = await response.json()
+      const data = await responsePost.json()
 
-      if (!response.ok) {
+      if (!responsePost.ok) {
         throw new Error(data.message || 'Failed to create post')
       }
 
