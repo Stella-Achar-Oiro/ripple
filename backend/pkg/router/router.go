@@ -26,10 +26,6 @@ func SetupRoutes(
 ) http.Handler {
 	mux := http.NewServeMux()
 
-	// Serve static files
-	fs := http.FileServer(http.Dir(cfg.UploadsPath))
-	mux.Handle("/uploads/", http.StripPrefix("/uploads/", fs))
-
 	// Auth routes (no auth required)
 	mux.HandleFunc("/api/auth/register", authHandler.Register)
 	mux.HandleFunc("/api/auth/login", authHandler.Login)
@@ -72,15 +68,21 @@ func SetupRoutes(
 		websocket.HandleWebSocket(wsHub, sessionManager, w, r)
 	})
 
+	// Wrap the main mux with a handler that first checks for static files,
+	// then falls back to the API mux. This ensures middleware is applied to all requests.
+	finalMux := http.NewServeMux()
+	finalMux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir(cfg.UploadsPath))))
+	finalMux.Handle("/", mux)
+
 	// Apply middleware stack in the following order:
 	// 1. PanicRecoveryMiddleware: Recovers from panics and logs them.
 	// 2. SecurityHeadersMiddleware: Adds security-related headers to responses.
 	// 3. corsMiddleware: Handles Cross-Origin Resource Sharing (CORS) based on allowed origins.
 	// 4. JSONMiddleware: Ensures all responses are in JSON format.
-	return applyMiddleware(mux,
+	return applyMiddleware(finalMux,
 		handlers.PanicRecoveryMiddleware,
 		handlers.SecurityHeadersMiddleware,
 		corsMiddleware(cfg.AllowedOrigins),
-		handlers.JSONMiddleware,
+		// handlers.JSONMiddleware, // JSON middleware should not apply to static files
 	)
 }
