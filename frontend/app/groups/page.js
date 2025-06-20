@@ -54,6 +54,13 @@ export default function GroupsPage() {
     fetchGroups()
   }
 
+  // Handle group updates
+  const handleGroupUpdated = (updatedGroup) => {
+    setGroups(prev => prev.map(group =>
+      group.id === updatedGroup.id ? updatedGroup : group
+    ))
+  }
+
   // Handle create group button click
   const handleCreateGroupClick = () => {
     setIsCreateModalOpen(true)
@@ -138,7 +145,11 @@ export default function GroupsPage() {
               ) : (
                 <div className={styles.groupsGrid}>
                   {groups.map(group => (
-                    <GroupCard key={group.id} group={group} />
+                    <GroupCard
+                      key={group.id}
+                      group={group}
+                      onGroupUpdated={handleGroupUpdated}
+                    />
                   ))}
                 </div>
               )}

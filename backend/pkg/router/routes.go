@@ -53,6 +53,8 @@ func setupGroupRoutes(mux *http.ServeMux, h *handlers.GroupHandler, auth func(ht
 				h.InviteUsers(w, r)
 			} else if strings.HasSuffix(r.URL.Path, "/members") && r.Method == "GET" {
 				h.GetGroupMembers(w, r)
+			} else if r.Method == "PUT" {
+				h.UpdateGroup(w, r)
 			} else {
 				h.GetGroup(w, r)
 			}
