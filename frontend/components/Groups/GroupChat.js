@@ -175,6 +175,7 @@ export default function GroupChat({ groupId, groupTitle }) {
       <div className={styles.chatHeader}>
         <h3>
           <i className="fas fa-comments"></i>
+          {'  '}
           {groupTitle} Chat
         </h3>
       </div>
