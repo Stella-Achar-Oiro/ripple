@@ -10,6 +10,7 @@ import GroupPostList from '../../../components/Groups/GroupPostList'
 import EventList from '../../../components/Events/EventList'
 import CreateEventModal from '../../../components/Events/CreateEventModal'
 import GroupSettingsModal from '../../../components/Groups/GroupSettingsModal'
+import GroupChat from '../../../components/Groups/GroupChat'
 import styles from './page.module.css'
 
 export default function GroupDetailPage() {
@@ -382,11 +383,7 @@ export default function GroupDetailPage() {
 
               {activeTab === 'chat' && (group.is_member || group.is_creator) && (
                 <div className={styles.chatContainer}>
-                  {/* GroupChat component will be added here */}
-                  <div className={styles.chatPlaceholder}>
-                    <i className="fas fa-comments"></i>
-                    <p>Group chat will be available here</p>
-                  </div>
+                  <GroupChat groupId={groupId} groupTitle={group.title} />
                 </div>
               )}
             </div>
