@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useWebSocket } from '../../contexts/WebSocketContext'
+import GroupChatInfo from './GroupChatInfo'
 import styles from './ChatMain.module.css'
 
 export default function ChatMain({ conversation }) {
@@ -21,6 +22,7 @@ export default function ChatMain({ conversation }) {
 
   const [newMessage, setNewMessage] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [showGroupInfo, setShowGroupInfo] = useState(false)
   const messagesEndRef = useRef(null)
   const typingTimeoutRef = useRef(null)
 
@@ -106,14 +108,61 @@ export default function ChatMain({ conversation }) {
       clearTimeout(typingTimeoutRef.current)
     }
 
-    // Send message via WebSocket
-    const success = conversation.isGroup 
+    // Optimistically add message to UI
+    const tempMessage = {
+      id: Date.now(), // Temporary ID
+      content: messageContent,
+      from: user.id,
+      timestamp: new Date().toISOString(),
+      isOwn: true,
+      isPending: true // Flag to show it's being sent
+    }
+
+    // Add to messages immediately for better UX
+    const conversationId = getConversationId(
+      conversation.isGroup ? null : user?.id,
+      conversation.isGroup ? null : conversation.id,
+      conversation.isGroup ? conversation.id : null
+    )
+
+    // Send message via WebSocket first
+    const wsSuccess = conversation.isGroup 
       ? sendGroupMessage(conversation.id, messageContent)
       : sendPrivateMessage(conversation.id, messageContent)
 
-    if (!success) {
-      // WebSocket not available, could fallback to REST API
-      console.warn('WebSocket not available, message queued')
+    if (!wsSuccess) {
+      // WebSocket not available, fallback to REST API
+      try {
+        const endpoint = conversation.isGroup 
+          ? `${API_URL}/api/chat/messages/group`
+          : `${API_URL}/api/chat/messages/private`
+        
+        const requestBody = conversation.isGroup 
+          ? { group_id: conversation.id, content: messageContent }
+          : { receiver_id: conversation.id, content: messageContent }
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(requestBody)
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to send message')
+        }
+
+        const data = await response.json()
+        if (data.success) {
+          // Message sent successfully via REST API
+          console.log('Message sent via REST API')
+        }
+      } catch (error) {
+        console.error('Failed to send message:', error)
+        // Could show error notification here
+      }
     }
   }
 
@@ -182,7 +231,13 @@ export default function ChatMain({ conversation }) {
         <div className={styles.chatHeaderActions}>
           <i className="fas fa-phone"></i>
           <i className="fas fa-video"></i>
-          <i className="fas fa-info-circle"></i>
+          {conversation.isGroup && (
+            <i 
+              className="fas fa-info-circle"
+              onClick={() => setShowGroupInfo(true)}
+              style={{ cursor: 'pointer' }}
+            ></i>
+          )}
         </div>
       </div>
       
@@ -200,65 +255,66 @@ export default function ChatMain({ conversation }) {
             >
               {!message.isOwn && conversation.isGroup && (
                 <div className={styles.messageSender}>
-                  {getUserName(message.from)}
+                  {message.sender?.first_name || `User ${message.from}`}
                 </div>
               )}
-              <div className={styles.messageBubble}>
+              <div className={styles.messageContent}>
                 {message.content}
-                <div className={styles.messageTime}>
-                  {formatTime(message.timestamp)}
-                  {message.isOwn && !conversation.isGroup && (
-                    <i className={`fas ${message.read_at ? 'fa-check-double' : 'fa-check'} ${styles.readStatus}`}></i>
-                  )}
-                </div>
+                {message.isPending && (
+                  <span className={styles.pendingIndicator}>
+                    <i className="fas fa-clock"></i>
+                  </span>
+                )}
+              </div>
+              <div className={styles.messageTime}>
+                {formatTime(message.timestamp)}
               </div>
             </div>
           ))
         )}
         
-        {/* Typing indicator */}
         {typingUsers.length > 0 && (
           <div className={styles.typingIndicator}>
-            <div className={styles.typingBubble}>
-              <div className={styles.typingDots}>
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-            </div>
-            <div className={styles.typingText}>
-              {conversation.isGroup && typingUsers.length === 1 
-                ? `${getUserName(typingUsers[0])} is typing...`
-                : conversation.isGroup && typingUsers.length > 1
-                ? `${typingUsers.length} people are typing...`
-                : 'typing...'}
-            </div>
+            <i className="fas fa-ellipsis-h"></i>
+            <span>
+              {typingUsers.length === 1 
+                ? 'Someone is typing...' 
+                : `${typingUsers.length} people are typing...`
+              }
+            </span>
           </div>
         )}
         
         <div ref={messagesEndRef} />
       </div>
       
-      <div className={styles.chatInput}>
-        <form className={styles.chatInputContainer} onSubmit={handleSendMessage}>
-          <i className="fas fa-smile"></i>
-          <input 
-            type="text" 
-            placeholder="Type a message..."
+      <form onSubmit={handleSendMessage} className={styles.chatInput}>
+        <div className={styles.inputWrapper}>
+          <input
+            type="text"
             value={newMessage}
             onChange={handleInputChange}
-            maxLength={2000}
+            placeholder={`Message ${conversation.isGroup ? 'group' : conversation.name}...`}
+            className={styles.messageInput}
           />
-          <i className="fas fa-paperclip"></i>
           <button 
             type="submit" 
-            className={styles.chatSendBtn}
             disabled={!newMessage.trim()}
+            className={styles.sendButton}
           >
             <i className="fas fa-paper-plane"></i>
           </button>
-        </form>
-      </div>
+        </div>
+      </form>
+
+      {showGroupInfo && conversation.isGroup && (
+        <div className={styles.groupInfoOverlay}>
+          <GroupChatInfo 
+            group={conversation}
+            onClose={() => setShowGroupInfo(false)}
+          />
+        </div>
+      )}
     </div>
   )
 }

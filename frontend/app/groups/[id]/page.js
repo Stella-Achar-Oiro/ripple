@@ -287,6 +287,15 @@ export default function GroupDetailPage() {
                 <i className="fas fa-calendar"></i>
                 Events
               </button>
+              {(group.is_member || group.is_creator) && (
+                <button
+                  className={`${styles.tab} ${activeTab === 'chat' ? styles.active : ''}`}
+                  onClick={() => setActiveTab('chat')}
+                >
+                  <i className="fas fa-comments"></i>
+                  Chat
+                </button>
+              )}
             </div>
 
             {/* Tab Content */}
@@ -369,6 +378,16 @@ export default function GroupDetailPage() {
                   groupId={groupId}
                   title="Group Events"
                 />
+              )}
+
+              {activeTab === 'chat' && (group.is_member || group.is_creator) && (
+                <div className={styles.chatContainer}>
+                  {/* GroupChat component will be added here */}
+                  <div className={styles.chatPlaceholder}>
+                    <i className="fas fa-comments"></i>
+                    <p>Group chat will be available here</p>
+                  </div>
+                </div>
               )}
             </div>
           </div>
