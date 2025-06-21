@@ -192,7 +192,16 @@ export default function GroupChat({ groupId, groupTitle }) {
           </div>
         ) : (
           <div className={styles.messagesList}>
-            {messages.map((message) => (
+            {(messages
+              .slice()
+              .sort((a, b) => {
+                // Prefer created_at, fallback to id
+                if (a.created_at && b.created_at) {
+                  return new Date(a.created_at) - new Date(b.created_at)
+                }
+                return a.id - b.id
+              })
+            ).map((message) => (
               <GroupChatMessage
                 key={message.id}
                 message={message}
