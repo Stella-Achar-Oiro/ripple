@@ -260,7 +260,9 @@ func (h *Hub) sendToClient(client *Client, message WSMessage) {
 
 	select {
 	case client.send <- messageBytes:
-		log.Printf("WebSocket: Message sent to user %d", client.userID)
+		if message.Type != MessageTypePong {
+			log.Printf("WebSocket: Message sent to user %d", client.userID)
+		}
 	default:
 		// Client's send channel is full, close the connection
 		h.unregisterClient(client)
