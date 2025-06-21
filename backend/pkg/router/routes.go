@@ -25,6 +25,7 @@ func setupPostRoutes(mux *http.ServeMux, h *handlers.PostHandler, auth func(http
 	mux.Handle("/api/posts/delete/", auth(http.HandlerFunc(h.DeletePost)))
 	mux.Handle("/api/posts/comment", auth(http.HandlerFunc(h.CreateComment)))
 	mux.Handle("/api/posts/comments/", auth(http.HandlerFunc(h.GetComments)))
+	mux.Handle("/api/posts/update", auth(http.HandlerFunc(h.UpdatePost)))
 }
 
 func setupLikeRoutes(mux *http.ServeMux, h *handlers.LikeHandler, auth func(http.Handler) http.Handler) {

@@ -509,3 +509,36 @@ func (pr *PostRepository) DeleteComment(commentID, userID int) error {
 
 	return nil
 }
+
+// UpdatePost updates the content of an existing post after verifying ownership
+func (pr *PostRepository) UpdatePost(userID, postID int, content string) (*Post, error) {
+	// First, get the post to verify ownership
+	post := &Post{}
+	err := pr.db.QueryRow("SELECT user_id FROM posts WHERE id = ?", postID).Scan(&post.UserID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("post not found")
+		}
+		return nil, fmt.Errorf("failed to query post for update: %w", err)
+	}
+
+	// Check if the user is the owner of the post
+	if post.UserID != userID {
+		return nil, fmt.Errorf("user not authorized to edit this post")
+	}
+
+	// Update the post content
+	query := `
+		UPDATE posts
+		SET content = ?, updated_at = ?
+		WHERE id = ?
+	`
+	now := time.Now()
+	_, err = pr.db.Exec(query, content, now, postID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update post: %w", err)
+	}
+
+	// Return the updated post
+	return pr.GetPost(postID, userID)
+}

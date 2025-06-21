@@ -12,6 +12,11 @@ import (
 	"ripple/pkg/utils"
 )
 
+type UpdatePostRequest struct {
+	PostID  int    `json:"post_id"`
+	Content string `json:"content"`
+}
+
 type PostHandler struct {
 	postRepo *models.PostRepository
 }
@@ -366,6 +371,46 @@ func (ph *PostHandler) GetComments(w http.ResponseWriter, r *http.Request) {
 		"offset":   offset,
 		"count":    len(comments),
 	})
+}
+
+// UpdatePost updates a post
+func (ph *PostHandler) UpdatePost(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	var req UpdatePostRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid JSON format")
+		return
+	}
+
+	// Basic validation
+	if strings.TrimSpace(req.Content) == "" {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Post content cannot be empty")
+		return
+	}
+
+	updatedPost, err := ph.postRepo.UpdatePost(userID, req.PostID, req.Content)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			utils.WriteErrorResponse(w, http.StatusNotFound, "Post not found")
+		} else if strings.Contains(err.Error(), "not authorized") {
+			utils.WriteErrorResponse(w, http.StatusForbidden, "You are not authorized to edit this post")
+		} else {
+			utils.WriteInternalErrorResponse(w, err)
+		}
+		return
+	}
+
+	utils.WriteSuccessResponse(w, http.StatusOK, updatedPost)
 }
 
 // Helper methods for validation
