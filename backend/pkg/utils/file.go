@@ -7,16 +7,19 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"ripple/pkg/constants"
 	"strings"
 	"time"
-	"ripple/pkg/constants"
 )
 
-var allowedImageTypes = map[string]bool{
-	"image/jpeg": true,
-	"image/jpg":  true,
-	"image/png":  true,
-	"image/gif":  true,
+var allowedMediaTypes = map[string]bool{
+	"image/jpeg":      true,
+	"image/jpg":       true,
+	"image/png":       true,
+	"image/gif":       true,
+	"video/mp4":       true,
+	"video/webm":      true,
+	"video/quicktime": true,
 }
 
 func SaveUploadedFile(file multipart.File, header *multipart.FileHeader, uploadDir string, maxSize int64) (string, error) {
@@ -27,17 +30,17 @@ func SaveUploadedFile(file multipart.File, header *multipart.FileHeader, uploadD
 
 	// Validate file type
 	contentType := header.Header.Get("Content-Type")
-	if !allowedImageTypes[contentType] {
+	if !allowedMediaTypes[contentType] {
 		return "", fmt.Errorf(constants.ErrInvalidFileType)
 	}
 
 	// Generate unique filename
 	ext := filepath.Ext(header.Filename)
 	filename := fmt.Sprintf("%d_%s%s", time.Now().Unix(), generateRandomString(8), ext)
-	
+
 	// Create full path
 	fullPath := filepath.Join(uploadDir, filename)
-	
+
 	// Create directory if it doesn't exist
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
 		return "", fmt.Errorf("failed to create upload directory: %w", err)
@@ -71,6 +74,6 @@ func GetFileExtension(filename string) string {
 	return strings.ToLower(filepath.Ext(filename))
 }
 
-func IsValidImageType(contentType string) bool {
-	return allowedImageTypes[contentType]
+func IsValidMediaType(contentType string) bool {
+	return allowedMediaTypes[contentType]
 }
