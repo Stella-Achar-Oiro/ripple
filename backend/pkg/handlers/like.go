@@ -38,12 +38,12 @@ func (lh *LikeHandler) LikePost(w http.ResponseWriter, r *http.Request) {
 
 	// Get post ID from URL path
 	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
+	if len(pathParts) < 5 {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Post ID required")
 		return
 	}
 
-	postID, err := strconv.Atoi(pathParts[3])
+	postID, err := strconv.Atoi(pathParts[4])
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid post ID")
 		return
@@ -90,7 +90,7 @@ func (lh *LikeHandler) LikePost(w http.ResponseWriter, r *http.Request) {
 
 // UnlikePost unlikes a post
 func (lh *LikeHandler) UnlikePost(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodDelete {
+	if r.Method != http.MethodPost {
 		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
@@ -103,12 +103,12 @@ func (lh *LikeHandler) UnlikePost(w http.ResponseWriter, r *http.Request) {
 
 	// Get post ID from URL path
 	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
+	if len(pathParts) < 5 {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Post ID required")
 		return
 	}
 
-	postID, err := strconv.Atoi(pathParts[3])
+	postID, err := strconv.Atoi(pathParts[4])
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid post ID")
 		return
@@ -168,12 +168,12 @@ func (lh *LikeHandler) GetPostLikes(w http.ResponseWriter, r *http.Request) {
 
 	// Get post ID from URL path
 	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
+	if len(pathParts) < 5 {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Post ID required")
 		return
 	}
 
-	postID, err := strconv.Atoi(pathParts[3])
+	postID, err := strconv.Atoi(pathParts[4])
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid post ID")
 		return
@@ -241,12 +241,12 @@ func (lh *LikeHandler) CheckLikeStatus(w http.ResponseWriter, r *http.Request) {
 
 	// Get post ID from URL path
 	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
+	if len(pathParts) < 5 {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Post ID required")
 		return
 	}
 
-	postID, err := strconv.Atoi(pathParts[3])
+	postID, err := strconv.Atoi(pathParts[4])
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid post ID")
 		return

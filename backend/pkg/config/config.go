@@ -21,7 +21,7 @@ func LoadConfig() *Config {
 	config := &Config{
 		DatabasePath:   getEnv("DATABASE_PATH", "./data/ripple.db"),
 		MigrationsPath: getEnv("MIGRATIONS_PATH", "./pkg/db/migrations/sqlite"),
-		ServerPort:     getEnv("SERVER_PORT", "8080"),
+		ServerPort:     getEnv("SERVER_PORT", "8000"),
 		SessionSecret:  getEnv("SESSION_SECRET", "your-super-secret-key-change-this"),
 		UploadsPath:    getEnv("UPLOADS_PATH", "./uploads"),
 		AllowedOrigins: []string{

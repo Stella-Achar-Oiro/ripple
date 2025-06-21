@@ -26,13 +26,13 @@ func SetupRoutes(
 ) http.Handler {
 	mainMux := http.NewServeMux()
 
-	// Create separate mux for API routes that need JSON middleware
-	apiMux := http.NewServeMux()
+  // Create separate mux for API routes that need JSON middleware
+  apiMux := http.NewServeMux()
 
-	// Auth routes (no auth required)
-	apiMux.HandleFunc("/api/auth/register", authHandler.Register)
-	apiMux.HandleFunc("/api/auth/login", authHandler.Login)
-	apiMux.HandleFunc("/api/auth/logout", authHandler.Logout)
+  // Auth routes (no auth required)
+  apiMux.HandleFunc("/api/auth/register", authHandler.Register)
+  apiMux.HandleFunc("/api/auth/login", authHandler.Login)
+  apiMux.HandleFunc("/api/auth/logout", authHandler.Logout)
 
 	// Protected routes (auth required)
 	authMiddleware := sessionManager.AuthMiddleware
@@ -81,7 +81,7 @@ func SetupRoutes(
 		handlers.PanicRecoveryMiddleware,
 		handlers.SecurityHeadersMiddleware,
 		corsMiddleware(cfg.AllowedOrigins),
-		handlers.JSONMiddleware,
+		// handlers.JSONMiddleware, // JSON middleware should not apply to static files
 	)
 
 	// Mount API routes with middleware
