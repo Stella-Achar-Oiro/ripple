@@ -132,7 +132,17 @@ export default function GroupChat({ groupId, groupTitle }) {
     if (conversationId) {
       const wsMessages = getConversationMessages(conversationId)
       if (wsMessages && wsMessages.length > 0) {
-        setMessages(wsMessages)
+        setMessages((prevMessages) => {
+          // Merge and deduplicate by id (or created_at+sender_id if no id)
+          const allMessages = [...prevMessages, ...wsMessages]
+          const seen = new Set()
+          return allMessages.filter(msg => {
+            const key = msg.id || (msg.created_at + '-' + msg.sender_id)
+            if (seen.has(key)) return false
+            seen.add(key)
+            return true
+          })
+        })
       }
     }
   }, [conversationId, getConversationMessages])
