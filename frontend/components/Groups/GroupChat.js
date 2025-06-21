@@ -39,7 +39,7 @@ export default function GroupChat({ groupId, groupTitle }) {
   const fetchMessages = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`${API_URL}/api/chat/groups/${groupId}/messages`, {
+      const response = await fetch(`${API_URL}/api/chat/messages/group/${groupId}`, {
         credentials: 'include',
       })
 
