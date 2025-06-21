@@ -156,7 +156,7 @@ export default function PostList() {
           <div className={styles.postHeader}>
             <div className={styles.userInfo}>
               <div className="user-avatar">
-                {post.author?.nickname?.[0] || 'U'}
+                {`${post.author?.first_name?.[0] || ''}${post.author?.last_name?.[0] || ''}`.toUpperCase() || 'U'}
               </div>
               <div className={styles.userDetails}>
                 <span className={styles.userName}>
