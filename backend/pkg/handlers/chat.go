@@ -122,12 +122,12 @@ func (ch *ChatHandler) GetGroupMessages(w http.ResponseWriter, r *http.Request) 
 
 	// Get group ID from URL path
 	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 5 {
+	if len(pathParts) < 6 {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Group ID required")
 		return
 	}
 
-	groupID, err := strconv.Atoi(pathParts[4])
+	groupID, err := strconv.Atoi(pathParts[5])
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid group ID")
 		return
