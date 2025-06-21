@@ -26,33 +26,74 @@
 }
 
 .message {
-  margin-bottom: 10px;
-  padding: 8px 12px;
+  margin-bottom: 6px;
+  padding: 7px 12px;
   background: var(--card-background);
-  border-radius: 6px;
-  max-width: 70%;
+  border-radius: 16px 16px 16px 4px;
+  min-width: 10%;
+  max-width: 50%;
+  font-size: 14px;
+  line-height: 1.4;
   align-self: flex-start;
   color: var(--text-dark);
+  /* Left side for others */
+  margin-right: auto;
+  margin-left: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  word-break: break-word;
+  /* position: relative;
+  display: inline-block; */
 }
 
 .ownMessage {
-  margin-bottom: 10px;
-  padding: 8px 12px;
+  margin-bottom: 6px;
+  padding: 7px 12px;
   background: var(--success-green);
   color: var(--white);
-  border-radius: 6px;
-  max-width: 70%;
+  border-radius: 16px 16px 4px 16px;
+  min-width: 10%;
+  max-width: 50%;
+  font-size: 14px;
+  line-height: 1.4;
   align-self: flex-end;
+  /* Right side for self */
+  margin-left: auto;
+  margin-right: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  word-break: break-word;
+  /* position: relative;
+  display: inline-block; */
 }
 
-.sender {
-  font-weight: bold;
-  margin-right: 8px;
-  color: var(--primary-navy);
+.senderName {
+  display: block;
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 2px;
+  color: #3b5998;
+  background: #f0f4fa;
+  padding: 2px 8px 2px 8px;
+  border-radius: 8px 8px 2px 2px;
+  width: fit-content;
+  margin-left: -8px;
+  margin-top: -7px;
+  margin-bottom: 4px;
+}
+
+.messageContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  position: relative;
+  justify-content: space-between;
+}
+
+.messageContent {
+  padding-right: 10px;
 }
 
 .text {
-  margin-right: 8px;
+  margin-right: 5px;
 }
 
 .timestamp {
