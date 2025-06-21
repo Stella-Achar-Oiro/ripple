@@ -14,9 +14,10 @@ export default function PostList() {
   const [activeMenuPostId, setActiveMenuPostId] = useState(null)
   const [editingPost, setEditingPost] = useState(null)
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+
   const fetchPosts = async () => {
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
       const response = await fetch(`${API_URL}/api/posts/feed`, {
         credentials: 'include',
       })
@@ -168,9 +169,9 @@ export default function PostList() {
           {post.image_path && (
             <div className={styles.postImage}>
               {post.image_path.endsWith('.mp4') || post.image_path.endsWith('.webm') || post.image_path.endsWith('.mov') ? (
-                <video src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}${post.image_path}`} controls />
+                <video src={`${API_URL}${post.image_path}`} controls />
               ) : (
-                <img src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}${post.image_path}`} alt="Post attachment" />
+                <img src={`${API_URL}${post.image_path}`} alt="Post attachment" />
               )}
             </div>
           )}

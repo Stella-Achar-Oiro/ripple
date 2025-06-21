@@ -58,7 +58,6 @@ export default function ProfilePage() {
           profileData = await profileResponse.json()
         }
 
-        console.log("Setting profile with ID:", profileData.data.id) // Debug log
         setProfile(profileData.data)
       } catch (err) {
         console.error('Error fetching profile:', err)

@@ -1,0 +1,286 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  background: linear-gradient(135deg, var(--primary-navy) 0%, var(--accent-blue) 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.headerText h1 {
+  margin: 0 0 8px 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.headerText p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 1.1rem;
+}
+
+.headerActions {
+  position: relative;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown:hover .dropdownMenu {
+  display: block;
+}
+
+.dropdownMenu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  min-width: 280px;
+  z-index: 1000;
+  margin-top: 5px;
+}
+
+.dropdownItem {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid var(--border-lighter);
+}
+
+.dropdownItem:last-child {
+  border-bottom: none;
+}
+
+.dropdownItem:hover {
+  background-color: var(--bg-lighter);
+}
+
+.groupInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.groupName {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.groupMembers {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.content {
+  margin-bottom: 30px;
+}
+
+.loadingContainer,
+.errorState,
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.loadingContainer i,
+.errorState i,
+.emptyState i {
+  font-size: 3rem;
+  margin-bottom: 20px;
+  color: var(--primary-navy);
+}
+
+.errorState i {
+  color: var(--error-red);
+}
+
+.errorState h3,
+.emptyState h3 {
+  margin: 0 0 10px 0;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+}
+
+.errorState p,
+.emptyState p {
+  margin: 0 0 20px 0;
+  font-size: 1rem;
+}
+
+.eventsSection {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.groupsOverview {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.groupsOverview h3 {
+  margin: 0 0 20px 0;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.groupsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+.groupCard {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--bg-lighter);
+  transition: all 0.2s;
+}
+
+.groupCard:hover {
+  border-color: var(--primary-navy);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.groupAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--primary-navy);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.2rem;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.groupAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.groupDetails {
+  flex: 1;
+  min-width: 0;
+}
+
+.groupDetails h4 {
+  margin: 0 0 4px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.groupDetails p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+  }
+
+  .header {
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .headerContent {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .headerText h1 {
+    font-size: 2rem;
+  }
+
+  .headerText p {
+    font-size: 1rem;
+  }
+
+  .dropdownMenu {
+    min-width: 250px;
+    right: auto;
+    left: 0;
+  }
+
+  .groupsList {
+    grid-template-columns: 1fr;
+  }
+
+  .groupCard {
+    padding: 12px;
+  }
+
+  .groupAvatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 10px;
+  }
+
+  .header {
+    padding: 15px;
+  }
+
+  .headerText h1 {
+    font-size: 1.75rem;
+  }
+
+  .eventsSection,
+  .groupsOverview {
+    padding: 15px;
+  }
+}

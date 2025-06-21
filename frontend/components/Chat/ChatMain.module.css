@@ -5,11 +5,44 @@
 
 .noConversation {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
   color: var(--text-secondary);
   font-size: 16px;
+  gap: 10px;
+}
+
+.noConversation i {
+  font-size: 48px;
+  color: var(--border-gray);
+  margin-bottom: 10px;
+}
+
+.noConversation h3 {
+  margin: 0;
+  color: var(--primary-navy);
+}
+
+.noConversation p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.emptyMessages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--text-light);
+  gap: 10px;
+}
+
+.emptyMessages i {
+  font-size: 32px;
+  color: var(--border-gray);
 }
 
 .chatHeader {
@@ -163,4 +196,83 @@
 .chatSendBtn:hover {
   transform: scale(1.05);
   box-shadow: var(--shadow-md);
+}
+
+.chatSendBtn:disabled {
+  background-color: var(--border-gray);
+  cursor: not-allowed;
+}
+
+.messageSender {
+  font-size: 11px;
+  color: var(--text-light);
+  margin-bottom: 2px;
+  font-weight: 500;
+}
+
+.readStatus {
+  margin-left: 4px;
+  font-size: 10px;
+}
+
+.readStatus.fa-check-double {
+  color: var(--primary-blue);
+}
+
+/* Typing indicator styles */
+.typingIndicator {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
+.typingBubble {
+  background-color: var(--white);
+  border-radius: 16px;
+  border-bottom-left-radius: 4px;
+  padding: 10px 14px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  min-height: 20px;
+}
+
+.typingDots {
+  display: flex;
+  gap: 3px;
+}
+
+.typingDots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--text-light);
+  animation: typingAnimation 1.4s infinite ease-in-out;
+}
+
+.typingDots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typingDots span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes typingAnimation {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.typingText {
+  font-size: 11px;
+  color: var(--text-light);
+  align-self: flex-end;
+  margin-bottom: 2px;
 }

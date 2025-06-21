@@ -3,17 +3,26 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useNotifications } from '../../contexts/NotificationContext'
+import { useWebSocket } from '../../contexts/WebSocketContext'
+import NotificationPanel from '../Notifications/NotificationPanel'
 import styles from './Navbar.module.css'
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showNotifications, setShowNotifications] = useState(false)
   const router = useRouter()
+  const { unreadCount } = useNotifications()
+  const { isConnected } = useWebSocket()
+
+  // Calculate total unread message count
+  const messageUnreadCount = 0 // This would need to be calculated from all conversations
 
   const handleSearch = (e) => {
     e.preventDefault()
-    // Handle search functionality
-    console.log('Searching for:', searchQuery)
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+    }
   }
 
   const handleLogout = () => {
@@ -45,16 +54,23 @@ export default function Navbar() {
           <Link href="/groups" className={styles.navIcon}>
             <i className="fas fa-users"></i>
           </Link>
-          <Link href="/chat" className={styles.navIcon}>
+          <Link href="/chat" className={`${styles.navIcon} ${styles.chatIcon}`}>
             <i className="fas fa-comments"></i>
-            <span className="notification-badge">3</span>
+            {!isConnected && (
+              <i className={`fas fa-exclamation-triangle ${styles.connectionWarning}`} title="Chat offline"></i>
+            )}
+            {messageUnreadCount > 0 && (
+              <span className="notification-badge">{messageUnreadCount}</span>
+            )}
           </Link>
-          <div 
+          <div
             className={styles.navIcon}
             onClick={() => setShowNotifications(!showNotifications)}
           >
             <i className="fas fa-bell"></i>
-            <span className="notification-badge">5</span>
+            {unreadCount > 0 && (
+              <span className="notification-badge">{unreadCount}</span>
+            )}
           </div>
           <div className={styles.profileAvatar} onClick={handleLogout}>
             <i className="fas fa-user"></i>
@@ -62,28 +78,10 @@ export default function Navbar() {
         </div>
       </div>
       
-      {showNotifications && (
-        <div className={styles.notificationPanel}>
-          <div className={styles.notificationItem}>
-            <div className={styles.notificationContent}>
-              Sarah Anderson liked your post
-            </div>
-            <div className={styles.notificationTime}>2 minutes ago</div>
-          </div>
-          <div className={styles.notificationItem}>
-            <div className={styles.notificationContent}>
-              Mike Torres commented on your photo
-            </div>
-            <div className={styles.notificationTime}>1 hour ago</div>
-          </div>
-          <div className={styles.notificationItem}>
-            <div className={styles.notificationContent}>
-              You have a new message from Alex Liu
-            </div>
-            <div className={styles.notificationTime}>3 hours ago</div>
-          </div>
-        </div>
-      )}
+      <NotificationPanel
+        isVisible={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
     </nav>
   )
 }

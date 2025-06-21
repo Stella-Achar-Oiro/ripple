@@ -1,0 +1,240 @@
+/* Container */
+.container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+/* Loading Container */
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  color: #6b7280;
+}
+
+.loadingContainer i {
+  font-size: 1.25rem;
+  color: #3b82f6;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 24px;
+}
+
+.header h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header h3 i {
+  color: #3b82f6;
+}
+
+.header p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Invitations List */
+.invitationsList {
+  padding: 0;
+}
+
+.invitationCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.2s ease;
+}
+
+.invitationCard:last-child {
+  border-bottom: none;
+}
+
+.invitationCard:hover {
+  background-color: #f9fafb;
+}
+
+/* Group Info */
+.groupInfo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.groupIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-navy), var(--secondary-navy));
+  color: white;
+  font-weight: 600;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.groupIcon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.groupDetails {
+  flex: 1;
+  min-width: 0;
+}
+
+.groupDetails h4 {
+  margin: 0 0 4px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.groupDescription {
+  margin: 0 0 8px 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.invitationMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.memberCount,
+.invitedBy {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.memberCount i {
+  color: #3b82f6;
+}
+
+.invitedBy i {
+  color: #6b7280;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.actions button {
+  font-size: 0.8125rem;
+  padding: 8px 16px;
+  min-width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.actions button i {
+  font-size: 0.75rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header {
+    padding: 16px 20px;
+  }
+  
+  .header h3 {
+    font-size: 1rem;
+  }
+  
+  .invitationCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px 20px;
+  }
+  
+  .groupInfo {
+    width: 100%;
+  }
+  
+  .actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 12px 16px;
+  }
+  
+  .invitationCard {
+    padding: 12px 16px;
+  }
+  
+  .groupIcon {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  
+  .groupInfo {
+    gap: 12px;
+  }
+  
+  .groupDetails h4 {
+    font-size: 0.875rem;
+  }
+  
+  .groupDescription {
+    font-size: 0.8125rem;
+  }
+  
+  .invitationMeta {
+    font-size: 0.6875rem;
+  }
+  
+  .actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .actions button {
+    width: 100%;
+    font-size: 0.75rem;
+    padding: 6px 12px;
+  }
+}

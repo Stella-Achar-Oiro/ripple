@@ -3,8 +3,143 @@
   margin: 0 auto;
 }
 
+.headerActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
 .groupsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
+}
+
+/* Loading State */
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #6b7280;
+  gap: 12px;
+}
+
+.loadingState i {
+  font-size: 2rem;
+  color: #3b82f6;
+}
+
+.loadingState span {
+  font-size: 1rem;
+}
+
+/* Error State */
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #ef4444;
+  gap: 16px;
+  text-align: center;
+}
+
+.errorState i {
+  font-size: 2rem;
+}
+
+.errorState span {
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+  color: #6b7280;
+  gap: 16px;
+}
+
+.emptyState i {
+  font-size: 4rem;
+  color: #d1d5db;
+  margin-bottom: 8px;
+}
+
+.emptyState h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 1rem;
+  max-width: 500px;
+  line-height: 1.5;
+}
+
+.emptyStateActions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .contentWrapper {
+    max-width: 100%;
+    padding: 0 10px;
+  }
+
+  .groupsGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .emptyState {
+    padding: 60px 20px;
+  }
+
+  .emptyState i {
+    font-size: 3rem;
+  }
+
+  .emptyState h3 {
+    font-size: 1.25rem;
+  }
+
+  .emptyState p {
+    font-size: 0.875rem;
+  }
+
+  .headerActions {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .headerActions button {
+    width: 100%;
+  }
+
+  .emptyStateActions {
+    flex-direction: column;
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .emptyStateActions button {
+    width: 100%;
+  }
 }

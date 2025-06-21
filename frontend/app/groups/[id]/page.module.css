@@ -1,0 +1,395 @@
+/* Container */
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Loading and Error States */
+.loadingContainer,
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+  gap: 16px;
+}
+
+.loadingContainer i {
+  font-size: 2rem;
+  color: #3b82f6;
+}
+
+.errorContainer i {
+  font-size: 3rem;
+  color: #ef4444;
+  margin-bottom: 8px;
+}
+
+.errorContainer h2 {
+  margin: 0;
+  color: #374151;
+  font-size: 1.5rem;
+}
+
+.errorContainer p {
+  margin: 0;
+  color: #6b7280;
+  max-width: 400px;
+}
+
+/* Header */
+.header {
+  margin-bottom: 20px;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  transition: color 0.2s ease;
+}
+
+.backButton:hover {
+  color: #374151;
+}
+
+/* Group Cover and Info */
+.groupCover {
+  position: relative;
+  background: linear-gradient(135deg, var(--primary-navy), var(--secondary-navy));
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  min-height: 200px;
+}
+
+.coverImage {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.groupInfo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  padding: 60px 24px 24px;
+  color: white;
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+}
+
+.groupAvatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 4px solid white;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 600;
+  color: white;
+}
+
+.groupDetails {
+  flex: 1;
+}
+
+.groupTitle {
+  margin: 0 0 8px 0;
+  font-size: 2rem;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.groupDescription {
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+.groupMeta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.memberCount {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+}
+
+.creatorBadge {
+  background-color: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.groupActions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.groupActions button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+/* Content Tabs */
+.contentTabs {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.tabList {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+}
+
+.tab {
+  flex: 1;
+  padding: 16px 20px;
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-bottom: 2px solid transparent;
+}
+
+.tab:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.tab.active {
+  background-color: white;
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+}
+
+.tabContent {
+  padding: 24px;
+}
+
+/* Members List */
+.membersList {
+  min-height: 300px;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: #6b7280;
+  gap: 16px;
+}
+
+.emptyState i {
+  font-size: 3rem;
+  color: #d1d5db;
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.membersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.memberCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.memberCard:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.memberAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.memberAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.memberAvatarPlaceholder {
+  width: 100%;
+  height: 100%;
+  background-color: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 1.25rem;
+}
+
+.memberInfo {
+  flex: 1;
+}
+
+.memberInfo h4 {
+  margin: 0 0 4px 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.memberNameButton {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0 0 4px 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #3b82f6;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.2s ease;
+}
+
+.memberNameButton:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.memberNickname {
+  margin: 0 0 4px 0;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.memberRole {
+  font-size: 0.75rem;
+  color: #3b82f6;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.memberRole i {
+  color: #f59e0b;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 10px;
+  }
+  
+  .groupInfo {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+    padding: 40px 20px 20px;
+  }
+  
+  .groupAvatar {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .groupTitle {
+    font-size: 1.5rem;
+  }
+  
+  .groupActions {
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .groupActions button {
+    flex: 1;
+    min-width: 120px;
+  }
+  
+  .tabList {
+    flex-direction: column;
+  }
+  
+  .tab {
+    justify-content: flex-start;
+    padding: 12px 20px;
+  }
+  
+  .membersGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .tabContent {
+    padding: 16px;
+  }
+}

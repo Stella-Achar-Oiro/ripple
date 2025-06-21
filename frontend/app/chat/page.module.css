@@ -8,6 +8,48 @@
   box-shadow: var(--shadow);
   max-width: 1000px;
   margin: 0 auto;
+  position: relative;
+}
+
+.connectionError,
+.connectionStatus {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--primary-navy);
+  color: var(--white);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  z-index: 10;
+  animation: slideDown 0.3s ease-out;
+}
+
+.connectionError {
+  background-color: #e74c3c;
+}
+
+.connectionStatus {
+  background-color: #f39c12;
+}
+
+.connectionError i,
+.connectionStatus i {
+  font-size: 11px;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 @media (max-width: 768px) {

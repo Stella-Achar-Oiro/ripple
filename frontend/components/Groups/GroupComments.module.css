@@ -1,0 +1,300 @@
+.commentsSection {
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  color: var(--text-secondary);
+}
+
+.loadingContainer i {
+  color: var(--primary-navy);
+}
+
+.errorMessage {
+  background: var(--error-background);
+  color: var(--error-color);
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--error-border);
+}
+
+.commentsList {
+  margin-bottom: 1rem;
+}
+
+.noComments {
+  text-align: center;
+  padding: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.comment {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  align-items: flex-start;
+}
+
+.commentAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.commentAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: var(--primary-navy);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.commentContent {
+  flex: 1;
+  background: var(--comment-background, var(--card-background));
+  padding: 0.75rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.commentHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.commentAuthor {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.commentTime {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.commentText {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.commentImage {
+  margin-top: 0.5rem;
+  border-radius: 6px;
+  overflow: hidden;
+  max-height: 200px;
+}
+
+.commentImage img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+.commentForm {
+  margin-top: 1rem;
+}
+
+.imagePreview {
+  position: relative;
+  margin-bottom: 0.75rem;
+  border-radius: 8px;
+  overflow: hidden;
+  max-height: 200px;
+}
+
+.imagePreview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.removeImage {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 0.7rem;
+}
+
+.removeImage:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.commentInputContainer {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.commentInput {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  background: var(--background-color);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease;
+}
+
+.commentInput:focus {
+  outline: none;
+  border-color: var(--primary-navy);
+}
+
+.commentInput:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.commentInput::placeholder {
+  color: var(--text-muted);
+}
+
+.imageUploadButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background: var(--background-color);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.imageUploadButton:hover {
+  background: var(--hover-background);
+  color: var(--primary-navy);
+  border-color: var(--primary-navy);
+}
+
+.imageUploadButton i {
+  font-size: 0.8rem;
+}
+
+.commentSubmit {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--primary-navy);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.commentSubmit:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: scale(1.05);
+}
+
+.commentSubmit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.commentSubmit i {
+  font-size: 0.8rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .comment {
+    gap: 0.5rem;
+  }
+  
+  .commentAvatar {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .commentContent {
+    padding: 0.5rem;
+  }
+  
+  .commentAuthor {
+    font-size: 0.8rem;
+  }
+  
+  .commentTime {
+    font-size: 0.7rem;
+  }
+  
+  .commentText {
+    font-size: 0.85rem;
+  }
+  
+  .commentInputContainer {
+    gap: 0.5rem;
+  }
+  
+  .commentInput {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+  
+  .imageUploadButton {
+    width: 32px;
+    height: 32px;
+  }
+
+  .commentSubmit {
+    width: 32px;
+    height: 32px;
+  }
+
+  .removeImage {
+    width: 20px;
+    height: 20px;
+    font-size: 0.6rem;
+  }
+}

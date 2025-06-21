@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -102,7 +103,7 @@ func (fh *FollowHandler) FollowUser(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				// Log error but don't fail the request
 				// In production, you might want to use a proper logger
-				// log.Printf("Failed to create notification: %v", err)
+				log.Printf("Failed to create notification: %v", err)
 			}
 		}
 	}

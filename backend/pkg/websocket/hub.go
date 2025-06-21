@@ -80,6 +80,8 @@ const (
 	MessageTypeHeartbeat     MessageType = "heartbeat"
 	MessageTypeUserList      MessageType = "user_list"
 	MessageTypePresence      MessageType = "presence"
+	MessageTypePing          MessageType = "ping"
+	MessageTypePong          MessageType = "pong"
 )
 
 // WebSocket message structure

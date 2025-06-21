@@ -1,0 +1,219 @@
+.joinRequestsManager {
+  background-color: var(--white);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border-gray);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--light-gray);
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary-navy);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header h3 i {
+  color: var(--primary-navy);
+}
+
+.requestCount {
+  background-color: var(--primary-navy);
+  color: var(--white);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.content {
+  padding: 20px;
+}
+
+.loadingState,
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: var(--text-light);
+  gap: 10px;
+}
+
+.loadingState i,
+.emptyState i {
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.loadingState span,
+.emptyState span {
+  font-size: 14px;
+}
+
+.requestsList {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.requestItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid var(--border-gray);
+  border-radius: 8px;
+  background-color: var(--white);
+  transition: box-shadow 0.3s ease;
+}
+
+.requestItem:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.userAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--primary-navy);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.userAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.userDetails {
+  flex: 1;
+}
+
+.userName {
+  font-weight: 600;
+  color: var(--primary-navy);
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+
+.userEmail {
+  color: var(--text-light);
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.requestTime {
+  color: var(--text-light);
+  font-size: 12px;
+}
+
+.requestActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.actionButton {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 80px;
+  justify-content: center;
+}
+
+.actionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.acceptButton {
+  background-color: var(--success-green);
+  color: var(--white);
+}
+
+.acceptButton:hover:not(:disabled) {
+  background-color: #218838;
+  transform: translateY(-1px);
+}
+
+.declineButton {
+  background-color: var(--error-red);
+  color: var(--white);
+}
+
+.declineButton:hover:not(:disabled) {
+  background-color: #c82333;
+  transform: translateY(-1px);
+}
+
+.actionButton i {
+  font-size: 12px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .header {
+    padding: 15px;
+  }
+  
+  .header h3 {
+    font-size: 16px;
+  }
+  
+  .content {
+    padding: 15px;
+  }
+  
+  .requestItem {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+  
+  .userInfo {
+    justify-content: flex-start;
+  }
+  
+  .requestActions {
+    justify-content: stretch;
+  }
+  
+  .actionButton {
+    flex: 1;
+    padding: 10px 16px;
+  }
+}

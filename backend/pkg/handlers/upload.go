@@ -200,3 +200,93 @@ func (uh *UploadHandler) UploadCover(w http.ResponseWriter, r *http.Request) {
 		"user_id":   userID,
 	})
 }
+
+// UploadGroupAvatar uploads group avatar
+func (uh *UploadHandler) UploadGroupAvatar(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	// Parse multipart form
+	err = r.ParseMultipartForm(uh.config.MaxFileSize)
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "File too large or invalid form")
+		return
+	}
+
+	file, header, err := r.FormFile("avatar")
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "No file uploaded or invalid file field")
+		return
+	}
+	defer file.Close()
+
+	// Validate and save file
+	uploadDir := filepath.Join(uh.config.UploadsPath, "groups", "avatars")
+	filename, err := utils.SaveUploadedFile(file, header, uploadDir, uh.config.MaxFileSize)
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Return file path
+	filePath := fmt.Sprintf("/uploads/groups/avatars/%s", filename)
+
+	utils.WriteSuccessResponse(w, http.StatusOK, map[string]any{
+		"file_path": filePath,
+		"message":   "Group avatar uploaded successfully",
+		"user_id":   userID,
+	})
+}
+
+// UploadGroupCover uploads group cover photo
+func (uh *UploadHandler) UploadGroupCover(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	// Parse multipart form
+	err = r.ParseMultipartForm(uh.config.MaxFileSize)
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "File too large or invalid form")
+		return
+	}
+
+	file, header, err := r.FormFile("cover")
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "No file uploaded or invalid file field")
+		return
+	}
+	defer file.Close()
+
+	// Validate and save file
+	uploadDir := filepath.Join(uh.config.UploadsPath, "groups", "covers")
+	filename, err := utils.SaveUploadedFile(file, header, uploadDir, uh.config.MaxFileSize)
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Return file path
+	filePath := fmt.Sprintf("/uploads/groups/covers/%s", filename)
+
+	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
+		"file_path": filePath,
+		"message":   "Group cover photo uploaded successfully",
+		"user_id":   userID,
+	})
+}

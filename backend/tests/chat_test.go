@@ -10,22 +10,24 @@ import (
 	"time"
 
 	"ripple/pkg/auth"
+	"ripple/pkg/handlers"
 	"ripple/pkg/models"
 	"ripple/pkg/websocket"
 
+	gorilla "github.com/gorilla/websocket"
 )
 
 func TestChatMessageRepository(t *testing.T) {
-	db := setupTestDB(t)
-	defer db.Close()
+	database, cleanup := setupTestDB()
+	defer cleanup()
 
-	messageRepo := models.NewMessageRepository(db.DB)
-	userRepo := models.NewUserRepository(db.DB)
-	followRepo := models.NewFollowRepository(db.DB)
+	messageRepo := models.NewMessageRepository(database.DB)
+	userRepo := models.NewUserRepository(database.DB)
+	sessionManager := auth.NewSessionManager(database.DB)
 
 	// Create test users
-	user1 := createTestUser(t, userRepo, "user1@test.com", "User", "One")
-	user2 := createTestUser(t, userRepo, "user2@test.com", "User", "Two")
+	user1, _ := createTestUser(t, userRepo, sessionManager, "user1@test.com", true)
+	user2, _ := createTestUser(t, userRepo, sessionManager, "user2@test.com", true)
 
 	t.Run("CreatePrivateMessage", func(t *testing.T) {
 		message, err := messageRepo.CreatePrivateMessage(user1.ID, user2.ID, "Hello from user1!")
@@ -140,48 +142,37 @@ func TestChatMessageRepository(t *testing.T) {
 }
 
 func TestChatAPI(t *testing.T) {
-	db := setupTestDB(t)
-	defer db.Close()
+	database, cleanup := setupTestDB()
+	defer cleanup()
 
 	// Setup repositories and session manager
-	userRepo := models.NewUserRepository(db.DB)
-	messageRepo := models.NewMessageRepository(db.DB)
-	followRepo := models.NewFollowRepository(db.DB)
-	groupRepo := models.NewGroupRepository(db.DB)
-	sessionManager := auth.NewSessionManager(db.DB)
+	userRepo := models.NewUserRepository(database.DB)
+	messageRepo := models.NewMessageRepository(database.DB)
+	followRepo := models.NewFollowRepository(database.DB)
+	groupRepo := models.NewGroupRepository(database.DB)
+	sessionManager := auth.NewSessionManager(database.DB)
 
 	// Create WebSocket hub
-	hub := websocket.NewHub(db.DB)
+	hub := websocket.NewHub(database.DB)
 	go hub.Run()
 	defer hub.Stop()
 
-	// Create test users
-	user1 := createTestUser(t, userRepo, "chat1@test.com", "Chat", "User1")
-	user2 := createTestUser(t, userRepo, "chat2@test.com", "Chat", "User2")
-
-	// Create sessions
-	session1, err := sessionManager.CreateSession(user1.ID)
-	if err != nil {
-		t.Fatalf("Failed to create session for user1: %v", err)
-	}
-
-	session2, err := sessionManager.CreateSession(user2.ID)
-	if err != nil {
-		t.Fatalf("Failed to create session for user2: %v", err)
-	}
+	// Create test users with sessions
+	user1, session1 := createTestUser(t, userRepo, sessionManager, "chat1@test.com", true)
+	user2, _ := createTestUser(t, userRepo, sessionManager, "chat2@test.com", true)
 
 	// Create follow relationship so they can message each other
-	_, err = followRepo.CreateFollowRequest(user1.ID, user2.ID)
-	if err != nil {
+	if _, err := followRepo.CreateFollowRequest(user1.ID, user2.ID); err != nil {
 		t.Fatalf("Failed to create follow request: %v", err)
 	}
 
+	// Create chat handler
 	chatHandler := handlers.NewChatHandler(messageRepo, followRepo, groupRepo, hub)
 
 	t.Run("GetConversations", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/api/chat/conversations", nil)
 		req.AddCookie(&http.Cookie{Name: "session_id", Value: session1.ID})
-		
+
 		w := httptest.NewRecorder()
 		authMiddleware := sessionManager.AuthMiddleware(http.HandlerFunc(chatHandler.GetConversations))
 		authMiddleware.ServeHTTP(w, req)
@@ -191,7 +182,7 @@ func TestChatAPI(t *testing.T) {
 		}
 
 		var response map[string]interface{}
-		err = json.Unmarshal(w.Body.Bytes(), &response)
+		err := json.Unmarshal(w.Body.Bytes(), &response)
 		if err != nil {
 			t.Fatalf("Failed to unmarshal response: %v", err)
 		}
@@ -204,7 +195,7 @@ func TestChatAPI(t *testing.T) {
 	t.Run("GetUnreadCounts", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/api/chat/unread", nil)
 		req.AddCookie(&http.Cookie{Name: "session_id", Value: session1.ID})
-		
+
 		w := httptest.NewRecorder()
 		authMiddleware := sessionManager.AuthMiddleware(http.HandlerFunc(chatHandler.GetUnreadCounts))
 		authMiddleware.ServeHTTP(w, req)
@@ -214,7 +205,7 @@ func TestChatAPI(t *testing.T) {
 		}
 
 		var response map[string]interface{}
-		err = json.Unmarshal(w.Body.Bytes(), &response)
+		err := json.Unmarshal(w.Body.Bytes(), &response)
 		if err != nil {
 			t.Fatalf("Failed to unmarshal response: %v", err)
 		}
@@ -232,7 +223,7 @@ func TestChatAPI(t *testing.T) {
 	t.Run("GetOnlineUsers", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/api/chat/online", nil)
 		req.AddCookie(&http.Cookie{Name: "session_id", Value: session1.ID})
-		
+
 		w := httptest.NewRecorder()
 		authMiddleware := sessionManager.AuthMiddleware(http.HandlerFunc(chatHandler.GetOnlineUsers))
 		authMiddleware.ServeHTTP(w, req)
@@ -242,7 +233,7 @@ func TestChatAPI(t *testing.T) {
 		}
 
 		var response map[string]interface{}
-		err = json.Unmarshal(w.Body.Bytes(), &response)
+		err := json.Unmarshal(w.Body.Bytes(), &response)
 		if err != nil {
 			t.Fatalf("Failed to unmarshal response: %v", err)
 		}
@@ -263,7 +254,7 @@ func TestChatAPI(t *testing.T) {
 		req := httptest.NewRequest("POST", "/api/chat/typing", strings.NewReader(string(payloadBytes)))
 		req.Header.Set("Content-Type", "application/json")
 		req.AddCookie(&http.Cookie{Name: "session_id", Value: session1.ID})
-		
+
 		w := httptest.NewRecorder()
 		authMiddleware := sessionManager.AuthMiddleware(http.HandlerFunc(chatHandler.TypingIndicator))
 		authMiddleware.ServeHTTP(w, req)
@@ -273,7 +264,7 @@ func TestChatAPI(t *testing.T) {
 		}
 
 		var response map[string]interface{}
-		err = json.Unmarshal(w.Body.Bytes(), &response)
+		err := json.Unmarshal(w.Body.Bytes(), &response)
 		if err != nil {
 			t.Fatalf("Failed to unmarshal response: %v", err)
 		}
@@ -285,37 +276,19 @@ func TestChatAPI(t *testing.T) {
 }
 
 func TestWebSocketIntegration(t *testing.T) {
-	db := setupTestDB(t)
-	defer db.Close()
+	database, cleanup := setupTestDB()
+	defer cleanup()
 
 	// Setup repositories and session manager
-	userRepo := models.NewUserRepository(db.DB)
-	followRepo := models.NewFollowRepository(db.DB)
-	sessionManager := auth.NewSessionManager(db.DB)
+	userRepo := models.NewUserRepository(database.DB)
+	sessionManager := auth.NewSessionManager(database.DB)
 
-	// Create test users
-	user1 := createTestUser(t, userRepo, "ws1@test.com", "WebSocket", "User1")
-	user2 := createTestUser(t, userRepo, "ws2@test.com", "WebSocket", "User2")
-
-	// Make user2 public so user1 can message them
-	err := userRepo.UpdateProfile(user2.ID, map[string]interface{}{"is_public": true})
-	if err != nil {
-		t.Fatalf("Failed to make user2 public: %v", err)
-	}
-
-	// Create sessions
-	session1, err := sessionManager.CreateSession(user1.ID)
-	if err != nil {
-		t.Fatalf("Failed to create session for user1: %v", err)
-	}
-
-	session2, err := sessionManager.CreateSession(user2.ID)
-	if err != nil {
-		t.Fatalf("Failed to create session for user2: %v", err)
-	}
+	// Create test users with sessions (both public)
+	user1, session1 := createTestUser(t, userRepo, sessionManager, "ws1@test.com", true)
+	user2, session2 := createTestUser(t, userRepo, sessionManager, "ws2@test.com", true)
 
 	// Create WebSocket hub
-	hub := websocket.NewHub(db.DB)
+	hub := websocket.NewHub(database.DB)
 	go hub.Run()
 	defer hub.Stop()
 
@@ -333,7 +306,7 @@ func TestWebSocketIntegration(t *testing.T) {
 		header := http.Header{}
 		header.Set("Cookie", "session_id="+session1.ID)
 
-		conn, _, err := websocket.DefaultDialer.Dial(wsURL, header)
+		conn, _, err := gorilla.DefaultDialer.Dial(wsURL, header)
 		if err != nil {
 			t.Fatalf("Failed to connect to WebSocket: %v", err)
 		}
@@ -341,6 +314,7 @@ func TestWebSocketIntegration(t *testing.T) {
 
 		// Send a test message
 		testMessage := map[string]interface{}{
+			
 			"type":    "private_message",
 			"to":      user2.ID,
 			"content": "Hello WebSocket!",
@@ -353,7 +327,7 @@ func TestWebSocketIntegration(t *testing.T) {
 
 		// Read response with timeout
 		conn.SetReadDeadline(time.Now().Add(5 * time.Second))
-		
+
 		var response map[string]interface{}
 		err = conn.ReadJSON(&response)
 		if err != nil {
@@ -372,7 +346,7 @@ func TestWebSocketIntegration(t *testing.T) {
 
 	t.Run("WebSocketAuthentication", func(t *testing.T) {
 		// Try to connect without session cookie
-		_, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
+		_, _, err := gorilla.DefaultDialer.Dial(wsURL, nil)
 		if err == nil {
 			t.Error("Expected WebSocket connection to fail without authentication")
 		}
@@ -381,7 +355,7 @@ func TestWebSocketIntegration(t *testing.T) {
 		header := http.Header{}
 		header.Set("Cookie", "session_id=invalid_session")
 
-		_, _, err = websocket.DefaultDialer.Dial(wsURL, header)
+		_, _, err = gorilla.DefaultDialer.Dial(wsURL, header)
 		if err == nil {
 			t.Error("Expected WebSocket connection to fail with invalid session")
 		}
@@ -392,7 +366,7 @@ func TestWebSocketIntegration(t *testing.T) {
 		header1 := http.Header{}
 		header1.Set("Cookie", "session_id="+session1.ID)
 
-		conn1, _, err := websocket.DefaultDialer.Dial(wsURL, header1)
+		conn1, _, err := gorilla.DefaultDialer.Dial(wsURL, header1)
 		if err != nil {
 			t.Fatalf("Failed to connect user1: %v", err)
 		}
@@ -402,7 +376,7 @@ func TestWebSocketIntegration(t *testing.T) {
 		header2 := http.Header{}
 		header2.Set("Cookie", "session_id="+session2.ID)
 
-		conn2, _, err := websocket.DefaultDialer.Dial(wsURL, header2)
+		conn2, _, err := gorilla.DefaultDialer.Dial(wsURL, header2)
 		if err != nil {
 			t.Fatalf("Failed to connect user2: %v", err)
 		}
@@ -422,7 +396,7 @@ func TestWebSocketIntegration(t *testing.T) {
 
 		// User2 should receive the message
 		conn2.SetReadDeadline(time.Now().Add(5 * time.Second))
-		
+
 		var receivedMessage map[string]interface{}
 		err = conn2.ReadJSON(&receivedMessage)
 		if err != nil {
@@ -444,7 +418,7 @@ func TestWebSocketIntegration(t *testing.T) {
 		header1 := http.Header{}
 		header1.Set("Cookie", "session_id="+session1.ID)
 
-		conn1, _, err := websocket.DefaultDialer.Dial(wsURL, header1)
+		conn1, _, err := gorilla.DefaultDialer.Dial(wsURL, header1)
 		if err != nil {
 			t.Fatalf("Failed to connect user1: %v", err)
 		}
@@ -453,7 +427,7 @@ func TestWebSocketIntegration(t *testing.T) {
 		header2 := http.Header{}
 		header2.Set("Cookie", "session_id="+session2.ID)
 
-		conn2, _, err := websocket.DefaultDialer.Dial(wsURL, header2)
+		conn2, _, err := gorilla.DefaultDialer.Dial(wsURL, header2)
 		if err != nil {
 			t.Fatalf("Failed to connect user2: %v", err)
 		}
@@ -475,7 +449,7 @@ func TestWebSocketIntegration(t *testing.T) {
 
 		// User2 should receive typing indicator
 		conn2.SetReadDeadline(time.Now().Add(5 * time.Second))
-		
+
 		var typingReceived map[string]interface{}
 		err = conn2.ReadJSON(&typingReceived)
 		if err != nil {
@@ -489,32 +463,20 @@ func TestWebSocketIntegration(t *testing.T) {
 }
 
 func TestWebSocketPrivacyControls(t *testing.T) {
-	db := setupTestDB(t)
-	defer db.Close()
+	database, cleanup := setupTestDB()
+	defer cleanup()
 
 	// Setup repositories and session manager
-	userRepo := models.NewUserRepository(db.DB)
-	followRepo := models.NewFollowRepository(db.DB)
-	sessionManager := auth.NewSessionManager(db.DB)
+	userRepo := models.NewUserRepository(database.DB)
+	followRepo := models.NewFollowRepository(database.DB)
+	sessionManager := auth.NewSessionManager(database.DB)
 
-	// Create test users (user2 is private by default)
-	user1 := createTestUser(t, userRepo, "privacy1@test.com", "Privacy", "User1")
-	user2 := createTestUser(t, userRepo, "privacy2@test.com", "Privacy", "User2")
-
-	// Make user2 private
-	err := userRepo.UpdateProfile(user2.ID, map[string]interface{}{"is_public": false})
-	if err != nil {
-		t.Fatalf("Failed to make user2 private: %v", err)
-	}
-
-	// Create session for user1
-	session1, err := sessionManager.CreateSession(user1.ID)
-	if err != nil {
-		t.Fatalf("Failed to create session for user1: %v", err)
-	}
+	// Create test users (user1 public, user2 private)
+	user1, session1 := createTestUser(t, userRepo, sessionManager, "privacy1@test.com", true)
+	user2, _ := createTestUser(t, userRepo, sessionManager, "privacy2@test.com", false)
 
 	// Create WebSocket hub
-	hub := websocket.NewHub(db.DB)
+	hub := websocket.NewHub(database.DB)
 	go hub.Run()
 	defer hub.Stop()
 
@@ -530,7 +492,7 @@ func TestWebSocketPrivacyControls(t *testing.T) {
 		header := http.Header{}
 		header.Set("Cookie", "session_id="+session1.ID)
 
-		conn, _, err := websocket.DefaultDialer.Dial(wsURL, header)
+		conn, _, err := gorilla.DefaultDialer.Dial(wsURL, header)
 		if err != nil {
 			t.Fatalf("Failed to connect to WebSocket: %v", err)
 		}
@@ -550,7 +512,7 @@ func TestWebSocketPrivacyControls(t *testing.T) {
 
 		// Should receive error response
 		conn.SetReadDeadline(time.Now().Add(5 * time.Second))
-		
+
 		var response map[string]interface{}
 		err = conn.ReadJSON(&response)
 		if err != nil {
@@ -578,7 +540,8 @@ func TestWebSocketPrivacyControls(t *testing.T) {
 		header := http.Header{}
 		header.Set("Cookie", "session_id="+session1.ID)
 
-		conn, _, err := websocket.DefaultDialer.Dial(wsURL, header)
+		conn, _, err := gorilla.DefaultDialer.Dial(wsURL, header)
+
 		if err != nil {
 			t.Fatalf("Failed to connect to WebSocket: %v", err)
 		}
@@ -598,7 +561,7 @@ func TestWebSocketPrivacyControls(t *testing.T) {
 
 		// Should receive confirmation
 		conn.SetReadDeadline(time.Now().Add(5 * time.Second))
-		
+
 		var response map[string]interface{}
 		err = conn.ReadJSON(&response)
 		if err != nil {
