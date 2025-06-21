@@ -27,8 +27,11 @@ export default function GroupChat({ groupId, groupTitle }) {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
+  // Convert groupId to a number if it's not already
+  const numericGroupId = typeof groupId === 'string' ? parseInt(groupId, 10) : groupId;
+
   // Get conversation ID for this group
-  const conversationId = getConversationId(null, null, groupId)
+  const conversationId = getConversationId(null, null, numericGroupId)
 
   // Scroll to bottom of messages
   const scrollToBottom = () => {
@@ -66,7 +69,7 @@ export default function GroupChat({ groupId, groupTitle }) {
   const handleTyping = (typing) => {
     if (typing !== isTyping) {
       setIsTyping(typing)
-      sendTypingIndicator('group', groupId, typing)
+      sendTypingIndicator('group', numericGroupId, typing)
     }
   }
 
@@ -109,7 +112,7 @@ export default function GroupChat({ groupId, groupTitle }) {
     }
 
     // Send message via WebSocket
-    const success = sendGroupMessage(groupId, messageContent)
+    const success = sendGroupMessage(numericGroupId, messageContent)
 
     if (!success) {
       // WebSocket not available, could fallback to REST API
