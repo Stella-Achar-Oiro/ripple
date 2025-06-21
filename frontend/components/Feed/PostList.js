@@ -5,41 +5,11 @@ import styles from './PostList.module.css'
 import Comments from './Comments'
 import { useAuth } from '../../contexts/AuthContext'
 
-export default function PostList() {
+export default function PostList({ posts, setPosts, isLoading, error }) {
   const { user } = useAuth()
-  const [posts, setPosts] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
   const [visibleCommentsPostId, setVisibleCommentsPostId] = useState(null)
   const [activeMenuPostId, setActiveMenuPostId] = useState(null)
   const [editingPost, setEditingPost] = useState(null)
-
-  const fetchPosts = async () => {
-    try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
-      const response = await fetch(`${API_URL}/api/posts/feed`, {
-        credentials: 'include',
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.message || 'Failed to fetch posts')
-      }
-
-      const data = await response.json()
-      if (data.success && data.data && data.data.posts) {
-        setPosts(data.data.posts)
-      } else {
-        console.error('Invalid response format or empty data:', data);
-        throw new Error('Invalid response format or no posts received');
-      }
-    } catch (err) {
-      setError(err.message || 'An error occurred while fetching posts')
-      console.error('Error fetching posts:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleDeletePost = async (postId) => {
     if (!window.confirm('Are you sure you want to delete this post?')) {
@@ -99,9 +69,41 @@ export default function PostList() {
     }
   }
 
-  useEffect(() => {
-    fetchPosts()
-  }, [])
+  const handleLikeToggle = async (postId, isLiked) => {
+    // Optimistic UI update
+    const originalPosts = [...posts]
+    const updatedPosts = posts.map(p => {
+      if (p.id === postId) {
+        return {
+          ...p,
+          is_liked: !p.is_liked,
+          likes_count: p.is_liked ? p.likes_count - 1 : p.likes_count + 1,
+        }
+      }
+      return p
+    })
+    setPosts(updatedPosts)
+
+    const endpoint = isLiked ? 'unlike' : 'like'
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+      const response = await fetch(`${API_URL}/api/posts/${endpoint}/${postId}`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        // If API fails, revert the UI change
+        setPosts(originalPosts)
+        const data = await response.json()
+        throw new Error(data.message || `Failed to ${endpoint} post`)
+      }
+    } catch (err) {
+      console.error(`Error ${endpoint} post:`, err)
+      // Revert UI on any error
+      setPosts(originalPosts)
+    }
+  }
 
   if (isLoading) {
     return <div className={styles.loading}>Loading posts...</div>
@@ -175,8 +177,11 @@ export default function PostList() {
             </div>
           )}
           <div className={styles.postActions}>
-            <button className={styles.actionButton}>
-              <i className="far fa-heart"></i> Like
+            <button
+              className={`${styles.actionButton} ${post.is_liked ? styles.liked : ''}`}
+              onClick={() => handleLikeToggle(post.id, post.is_liked)}
+            >
+              <i className={post.is_liked ? 'fas fa-heart' : 'far fa-heart'}></i> Like ({post.likes_count || 0})
             </button>
             <button
               className={styles.actionButton}

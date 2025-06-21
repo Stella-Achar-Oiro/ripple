@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import styles from './CreatePost.module.css'
 
-export default function CreatePost() {
+export default function CreatePost({ onPostCreated }) {
   const [postContent, setPostContent] = useState('')
   const [privacy, setPrivacy] = useState('public')
   const [isLoading, setIsLoading] = useState(false)
@@ -83,6 +83,9 @@ export default function CreatePost() {
       setMediaPreview(null)
       // You might want to trigger a refresh of the posts list here
       // This can be done through a callback prop or using a state management solution
+      if (onPostCreated) {
+        onPostCreated()
+      }
     } catch (err) {
       setError(err.message || 'An error occurred while creating the post')
       console.error('Post creation error:', err)
