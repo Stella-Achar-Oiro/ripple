@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { useAuth } from '../../contexts/AuthContext'
 import styles from './CreatePost.module.css'
 
 export default function CreatePost() {
+  const { user } = useAuth()
   const [postContent, setPostContent] = useState('')
   const [privacy, setPrivacy] = useState('public')
   const [isLoading, setIsLoading] = useState(false)
@@ -91,14 +93,20 @@ export default function CreatePost() {
     }
   }
 
+  const getAuthorInitials = (user) => {
+    if (!user) return 'U'
+    const firstInitial = user.first_name?.[0] || ''
+    const lastInitial = user.last_name?.[0] || ''
+    return (firstInitial + lastInitial).toUpperCase() || 'U'
+  }
+
   return (
     <div className="card">
       <div className={styles.createPost}>
         <div className={styles.createPostHeader}>
-          <div className="user-avatar">JD</div>
-          <textarea 
+          <textarea
             className={styles.postInput}
-            placeholder="What's on your mind, John?"
+            placeholder={`What's on your mind, ${user?.first_name || 'User'}?`}
             value={postContent}
             onChange={(e) => setPostContent(e.target.value)}
             disabled={isLoading}
