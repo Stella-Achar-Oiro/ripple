@@ -3,12 +3,22 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '../../contexts/AuthContext'
+import { useNotifications } from '../../contexts/NotificationContext'
+import { useWebSocket } from '../../contexts/WebSocketContext'
+import NotificationPanel from '../Notifications/NotificationPanel'
 import styles from './Navbar.module.css'
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showNotifications, setShowNotifications] = useState(false)
   const router = useRouter()
+  const { user } = useAuth()
+  const { unreadCount } = useNotifications()
+  const { isConnected } = useWebSocket()
+
+  // Calculate total unread message count
+  const messageUnreadCount = 0 // This would need to be calculated from all conversations
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -56,9 +66,20 @@ export default function Navbar() {
             <i className="fas fa-bell"></i>
             <span className="notification-badge">5</span>
           </div>
-          <div className={styles.profileAvatar} onClick={handleLogout}>
-            <i className="fas fa-user"></i>
-          </div>
+          <Link 
+            href={user ? `/profile/${user.id}` : '/profile'} 
+            className={styles.profileAvatar}
+            title="My Profile"
+          >
+            {user?.avatar_path ? (
+              <img 
+                src={`${process.env.NEXT_PUBLIC_API_URL}${user.avatar_path}`}
+                alt={`${user.first_name} ${user.last_name}`}
+              />
+            ) : (
+              <i className="fas fa-user"></i>
+            )}
+          </Link>
         </div>
       </div>
       
