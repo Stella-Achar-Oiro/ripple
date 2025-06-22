@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import styles from './CreatePost.module.css'
 
-export default function CreatePost() {
+export default function CreatePost({ onPostCreated }) {
   const { user } = useAuth()
   const [postContent, setPostContent] = useState('')
   const [privacy, setPrivacy] = useState('public')
@@ -60,7 +60,7 @@ export default function CreatePost() {
       }
 
       // Create the post
-      const responsePost = await fetch(`${API_URL}/api/posts`, {
+      const responsePost = await fetch(`${API_URL}/api/posts/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,8 +83,7 @@ export default function CreatePost() {
       setPostContent('')
       setMediaFile(null)
       setMediaPreview(null)
-      // You might want to trigger a refresh of the posts list here
-      // This can be done through a callback prop or using a state management solution
+      if (onPostCreated) onPostCreated()
     } catch (err) {
       setError(err.message || 'An error occurred while creating the post')
       console.error('Post creation error:', err)
