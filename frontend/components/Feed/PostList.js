@@ -5,7 +5,7 @@ import styles from './PostList.module.css'
 import Comments from './Comments'
 import { useAuth } from '../../contexts/AuthContext'
 
-export default function PostList() {
+export default function PostList({ refreshTrigger }) {
   const { user } = useAuth()
   const [posts, setPosts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -135,7 +135,7 @@ export default function PostList() {
 
   useEffect(() => {
     fetchPosts()
-  }, [])
+  }, [refreshTrigger])
 
   if (isLoading) {
     return <div className={styles.loading}>Loading posts...</div>
