@@ -124,7 +124,9 @@ func setupEventRoutes(mux *http.ServeMux, eventHandler *handlers.EventHandler, a
 }
 
 func setupUploadRoutes(mux *http.ServeMux, uploadHandler *handlers.UploadHandler, authMiddleware func(http.Handler) http.Handler) {
-	// TODO: Implement upload routes
+	mux.Handle("/api/upload/post", authMiddleware(http.HandlerFunc(uploadHandler.UploadPostImage)))
+	mux.Handle("/api/upload/comment", authMiddleware(http.HandlerFunc(uploadHandler.UploadCommentImage)))
+	// Add other upload routes as needed
 }
 
 func setupNotificationRoutes(mux *http.ServeMux, notificationHandler *handlers.NotificationHandler, authMiddleware func(http.Handler) http.Handler) {
