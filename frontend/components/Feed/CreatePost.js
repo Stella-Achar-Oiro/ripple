@@ -1,15 +1,19 @@
 'use client'
 
 import { useState } from 'react'
+import { useAuth } from '../../contexts/AuthContext'
 import styles from './CreatePost.module.css'
 
 export default function CreatePost() {
+  const { user } = useAuth()
   const [postContent, setPostContent] = useState('')
   const [privacy, setPrivacy] = useState('public')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [mediaFile, setMediaFile] = useState(null)
   const [mediaPreview, setMediaPreview] = useState(null)
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
@@ -35,7 +39,6 @@ export default function CreatePost() {
     setError('')
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
       let imagePath = null
 
       // If there's a media file, upload it first
@@ -95,10 +98,22 @@ export default function CreatePost() {
     <div className="card">
       <div className={styles.createPost}>
         <div className={styles.createPostHeader}>
-          <div className="user-avatar">JD</div>
+          <div className="user-avatar">
+            {user?.avatar_path ? (
+              <img 
+                src={`${API_URL}${user.avatar_path}`}
+                alt={`${user.first_name} ${user.last_name}`}
+                className={styles.avatarImage}
+              />
+            ) : (
+              <span className={styles.avatarText}>
+                {user?.first_name?.charAt(0)}{user?.last_name?.charAt(0)}
+              </span>
+            )}
+          </div>
           <textarea 
             className={styles.postInput}
-            placeholder="What's on your mind, John?"
+            placeholder={`What's on your mind, ${user?.first_name || 'there'}?`}
             value={postContent}
             onChange={(e) => setPostContent(e.target.value)}
             disabled={isLoading}
