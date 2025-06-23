@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import styles from './CreatePost.module.css'
 
-export default function CreatePost() {
+export default function CreatePost({ onPostCreated }) {
   const { user } = useAuth()
   const [postContent, setPostContent] = useState('')
   const [privacy, setPrivacy] = useState('public')
@@ -84,8 +84,11 @@ export default function CreatePost() {
       setPostContent('')
       setMediaFile(null)
       setMediaPreview(null)
-      // You might want to trigger a refresh of the posts list here
-      // This can be done through a callback prop or using a state management solution
+      
+      // Trigger refresh of posts list
+      if (onPostCreated) {
+        onPostCreated()
+      }
     } catch (err) {
       setError(err.message || 'An error occurred while creating the post')
       console.error('Post creation error:', err)
@@ -121,11 +124,7 @@ export default function CreatePost() {
         </div>
         {mediaPreview && (
           <div className={styles.imagePreview}>
-            {mediaFile.type.startsWith('video/') ? (
-              <video src={mediaPreview} controls />
-            ) : (
-              <img src={mediaPreview} alt="Preview" />
-            )}
+            <img src={mediaPreview} alt="Preview" />
             <button 
               className={styles.removeImage}
               onClick={() => {
@@ -143,13 +142,13 @@ export default function CreatePost() {
             <label className={styles.postOption}>
               <input
                 type="file"
-                accept="image/*,video/*"
+                accept="image/*"
                 onChange={handleFileChange}
                 style={{ display: 'none' }}
                 disabled={isLoading}
               />
-              <i className="fas fa-photo-video"></i>
-              Photo/Video
+              <i className="fas fa-image"></i>
+              Photo
             </label>
             <div className={styles.postOption}>
               <i className="fas fa-smile"></i>
