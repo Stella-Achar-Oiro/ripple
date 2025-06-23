@@ -4,12 +4,16 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { useWebSocket } from '../../contexts/WebSocketContext'
 import styles from './Sidebar.module.css'
 
 export default function Sidebar({ currentPage, isOpen, onClose }) {
   const router = useRouter()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
-  const { logout } = useAuth()
+  const { user, logout } = useAuth()
+  const { getTotalUnreadCount } = useWebSocket()
+
+  const totalUnreadCount = getTotalUnreadCount()
 
   const handleLogout = async () => {
     try {
@@ -36,7 +40,7 @@ export default function Sidebar({ currentPage, isOpen, onClose }) {
           News Feed
         </Link>
         <Link 
-          href="/profile" 
+          href={user ? `/profile/${user.id}` : "/profile"} 
           className={`${styles.sidebarItem} ${currentPage === 'profile' ? styles.active : ''}`}
         >
           <i className="fas fa-user"></i>
@@ -66,12 +70,10 @@ export default function Sidebar({ currentPage, isOpen, onClose }) {
         >
           <i className="fas fa-comments"></i>
           Messages
-          <span className={styles.badge}>3</span>
+          {totalUnreadCount > 0 && (
+            <span className={styles.badge}>{totalUnreadCount}</span>
+          )}
         </Link>
-        <a href="#" className={styles.sidebarItem}>
-          <i className="fas fa-video"></i>
-          Video Calls
-        </a>
       </div>
       
       <div className={styles.sidebarSection}>
