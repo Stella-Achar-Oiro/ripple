@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react'
+import Link from 'next/link'
 import styles from './PostList.module.css'
 import Comments from './Comments'
+import Avatar from '../shared/Avatar'
 import { useAuth } from '../../contexts/AuthContext'
 
-export default function PostList() {
+const PostList = forwardRef(function PostList(_, ref) {
   const { user } = useAuth()
   const [posts, setPosts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -13,11 +15,15 @@ export default function PostList() {
   const [visibleCommentsPostId, setVisibleCommentsPostId] = useState(null)
   const [activeMenuPostId, setActiveMenuPostId] = useState(null)
   const [editingPost, setEditingPost] = useState(null)
+  const [likingPosts, setLikingPosts] = useState(new Set()) // Track ongoing like operations
+  const likeOperationsRef = useRef(new Set()) // Track ongoing like operations
+  const [toastMessage, setToastMessage] = useState('')
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
   const fetchPosts = async () => {
     try {
+      setIsLoading(true)
       const response = await fetch(`${API_URL}/api/posts/feed`, {
         credentials: 'include',
       })
@@ -39,6 +45,119 @@ export default function PostList() {
       console.error('Error fetching posts:', err)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // Expose refresh function to parent
+  useImperativeHandle(ref, () => ({
+    refreshPosts: fetchPosts
+  }))
+
+  const handleLikeToggle = async (postId, isLiked) => {
+    // Prevent double-clicking/concurrent operations
+    if (likeOperationsRef.current.has(postId)) {
+      return
+    }
+
+    const post = posts.find(p => p.id === postId)
+    if (!post) return
+
+    // Mark operation as in progress
+    likeOperationsRef.current.add(postId)
+    setLikingPosts(new Set([...likingPosts, postId]))
+
+    // Optimistically update UI immediately
+    setPosts(prevPosts => prevPosts.map(p => {
+      if (p.id === postId) {
+        return {
+          ...p,
+          is_liked: !isLiked,
+          like_count: !isLiked ? (p.like_count || 0) + 1 : Math.max(0, (p.like_count || 1) - 1)
+        }
+      }
+      return p
+    }))
+
+    try {
+      // Simple approach - use UI state to determine action
+      const endpoint = isLiked ? 'unlike' : 'like'
+      const response = await fetch(`${API_URL}/api/posts/${endpoint}/${postId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        // Revert optimistic update on failure
+        setPosts(prevPosts => prevPosts.map(p => {
+          if (p.id === postId) {
+            return {
+              ...p,
+              is_liked: isLiked,
+              like_count: isLiked ? (p.like_count || 0) + 1 : Math.max(0, (p.like_count || 1) - 1)
+            }
+          }
+          return p
+        }))
+        
+        // If conflict, just refresh to get current state
+        if (response.status === 409) {
+          fetchPosts()
+        }
+      }
+      
+    } catch (err) {
+      console.error('Error toggling like:', err)
+      // Revert optimistic update on error
+      setPosts(prevPosts => prevPosts.map(p => {
+        if (p.id === postId) {
+          return {
+            ...p,
+            is_liked: isLiked,
+            like_count: isLiked ? (p.like_count || 0) + 1 : Math.max(0, (p.like_count || 1) - 1)
+          }
+        }
+        return p
+      }))
+    } finally {
+      // Always remove from ongoing operations
+      likeOperationsRef.current.delete(postId)
+      setLikingPosts(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(postId)
+        return newSet
+      })
+    }
+  }
+
+  const handleShare = async (postId) => {
+    try {
+      // For now, implement basic sharing (copy link)
+      const postUrl = `${window.location.origin}/posts/${postId}`
+      
+      if (navigator.share) {
+        // Use native sharing if available
+        await navigator.share({
+          title: 'Check out this post',
+          url: postUrl,
+        })
+      } else if (navigator.clipboard) {
+        // Fallback to copying link
+        await navigator.clipboard.writeText(postUrl)
+        setToastMessage('Link copied to clipboard!')
+        // Clear the message after 3 seconds
+        setTimeout(() => setToastMessage(''), 3000)
+      } else {
+        // Final fallback
+        setToastMessage('Sharing not supported on this device')
+        setTimeout(() => setToastMessage(''), 3000)
+      }
+    } catch (err) {
+      console.error('Error sharing post:', err)
+      setToastMessage('Failed to share post')
+      setTimeout(() => setToastMessage(''), 3000)
     }
   }
 
@@ -109,7 +228,7 @@ export default function PostList() {
   }
 
   if (error) {
-    return <div className={styles.error}>{error}</div>
+    return <div className={styles.error}>{typeof error === 'string' ? error : JSON.stringify(error)}</div>
   }
 
   if (posts.length === 0) {
@@ -122,13 +241,15 @@ export default function PostList() {
         <div key={post.id} className={styles.postCard}>
           <div className={styles.postHeader}>
             <div className={styles.userInfo}>
-              <div className="user-avatar">
-                {post.author?.nickname?.[0] || 'U'}
-              </div>
+              <Link href={`/profile/${post.author?.id}`} className={styles.avatarLink}>
+                <Avatar user={post.author} size="medium" />
+              </Link>
               <div className={styles.userDetails}>
-                <span className={styles.userName}>
-                  {post.author?.first_name} {post.author?.last_name}
-                </span>
+                <Link href={`/profile/${post.author?.id}`} className={styles.userNameLink}>
+                  <span className={styles.userName}>
+                    {post.author?.first_name} {post.author?.last_name}
+                  </span>
+                </Link>
                 <span className={styles.postTime}>
                   {new Date(post.created_at).toLocaleDateString()}
                 </span>
@@ -168,16 +289,21 @@ export default function PostList() {
           )}
           {post.image_path && (
             <div className={styles.postImage}>
-              {post.image_path.endsWith('.mp4') || post.image_path.endsWith('.webm') || post.image_path.endsWith('.mov') ? (
-                <video src={`${API_URL}${post.image_path}`} controls />
-              ) : (
-                <img src={`${API_URL}${post.image_path}`} alt="Post attachment" />
-              )}
+              <img src={`${API_URL}${post.image_path}`} alt="Post attachment" />
             </div>
           )}
           <div className={styles.postActions}>
-            <button className={styles.actionButton}>
-              <i className="far fa-heart"></i> Like
+            <button 
+              className={`${styles.actionButton} ${post.is_liked ? styles.liked : ''}`}
+              onClick={() => handleLikeToggle(post.id, post.is_liked)}
+              disabled={likingPosts.has(post.id)}
+            >
+              {likingPosts.has(post.id) ? (
+                <i className="fas fa-spinner fa-spin"></i>
+              ) : (
+                <i className={`${post.is_liked ? 'fas' : 'far'} fa-heart`}></i>
+              )}
+              Like {post.like_count ? `(${post.like_count})` : ''}
             </button>
             <button
               className={styles.actionButton}
@@ -189,13 +315,24 @@ export default function PostList() {
             >
               <i className="far fa-comment"></i> Comment ({post.comment_count || 0})
             </button>
-            <button className={styles.actionButton}>
-              <i className="far fa-share-square"></i> Share
+            <button
+              className={styles.actionButton}
+              onClick={() => handleShare(post.id)}
+            >
+              <i className="fas fa-share"></i> Share
             </button>
           </div>
           {visibleCommentsPostId === post.id && <Comments postId={post.id} />}
         </div>
       ))}
+      {toastMessage && (
+        <div className={styles.toast}>
+          <i className="fas fa-check-circle"></i>
+          {toastMessage}
+        </div>
+      )}
     </div>
   )
-} 
+})
+
+export default PostList 
