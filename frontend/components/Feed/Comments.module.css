@@ -75,9 +75,28 @@
   margin-left: 12px;
 }
 
+.avatarLink {
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.avatarLink:hover {
+  opacity: 0.8;
+}
+
+.userNameLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.userNameLink:hover .userName {
+  color: var(--primary-purple, #8b5cf6);
+}
+
 .userName {
   font-weight: 600;
   margin-right: 8px;
+  transition: color 0.2s;
 }
 
 .commentTime {
