@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import Avatar from '../shared/Avatar'
 import styles from './Comments.module.css'
 
 export default function Comments({ postId }) {
@@ -70,12 +72,6 @@ export default function Comments({ postId }) {
     }
   }, [postId])
 
-  const getAuthorInitials = (author) => {
-    if (!author) return 'U'
-    const firstInitial = author.first_name?.[0] || ''
-    const lastInitial = author.last_name?.[0] || ''
-    return (firstInitial + lastInitial).toUpperCase() || 'U'
-  }
 
   return (
     <div className={styles.commentsSection}>
@@ -96,13 +92,15 @@ export default function Comments({ postId }) {
           comments.map((comment) => (
             <div key={comment.id} className={styles.comment}>
                <div className={styles.commentHeader}>
-                <div className="user-avatar">
-                  {getAuthorInitials(comment.author)}
-                </div>
+                <Link href={`/profile/${comment.author?.id}`} className={styles.avatarLink}>
+                  <Avatar user={comment.author} size="small" />
+                </Link>
                 <div className={styles.commentDetails}>
-                  <span className={styles.userName}>
-                    {comment.author?.first_name} {comment.author?.last_name}
-                  </span>
+                  <Link href={`/profile/${comment.author?.id}`} className={styles.userNameLink}>
+                    <span className={styles.userName}>
+                      {comment.author?.first_name} {comment.author?.last_name}
+                    </span>
+                  </Link>
                   <span className={styles.commentTime}>
                     {new Date(comment.created_at).toLocaleDateString()}
                   </span>
