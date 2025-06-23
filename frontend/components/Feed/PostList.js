@@ -5,7 +5,7 @@ import styles from './PostList.module.css'
 import Comments from './Comments'
 import { useAuth } from '../../contexts/AuthContext'
 
-export default function PostList() {
+export default function PostList({ refreshTrigger }) {
   const { user } = useAuth()
   const [posts, setPosts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -100,9 +100,42 @@ export default function PostList() {
     }
   }
 
+  const handleLike = async (postId) => {
+    try {
+      const response = await fetch(`${API_URL}/api/posts/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ post_id: postId }),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Failed to like post');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        const { liked, like_count } = result.data;
+        setPosts(
+          posts.map((p) =>
+            p.id === postId ? { ...p, is_liked: liked, likes_count: like_count } : p
+          )
+        );
+      } else {
+        throw new Error(result.message || 'Failed to process like');
+      }
+    } catch (err) {
+      setError(err.message || 'An error occurred while liking the post');
+      console.error('Error liking post:', err);
+    }
+  };
+
   useEffect(() => {
     fetchPosts()
-  }, [])
+  }, [refreshTrigger])
 
   if (isLoading) {
     return <div className={styles.loading}>Loading posts...</div>
@@ -123,7 +156,7 @@ export default function PostList() {
           <div className={styles.postHeader}>
             <div className={styles.userInfo}>
               <div className="user-avatar">
-                {post.author?.nickname?.[0] || 'U'}
+                {`${post.author?.first_name?.[0] || ''}${post.author?.last_name?.[0] || ''}`.toUpperCase() || 'U'}
               </div>
               <div className={styles.userDetails}>
                 <span className={styles.userName}>
@@ -176,8 +209,11 @@ export default function PostList() {
             </div>
           )}
           <div className={styles.postActions}>
-            <button className={styles.actionButton}>
-              <i className="far fa-heart"></i> Like
+            <button
+              className={`${styles.actionButton} ${post.is_liked ? styles.liked : ''}`}
+              onClick={() => handleLike(post.id)}
+            >
+              <i className={post.is_liked ? 'fas fa-heart' : 'far fa-heart'}></i> Like ({post.likes_count || 0})
             </button>
             <button
               className={styles.actionButton}

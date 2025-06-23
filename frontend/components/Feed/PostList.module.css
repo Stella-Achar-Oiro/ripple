@@ -116,6 +116,7 @@
 
 .postActions {
   display: flex;
+  justify-content: space-around;
   gap: 1rem;
   padding-top: 0.75rem;
   border-top: 1px solid #eee;
@@ -136,6 +137,10 @@
 
 .actionButton:hover {
   background-color: #f5f5f5;
+}
+
+.actionButton.liked {
+  color: red;
 }
 
 .loading {
