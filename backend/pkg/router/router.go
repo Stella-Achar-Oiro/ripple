@@ -146,4 +146,5 @@ func setupLikeRoutes(mux *http.ServeMux, likeHandler *handlers.LikeHandler, auth
 func setupFollowRoutes(mux *http.ServeMux, followHandler *handlers.FollowHandler, authMiddleware func(http.Handler) http.Handler) {
 	mux.Handle("/api/follow", authMiddleware(http.HandlerFunc(followHandler.FollowUser)))
 	mux.Handle("/api/unfollow", authMiddleware(http.HandlerFunc(followHandler.UnfollowUser)))
+	mux.Handle("/api/follow/followers/", authMiddleware(http.HandlerFunc(followHandler.GetFollowers))) // Expects /api/follow/followers/{userId}
 }

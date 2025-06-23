@@ -7,8 +7,14 @@ import styles from './GroupPost.module.css'
 export default function GroupPost({ post, onPostDeleted, isGroupMember }) {
   const [showComments, setShowComments] = useState(false)
   const [commentCount, setCommentCount] = useState(post.comment_count || 0)
+  const [expanded, setExpanded] = useState(false)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+
+  const MAX_PREVIEW_LENGTH = 350
+  const content = post.Content || post.content // fallback for different post object shapes
+  const isLong = content && content.length > MAX_PREVIEW_LENGTH
+  const previewContent = isLong ? content.slice(0, MAX_PREVIEW_LENGTH) + '...' : content
 
   // Helper function to generate initials from author's first and last name
   const getAuthorInitials = (author) => {
@@ -71,7 +77,15 @@ export default function GroupPost({ post, onPostDeleted, isGroupMember }) {
         </div>
 
         <div className={styles.postContent}>
-          {post.Content}
+          {expanded || !isLong ? content : previewContent}
+          {isLong && (
+            <span
+              style={{ color: 'var(--primary-navy)', cursor: 'pointer', marginLeft: 8, fontWeight: 500 }}
+              onClick={() => setExpanded((prev) => !prev)}
+            >
+              {expanded ? ' Show less' : ' Read more'}
+            </span>
+          )}
         </div>
 
         {post.ImagePath && (

@@ -13,8 +13,10 @@ export default function PostList({ refreshTrigger }) {
   const [visibleCommentsPostId, setVisibleCommentsPostId] = useState(null)
   const [activeMenuPostId, setActiveMenuPostId] = useState(null)
   const [editingPost, setEditingPost] = useState(null)
+  const [expandedPosts, setExpandedPosts] = useState({})
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+  const MAX_PREVIEW_LENGTH = 350
 
   const fetchPosts = async () => {
     try {
@@ -133,6 +135,10 @@ export default function PostList({ refreshTrigger }) {
     }
   };
 
+  const handleToggleExpand = (postId) => {
+    setExpandedPosts((prev) => ({ ...prev, [postId]: !prev[postId] }))
+  }
+
   useEffect(() => {
     fetchPosts()
   }, [refreshTrigger])
@@ -151,87 +157,102 @@ export default function PostList({ refreshTrigger }) {
 
   return (
     <div className={styles.postList}>
-      {posts.map((post) => (
-        <div key={post.id} className={styles.postCard}>
-          <div className={styles.postHeader}>
-            <div className={styles.userInfo}>
-              <div className="user-avatar">
-                {`${post.author?.first_name?.[0] || ''}${post.author?.last_name?.[0] || ''}`.toUpperCase() || 'U'}
+      {posts.map((post) => {
+        const isLong = post.content && post.content.length > MAX_PREVIEW_LENGTH
+        const previewContent = isLong ? post.content.slice(0, MAX_PREVIEW_LENGTH) + '...' : post.content
+        const expanded = expandedPosts[post.id] || false
+        return (
+          <div key={post.id} className={styles.postCard}>
+            <div className={styles.postHeader}>
+              <div className={styles.userInfo}>
+                <div className="user-avatar">
+                  {`${post.author?.first_name?.[0] || ''}${post.author?.last_name?.[0] || ''}`.toUpperCase() || 'U'}
+                </div>
+                <div className={styles.userDetails}>
+                  <span className={styles.userName}>
+                    {post.author?.first_name} {post.author?.last_name}
+                  </span>
+                  <span className={styles.postTime}>
+                    {new Date(post.created_at).toLocaleDateString()}
+                  </span>
+                </div>
               </div>
-              <div className={styles.userDetails}>
-                <span className={styles.userName}>
-                  {post.author?.first_name} {post.author?.last_name}
-                </span>
-                <span className={styles.postTime}>
-                  {new Date(post.created_at).toLocaleDateString()}
-                </span>
+              <div className={styles.postPrivacy}>
+                <i className={`fas fa-${post.privacy_level === 'public' ? 'globe' : 'lock'}`}></i>
               </div>
+              {user && user.id === post.author?.id && (
+                <div className={styles.postMenu}>
+                  <button onClick={() => setActiveMenuPostId(activeMenuPostId === post.id ? null : post.id)} className={styles.menuButton}>
+                    <i className="fas fa-ellipsis-h"></i>
+                  </button>
+                  {activeMenuPostId === post.id && (
+                    <div className={styles.dropdownMenu}>
+                      <button onClick={() => setEditingPost({ ...post })}>Edit</button>
+                      <button onClick={() => handleDeletePost(post.id)}>Delete</button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            <div className={styles.postPrivacy}>
-              <i className={`fas fa-${post.privacy_level === 'public' ? 'globe' : 'lock'}`}></i>
-            </div>
-            {user && user.id === post.author?.id && (
-              <div className={styles.postMenu}>
-                <button onClick={() => setActiveMenuPostId(activeMenuPostId === post.id ? null : post.id)} className={styles.menuButton}>
-                  <i className="fas fa-ellipsis-h"></i>
-                </button>
-                {activeMenuPostId === post.id && (
-                  <div className={styles.dropdownMenu}>
-                    <button onClick={() => setEditingPost({ ...post })}>Edit</button>
-                    <button onClick={() => handleDeletePost(post.id)}>Delete</button>
-                  </div>
+            {editingPost && editingPost.id === post.id ? (
+              <div className={styles.editPost}>
+                <textarea
+                  value={editingPost.content}
+                  onChange={(e) => setEditingPost({ ...editingPost, content: e.target.value })}
+                  className={styles.editTextArea}
+                />
+                <div className={styles.editActions}>
+                  <button onClick={() => setEditingPost(null)} className={styles.cancelButton}>Cancel</button>
+                  <button onClick={handleUpdatePost} className={styles.saveButton}>Save</button>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.postContent}>
+                {expanded || !isLong ? post.content : previewContent}
+                {isLong && (
+                  <span
+                    style={{ color: 'var(--primary-purple)', cursor: 'pointer', marginLeft: 8, fontWeight: 500 }}
+                    onClick={() => handleToggleExpand(post.id)}
+                  >
+                    {expanded ? ' Show less' : ' Read more'}
+                  </span>
                 )}
               </div>
             )}
-          </div>
-          {editingPost && editingPost.id === post.id ? (
-            <div className={styles.editPost}>
-              <textarea
-                value={editingPost.content}
-                onChange={(e) => setEditingPost({ ...editingPost, content: e.target.value })}
-                className={styles.editTextArea}
-              />
-              <div className={styles.editActions}>
-                <button onClick={() => setEditingPost(null)} className={styles.cancelButton}>Cancel</button>
-                <button onClick={handleUpdatePost} className={styles.saveButton}>Save</button>
+            {post.image_path && (
+              <div className={styles.postImage}>
+                {post.image_path.endsWith('.mp4') || post.image_path.endsWith('.webm') || post.image_path.endsWith('.mov') ? (
+                  <video src={`${API_URL}${post.image_path}`} controls />
+                ) : (
+                  <img src={`${API_URL}${post.image_path}`} alt="Post attachment" />
+                )}
               </div>
+            )}
+            <div className={styles.postActions}>
+              <button
+                className={`${styles.actionButton} ${post.is_liked ? styles.liked : ''}`}
+                onClick={() => handleLike(post.id)}
+              >
+                <i className={post.is_liked ? 'fas fa-heart' : 'far fa-heart'}></i> Like ({post.likes_count || 0})
+              </button>
+              <button
+                className={styles.actionButton}
+                onClick={() =>
+                  setVisibleCommentsPostId(
+                    visibleCommentsPostId === post.id ? null : post.id
+                  )
+                }
+              >
+                <i className="far fa-comment"></i> Comment ({post.comment_count || 0})
+              </button>
+              <button className={styles.actionButton}>
+                <i className="far fa-share-square"></i> Share
+              </button>
             </div>
-          ) : (
-            <div className={styles.postContent}>{post.content}</div>
-          )}
-          {post.image_path && (
-            <div className={styles.postImage}>
-              {post.image_path.endsWith('.mp4') || post.image_path.endsWith('.webm') || post.image_path.endsWith('.mov') ? (
-                <video src={`${API_URL}${post.image_path}`} controls />
-              ) : (
-                <img src={`${API_URL}${post.image_path}`} alt="Post attachment" />
-              )}
-            </div>
-          )}
-          <div className={styles.postActions}>
-            <button
-              className={`${styles.actionButton} ${post.is_liked ? styles.liked : ''}`}
-              onClick={() => handleLike(post.id)}
-            >
-              <i className={post.is_liked ? 'fas fa-heart' : 'far fa-heart'}></i> Like ({post.likes_count || 0})
-            </button>
-            <button
-              className={styles.actionButton}
-              onClick={() =>
-                setVisibleCommentsPostId(
-                  visibleCommentsPostId === post.id ? null : post.id
-                )
-              }
-            >
-              <i className="far fa-comment"></i> Comment ({post.comment_count || 0})
-            </button>
-            <button className={styles.actionButton}>
-              <i className="far fa-share-square"></i> Share
-            </button>
+            {visibleCommentsPostId === post.id && <Comments postId={post.id} />}
           </div>
-          {visibleCommentsPostId === post.id && <Comments postId={post.id} />}
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 } 
