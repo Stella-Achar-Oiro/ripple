@@ -7,6 +7,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useNotifications } from '../../contexts/NotificationContext'
 import { useWebSocket } from '../../contexts/WebSocketContext'
 import NotificationPanel from '../Notifications/NotificationPanel'
+import Avatar from '../shared/Avatar'
 import styles from './Navbar.module.css'
 
 export default function Navbar() {
@@ -15,10 +16,10 @@ export default function Navbar() {
   const router = useRouter()
   const { user } = useAuth()
   const { unreadCount } = useNotifications()
-  const { isConnected } = useWebSocket()
+  const { isConnected, getTotalUnreadCount } = useWebSocket()
 
   // Calculate total unread message count
-  const messageUnreadCount = 0 // This would need to be calculated from all conversations
+  const messageUnreadCount = getTotalUnreadCount ? getTotalUnreadCount() : 0
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -79,14 +80,7 @@ export default function Navbar() {
             className={styles.profileAvatar}
             title="My Profile"
           >
-            {user?.avatar_path ? (
-              <img 
-                src={`${process.env.NEXT_PUBLIC_API_URL}${user.avatar_path}`}
-                alt={`${user.first_name} ${user.last_name}`}
-              />
-            ) : (
-              <i className="fas fa-user"></i>
-            )}
+            <Avatar user={user} size="medium" showFallback={false} />
           </Link>
         </div>
       </div>
