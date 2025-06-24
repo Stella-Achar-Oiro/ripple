@@ -2,6 +2,7 @@
 package websocket
 
 import (
+	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -501,16 +502,35 @@ func (h *Hub) SendGroupMessage(groupID, senderID int, content string, messageID 
 		// Get the full message data from database
 		var messageData map[string]interface{}
 		query := `
-			SELECT id, group_id, sender_id, content, created_at 
-			FROM group_messages 
-			WHERE id = ?
+			SELECT gm.id, gm.group_id, gm.sender_id, gm.content, gm.created_at,
+			       u.first_name, u.last_name, u.nickname
+			FROM group_messages gm
+			JOIN users u ON gm.sender_id = u.id
+			WHERE gm.id = ?
 		`
 		var msgID, msgGroupID, msgSenderID int
 		var msgContent string
 		var msgCreatedAt time.Time
+		var firstName, lastName, nickname sql.NullString
 
-		err := h.db.QueryRow(query, messageID).Scan(&msgID, &msgGroupID, &msgSenderID, &msgContent, &msgCreatedAt)
+		err := h.db.QueryRow(query, messageID).Scan(&msgID, &msgGroupID, &msgSenderID, &msgContent, &msgCreatedAt, &firstName, &lastName, &nickname)
 		if err == nil {
+			// Convert NullString to regular string, using empty string if NULL
+			firstNameStr := ""
+			if firstName.Valid {
+				firstNameStr = firstName.String
+			}
+
+			lastNameStr := ""
+			if lastName.Valid {
+				lastNameStr = lastName.String
+			}
+
+			nicknameStr := ""
+			if nickname.Valid {
+				nicknameStr = nickname.String
+			}
+
 			messageData = map[string]interface{}{
 				"message": map[string]interface{}{
 					"id":         msgID,
@@ -518,6 +538,11 @@ func (h *Hub) SendGroupMessage(groupID, senderID int, content string, messageID 
 					"sender_id":  msgSenderID,
 					"content":    msgContent,
 					"created_at": msgCreatedAt,
+					"sender": map[string]interface{}{
+						"first_name": firstNameStr,
+						"last_name":  lastNameStr,
+						"nickname":   nicknameStr,
+					},
 				},
 			}
 		}
