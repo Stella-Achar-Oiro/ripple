@@ -13,7 +13,7 @@ export default function CreatePost({ onPostCreated }) {
   const [mediaFile, setMediaFile] = useState(null)
   const [mediaPreview, setMediaPreview] = useState(null)
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
