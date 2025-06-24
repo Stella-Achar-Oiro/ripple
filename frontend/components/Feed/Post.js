@@ -59,6 +59,9 @@ export default function Post({ post }) {
                 objectFit: 'cover',
                 borderRadius: '8px'
               }}
+              onError={(e) => {
+                e.target.style.display = 'none'
+              }}
             />
           </div>
         ) : null}

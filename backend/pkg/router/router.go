@@ -81,7 +81,7 @@ func SetupRoutes(
 		handlers.PanicRecoveryMiddleware,
 		handlers.SecurityHeadersMiddleware,
 		corsMiddleware(cfg.AllowedOrigins),
-		handlers.JSONMiddleware,
+		handlers.JSONMiddleware, // JSON middleware should not apply to static files
 	)
 
 	// Mount API routes with middleware

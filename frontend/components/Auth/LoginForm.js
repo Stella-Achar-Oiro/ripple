@@ -51,13 +51,13 @@ export default function LoginForm() {
         <div className={styles.errorMessage}>{error}</div>
       )}
       
-      <div className="form-group">
-        <label className="form-label" htmlFor="email">Email</label>
+      <div className={styles.formGroup}>
+        <label className={styles.formLabel} htmlFor="email">Email Address</label>
         <input 
           type="email" 
           id="email" 
-          className="form-input" 
-          placeholder="Enter your email" 
+          className={styles.formInput} 
+          placeholder="Enter your email address" 
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={isLoading}
@@ -65,12 +65,12 @@ export default function LoginForm() {
         />
       </div>
       
-      <div className="form-group">
-        <label className="form-label" htmlFor="password">Password</label>
+      <div className={styles.formGroup}>
+        <label className={styles.formLabel} htmlFor="password">Password</label>
         <input 
           type="password" 
           id="password" 
-          className="form-input" 
+          className={styles.formInput} 
           placeholder="Enter your password" 
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -78,17 +78,27 @@ export default function LoginForm() {
           required 
         />
       </div>
+
+      <div className={styles.forgotPassword}>
+        <a href="#" className={styles.forgotPasswordLink}>Forgot your password?</a>
+      </div>
       
       <button 
         type="submit" 
         className={styles.btnLogin}
         disabled={isLoading}
       >
-        {isLoading ? 'Signing in...' : 'Sign In'}
+        {isLoading ? (
+          <>
+            <span className="pulse">Signing in...</span>
+          </>
+        ) : (
+          'Sign In'
+        )}
       </button>
       
       <div className={styles.loginFooter}>
-        Don&apos;t have an account? <Link href="/register" className={styles.loginLink}>Sign up</Link>
+        New to Ripple? <Link href="/register" className={styles.loginLink}>Join now</Link>
       </div>
     </form>
   )

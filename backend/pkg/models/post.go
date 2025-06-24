@@ -30,6 +30,7 @@ type Post struct {
 	Author       *UserResponse `json:"author,omitempty"`
 	CommentCount int           `json:"comment_count"`
 	LikesCount   int           `json:"likes_count"`
+	IsLiked      bool          `json:"is_liked"`
 	CanView      bool          `json:"can_view"`
 	CanComment   bool          `json:"can_comment"`
 }
@@ -55,6 +56,7 @@ type CreatePostRequest struct {
 }
 
 type CreateCommentRequest struct {
+	PostID    int     `json:"postId"`
 	Content   string  `json:"content"`
 	ImagePath *string `json:"image_path"`
 }
@@ -146,7 +148,8 @@ func (pr *PostRepository) GetPost(postID, viewerID int) (*Post, error) {
 		SELECT p.id, p.user_id, p.content, p.image_path, p.privacy_level, p.created_at, p.updated_at,
 		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.cover_path, u.is_public, u.created_at,
 		       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
-		       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count
+		       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count,
+		       (SELECT COUNT(*) > 0 FROM likes WHERE post_id = p.id AND user_id = ?) as is_liked
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
 		WHERE p.id = ?
@@ -155,10 +158,10 @@ func (pr *PostRepository) GetPost(postID, viewerID int) (*Post, error) {
 	post := &Post{}
 	author := &User{}
 
-	err := pr.db.QueryRow(query, postID).Scan(
+	err := pr.db.QueryRow(query, viewerID, postID).Scan(
 		&post.ID, &post.UserID, &post.Content, &post.ImagePath, &post.PrivacyLevel, &post.CreatedAt, &post.UpdatedAt,
 		&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.CoverPath, &author.IsPublic, &author.CreatedAt,
-		&post.CommentCount, &post.LikesCount,
+		&post.CommentCount, &post.LikesCount, &post.IsLiked,
 	)
 
 	if err != nil {
@@ -192,7 +195,8 @@ func (pr *PostRepository) GetFeed(options *FeedOptions) ([]*Post, error) {
 		SELECT p.id, p.user_id, p.content, p.image_path, p.privacy_level, p.created_at, p.updated_at,
 		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.cover_path, u.is_public, u.created_at,
 		       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
-		       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count
+		       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count,
+		       (SELECT COUNT(*) > 0 FROM likes WHERE post_id = p.id AND user_id = ?) as is_liked
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
 		WHERE (
@@ -215,6 +219,7 @@ func (pr *PostRepository) GetFeed(options *FeedOptions) ([]*Post, error) {
 	`
 
 	rows, err := pr.db.Query(query,
+		options.UserID,
 		constants.PrivacyPublic,
 		options.UserID,
 		constants.PrivacyAlmostPrivate,
@@ -239,7 +244,7 @@ func (pr *PostRepository) GetFeed(options *FeedOptions) ([]*Post, error) {
 		err := rows.Scan(
 			&post.ID, &post.UserID, &post.Content, &post.ImagePath, &post.PrivacyLevel, &post.CreatedAt, &post.UpdatedAt,
 			&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.CoverPath, &author.IsPublic, &author.CreatedAt,
-			&post.CommentCount, &post.LikesCount,
+			&post.CommentCount, &post.LikesCount, &post.IsLiked,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan post: %w", err)
@@ -375,20 +380,20 @@ func (pr *PostRepository) DeletePost(postID, userID int) error {
 }
 
 // CreateComment creates a new comment on a post
-func (pr *PostRepository) CreateComment(postID, userID int, req *CreateCommentRequest) (*Comment, error) {
+func (pr *PostRepository) CreateComment(userID int, req *CreateCommentRequest) (*Comment, error) {
 	// Validate content
 	if strings.TrimSpace(req.Content) == "" && req.ImagePath == nil {
 		return nil, fmt.Errorf("comment must have content or image")
 	}
-
-	// Check if user can comment on this post (same as view permission for now)
-	post, err := pr.GetPost(postID, userID)
+	
+	// First, check if the user is allowed to comment on this post
+	post, err := pr.GetPost(req.PostID, userID)
 	if err != nil {
-		return nil, fmt.Errorf("cannot comment on post: %w", err)
+		return nil, fmt.Errorf("post not found or inaccessible: %w", err)
 	}
 
 	if !post.CanComment {
-		return nil, fmt.Errorf("insufficient permissions to comment on post")
+		return nil, fmt.Errorf("user not authorized to comment on this post")
 	}
 
 	query := `
@@ -399,9 +404,9 @@ func (pr *PostRepository) CreateComment(postID, userID int, req *CreateCommentRe
 
 	now := time.Now()
 	comment := &Comment{
-		PostID:    postID,
+		PostID:    req.PostID,
 		UserID:    userID,
-		Content:   strings.TrimSpace(req.Content),
+		Content:   req.Content,
 		ImagePath: req.ImagePath,
 		CreatedAt: now,
 		UpdatedAt: now,
@@ -420,10 +425,16 @@ func (pr *PostRepository) CreateComment(postID, userID int, req *CreateCommentRe
 		return nil, fmt.Errorf("failed to create comment: %w", err)
 	}
 
+	// Fetch author details for the response
+	author, err := NewUserRepository(pr.db).GetUserByID(userID)
+	if err == nil {
+		comment.Author = author.ToResponse()
+	}
+
 	return comment, nil
 }
 
-// GetComments gets comments for a post
+// GetComments gets all comments for a post
 func (pr *PostRepository) GetComments(postID, viewerID int, limit, offset int) ([]*Comment, error) {
 	// First check if user can view the post
 	_, err := pr.GetPost(postID, viewerID)
@@ -506,4 +517,37 @@ func (pr *PostRepository) DeleteComment(commentID, userID int) error {
 	}
 
 	return nil
+}
+
+// UpdatePost updates the content of an existing post after verifying ownership
+func (pr *PostRepository) UpdatePost(userID, postID int, content string) (*Post, error) {
+	// First, get the post to verify ownership
+	post := &Post{}
+	err := pr.db.QueryRow("SELECT user_id FROM posts WHERE id = ?", postID).Scan(&post.UserID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("post not found")
+		}
+		return nil, fmt.Errorf("failed to query post for update: %w", err)
+	}
+
+	// Check if the user is the owner of the post
+	if post.UserID != userID {
+		return nil, fmt.Errorf("user not authorized to edit this post")
+	}
+
+	// Update the post content
+	query := `
+		UPDATE posts
+		SET content = ?, updated_at = ?
+		WHERE id = ?
+	`
+	now := time.Now()
+	_, err = pr.db.Exec(query, content, now, postID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update post: %w", err)
+	}
+
+	// Return the updated post
+	return pr.GetPost(postID, userID)
 }

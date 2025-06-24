@@ -8,6 +8,7 @@ import styles from './RegisterForm.module.css'
 
 export default function RegisterForm() {
   const router = useRouter()
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -20,6 +21,7 @@ export default function RegisterForm() {
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  const [isConflictError, setIsConflictError] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState(null)
   const fileInputRef = useRef(null)
 
@@ -177,7 +179,10 @@ export default function RegisterForm() {
       const registerData = await registerResponse.json()
       
       if (!registerResponse.ok) {
-        throw new Error(registerData.error?.message || 'Registration failed')
+        if (registerResponse.status === 409) {
+          throw new Error('An account with this email already exists. Please try signing in instead.')
+        }
+        throw new Error(registerData.error?.message || registerData.message || 'Registration failed')
       }
       
       // Step 2: If we have an avatar, upload it
@@ -221,6 +226,7 @@ export default function RegisterForm() {
       router.push('/feed')
     } catch (error) {
       setSubmitError(error.message)
+      setIsConflictError(error.message.includes('already exists'))
       console.error('Registration error:', error)
     } finally {
       setIsSubmitting(false)
@@ -229,24 +235,28 @@ export default function RegisterForm() {
 
   const passwordStrength = getPasswordStrength()
 
-  return (
-    <form className={styles.registerForm} onSubmit={handleSubmit}>
-      <h2 className={styles.formTitle}>Create Your Account</h2>
+  // Removed step-based validation - now using complete form validation
+
+  // Removed progress bar - single step form
+
+  // Render all fields in single form
+  const renderAllFields = () => (
+    <div className={styles.stepContent}>
+      <h3 className={styles.stepTitle}>Create Your Account</h3>
+      <p className={styles.stepDescription}>Fill in your details to get started</p>
       
-      {submitError && (
-        <div className={styles.errorMessage}>{submitError}</div>
-      )}
-      
+      {/* Account Credentials */}
+      <div className={styles.sectionTitle}>Account Information</div>
       <div className={styles.formGroup}>
         <label className={styles.formLabel} htmlFor="email">
-          Email <span className={styles.required}>*</span>
+          Email Address <span className={styles.required}>*</span>
         </label>
         <input
           type="email"
           id="email"
           name="email"
           className={`${styles.formInput} ${errors.email ? styles.inputError : ''}`}
-          placeholder="Enter your email"
+          placeholder="you@company.com"
           value={formData.email}
           onChange={handleChange}
           required
@@ -263,7 +273,7 @@ export default function RegisterForm() {
           id="password"
           name="password"
           className={`${styles.formInput} ${errors.password ? styles.inputError : ''}`}
-          placeholder="Create a password"
+          placeholder="Create a strong password"
           value={formData.password}
           onChange={handleChange}
           required
@@ -276,9 +286,9 @@ export default function RegisterForm() {
                 style={{ 
                   width: `${(passwordStrength.strength / 5) * 100}%`,
                   backgroundColor: 
-                    passwordStrength.strength <= 1 ? 'var(--error-red)' :
-                    passwordStrength.strength <= 3 ? 'var(--warning-yellow)' : 
-                    'var(--success-green)'
+                    passwordStrength.strength <= 1 ? 'var(--error)' :
+                    passwordStrength.strength <= 3 ? 'var(--warning)' : 
+                    'var(--success)'
                 }}
               ></div>
             </div>
@@ -287,10 +297,12 @@ export default function RegisterForm() {
         )}
         {errors.password && <div className={styles.errorText}>{errors.password}</div>}
         <div className={styles.passwordHint}>
-          Password must be at least 8 characters and include uppercase, lowercase, and numbers
+          At least 8 characters with uppercase, lowercase, and numbers
         </div>
       </div>
-      
+
+      {/* Personal Information */}
+      <div className={styles.sectionTitle}>Personal Information</div>
       <div className={styles.nameFields}>
         <div className={styles.formGroup}>
           <label className={styles.formLabel} htmlFor="first_name">
@@ -301,7 +313,7 @@ export default function RegisterForm() {
             id="first_name"
             name="first_name"
             className={`${styles.formInput} ${errors.first_name ? styles.inputError : ''}`}
-            placeholder="First name"
+            placeholder="John"
             value={formData.first_name}
             onChange={handleChange}
             required
@@ -318,7 +330,7 @@ export default function RegisterForm() {
             id="last_name"
             name="last_name"
             className={`${styles.formInput} ${errors.last_name ? styles.inputError : ''}`}
-            placeholder="Last name"
+            placeholder="Doe"
             value={formData.last_name}
             onChange={handleChange}
             required
@@ -342,7 +354,9 @@ export default function RegisterForm() {
         />
         {errors.date_of_birth && <div className={styles.errorText}>{errors.date_of_birth}</div>}
       </div>
-      
+
+      {/* Optional Profile Details */}
+      <div className={styles.sectionTitle}>Profile Details <span className={styles.optional}>(optional)</span></div>
       <div className={styles.formGroup}>
         <label className={styles.formLabel} htmlFor="avatar">
           Profile Picture <span className={styles.optional}>(optional)</span>
@@ -356,13 +370,14 @@ export default function RegisterForm() {
               <Image 
                 src={avatarPreview} 
                 alt="Avatar preview" 
-                width={100} 
-                height={100}
+                width={120} 
+                height={120}
                 className={styles.avatarImage}
               />
             ) : (
               <div className={styles.avatarPlaceholder}>
-                <span>Click to upload</span>
+                <div className={styles.uploadIcon}>📸</div>
+                <span>Click to upload photo</span>
               </div>
             )}
           </div>
@@ -388,7 +403,7 @@ export default function RegisterForm() {
           id="nickname"
           name="nickname"
           className={`${styles.formInput} ${errors.nickname ? styles.inputError : ''}`}
-          placeholder="Your nickname"
+          placeholder="How would you like to be called?"
           value={formData.nickname}
           onChange={handleChange}
           maxLength={50}
@@ -407,7 +422,7 @@ export default function RegisterForm() {
           id="about_me"
           name="about_me"
           className={`${styles.formTextarea} ${errors.about_me ? styles.inputError : ''}`}
-          placeholder="Tell us about yourself"
+          placeholder="Tell us about your professional background and interests..."
           value={formData.about_me}
           onChange={handleChange}
           maxLength={500}
@@ -418,14 +433,53 @@ export default function RegisterForm() {
         </div>
         {errors.about_me && <div className={styles.errorText}>{errors.about_me}</div>}
       </div>
-      
-      <button 
-        type="submit" 
-        className={styles.btnRegister}
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? 'Creating Account...' : 'Create Account'}
-      </button>
+    </div>
+  )
+
+  return (
+    <form className={styles.registerForm} onSubmit={handleSubmit}>
+      {submitError && (
+        <div className={`${styles.errorMessage} ${isConflictError ? styles.conflict : ''}`}>
+          {submitError}
+          {isConflictError && (
+            <div className={styles.errorActions}>
+              <Link href="/" className="btn-outline">
+                Go to Sign In
+              </Link>
+              <button 
+                type="button" 
+                className="btn-secondary"
+                onClick={() => {
+                  setSubmitError('')
+                  setIsConflictError(false)
+                }}
+              >
+                Try Different Email
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* All Form Fields */}
+      {renderAllFields()}
+
+      {/* Submit Button */}
+      <div className={styles.submitSection}>
+        <button 
+          type="submit" 
+          className={styles.btnRegister}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <span className="pulse">Creating Account...</span>
+            </>
+          ) : (
+            'Create Account 🚀'
+          )}
+        </button>
+      </div>
       
       <div className={styles.registerFooter}>
         Already have an account? <Link href="/" className={styles.registerLink}>Sign in</Link>
