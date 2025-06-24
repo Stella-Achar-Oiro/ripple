@@ -23,8 +23,9 @@ func setupPostRoutes(mux *http.ServeMux, h *handlers.PostHandler, auth func(http
 	mux.Handle("/api/posts/", auth(http.HandlerFunc(h.GetPost)))
 	mux.Handle("/api/posts/feed", auth(http.HandlerFunc(h.GetFeed)))
 	mux.Handle("/api/posts/user/", auth(http.HandlerFunc(h.GetUserPosts)))
+	mux.Handle("/api/posts/update", auth(http.HandlerFunc(h.UpdatePost)))
 	mux.Handle("/api/posts/delete/", auth(http.HandlerFunc(h.DeletePost)))
-	mux.Handle("/api/posts/comment/", auth(http.HandlerFunc(h.CreateComment)))
+	mux.Handle("/api/posts/comments/create", auth(http.HandlerFunc(h.CreateComment)))
 	mux.Handle("/api/posts/comments/", auth(http.HandlerFunc(h.GetComments)))
 }
 
