@@ -230,7 +230,6 @@
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background-color: var(--primary-purple, #8b5cf6);
   color: white;
   padding: 12px 20px;
   border-radius: 8px;
@@ -242,6 +241,14 @@
   animation: slideInUp 0.3s ease-out;
   font-weight: 500;
   font-size: 14px;
+}
+
+.toastSuccess {
+  background-color: var(--primary-purple, #8b5cf6);
+}
+
+.toastError {
+  background-color: #e74c3c;
 }
 
 @keyframes slideInUp {
