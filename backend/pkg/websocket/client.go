@@ -455,6 +455,30 @@ func (c *Client) sendError(errorMsg string) {
 func (h *Hub) SendPrivateMessage(senderID, recipientID int, content string, messageID int) {
 	h.mu.RLock()
 	if client, exists := h.userClients[recipientID]; exists {
+		// Get the full message data from database
+		var messageData map[string]interface{}
+		query := `
+			SELECT id, sender_id, receiver_id, content, created_at 
+			FROM messages 
+			WHERE id = ?
+		`
+		var msgID, msgSenderID, msgReceiverID int
+		var msgContent string
+		var msgCreatedAt time.Time
+
+		err := h.db.QueryRow(query, messageID).Scan(&msgID, &msgSenderID, &msgReceiverID, &msgContent, &msgCreatedAt)
+		if err == nil {
+			messageData = map[string]interface{}{
+				"message": map[string]interface{}{
+					"id":          msgID,
+					"sender_id":   msgSenderID,
+					"receiver_id": msgReceiverID,
+					"content":     msgContent,
+					"created_at":  msgCreatedAt,
+				},
+			}
+		}
+
 		msg := WSMessage{
 			Type:      MessageTypePrivate,
 			Content:   content,
@@ -462,6 +486,7 @@ func (h *Hub) SendPrivateMessage(senderID, recipientID int, content string, mess
 			To:        recipientID,
 			MessageID: messageID,
 			Timestamp: time.Now(),
+			Data:      messageData,
 		}
 		messageBytes, _ := json.Marshal(msg)
 		client.send <- messageBytes
@@ -473,6 +498,30 @@ func (h *Hub) SendPrivateMessage(senderID, recipientID int, content string, mess
 func (h *Hub) SendGroupMessage(groupID, senderID int, content string, messageID int) {
 	h.mu.RLock()
 	if clients, exists := h.groupClients[groupID]; exists {
+		// Get the full message data from database
+		var messageData map[string]interface{}
+		query := `
+			SELECT id, group_id, sender_id, content, created_at 
+			FROM group_messages 
+			WHERE id = ?
+		`
+		var msgID, msgGroupID, msgSenderID int
+		var msgContent string
+		var msgCreatedAt time.Time
+
+		err := h.db.QueryRow(query, messageID).Scan(&msgID, &msgGroupID, &msgSenderID, &msgContent, &msgCreatedAt)
+		if err == nil {
+			messageData = map[string]interface{}{
+				"message": map[string]interface{}{
+					"id":         msgID,
+					"group_id":   msgGroupID,
+					"sender_id":  msgSenderID,
+					"content":    msgContent,
+					"created_at": msgCreatedAt,
+				},
+			}
+		}
+
 		msg := WSMessage{
 			Type:      MessageTypeGroup,
 			Content:   content,
@@ -480,6 +529,7 @@ func (h *Hub) SendGroupMessage(groupID, senderID int, content string, messageID 
 			GroupID:   groupID,
 			MessageID: messageID,
 			Timestamp: time.Now(),
+			Data:      messageData,
 		}
 		messageBytes, _ := json.Marshal(msg)
 		for client := range clients {

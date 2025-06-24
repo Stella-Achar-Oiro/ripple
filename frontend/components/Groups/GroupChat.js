@@ -160,7 +160,7 @@ export default function GroupChat({ groupId, groupTitle }) {
   }, [conversationId, messages, markConversationAsRead])
 
   // Get typing users for this group
-  const typingUsers = getTypingUsers('group', groupId)
+  const typingUsers = getTypingUsers(conversationId)
 
   if (isLoading) {
     return (
