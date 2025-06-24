@@ -30,10 +30,10 @@ func setupPostRoutes(mux *http.ServeMux, h *handlers.PostHandler, auth func(http
 
 func setupLikeRoutes(mux *http.ServeMux, h *handlers.LikeHandler, auth func(http.Handler) http.Handler) {
 	mux.Handle("/api/posts/like", auth(http.HandlerFunc(h.ToggleLike)))
-	mux.Handle("/api/posts/like/", auth(http.HandlerFunc(h.LikePost)))
-	mux.Handle("/api/posts/unlike/", auth(http.HandlerFunc(h.UnlikePost)))
-	mux.Handle("/api/posts/likes/", auth(http.HandlerFunc(h.GetPostLikes)))
-	mux.Handle("/api/posts/like-status/", auth(http.HandlerFunc(h.CheckLikeStatus)))
+	// mux.Handle("/api/posts/like/", auth(http.HandlerFunc(h.LikePost)))
+	// mux.Handle("/api/posts/unlike/", auth(http.HandlerFunc(h.UnlikePost)))
+	// mux.Handle("/api/posts/likes/", auth(http.HandlerFunc(h.GetPostLikes)))
+	// mux.Handle("/api/posts/like-status/", auth(http.HandlerFunc(h.CheckLikeStatus)))
 }
 
 func setupGroupRoutes(mux *http.ServeMux, h *handlers.GroupHandler, auth func(http.Handler) http.Handler) {
