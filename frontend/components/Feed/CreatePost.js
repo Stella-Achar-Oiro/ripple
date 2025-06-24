@@ -61,7 +61,7 @@ export default function CreatePost({ onPostCreated }) {
       }
 
       // Create the post
-      const responsePost = await fetch(`${API_URL}/api/posts`, {
+      const responsePost = await fetch(`${API_URL}/api/posts/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -95,6 +95,13 @@ export default function CreatePost({ onPostCreated }) {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const getAuthorInitials = (user) => {
+    if (!user) return 'U'
+    const firstInitial = user.first_name?.[0] || ''
+    const lastInitial = user.last_name?.[0] || ''
+    return (firstInitial + lastInitial).toUpperCase() || 'U'
   }
 
   return (

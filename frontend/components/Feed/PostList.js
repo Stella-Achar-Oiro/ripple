@@ -15,8 +15,8 @@ const PostList = forwardRef(function PostList(_, ref) {
   const [visibleCommentsPostId, setVisibleCommentsPostId] = useState(null)
   const [activeMenuPostId, setActiveMenuPostId] = useState(null)
   const [editingPost, setEditingPost] = useState(null)
-  const [likingPosts, setLikingPosts] = useState(new Set()) // Track ongoing like operations
-  const likeOperationsRef = useRef(new Set()) // Track ongoing like operations
+  const [likingPosts, setLikingPosts] = useState(new Set())
+  const likeOperationsRef = useRef(new Set())
   const [toastMessage, setToastMessage] = useState('')
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
@@ -335,4 +335,4 @@ const PostList = forwardRef(function PostList(_, ref) {
   )
 })
 
-export default PostList 
+export default PostList

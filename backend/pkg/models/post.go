@@ -30,6 +30,7 @@ type Post struct {
 	Author       *UserResponse `json:"author,omitempty"`
 	CommentCount int           `json:"comment_count"`
 	LikesCount   int           `json:"likes_count"`
+	IsLiked      bool          `json:"is_liked"`
 	CanView      bool          `json:"can_view"`
 	CanComment   bool          `json:"can_comment"`
 }
@@ -147,7 +148,8 @@ func (pr *PostRepository) GetPost(postID, viewerID int) (*Post, error) {
 		SELECT p.id, p.user_id, p.content, p.image_path, p.privacy_level, p.created_at, p.updated_at,
 		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.cover_path, u.is_public, u.created_at,
 		       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
-		       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count
+		       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count,
+		       (SELECT COUNT(*) > 0 FROM likes WHERE post_id = p.id AND user_id = ?) as is_liked
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
 		WHERE p.id = ?
@@ -156,10 +158,10 @@ func (pr *PostRepository) GetPost(postID, viewerID int) (*Post, error) {
 	post := &Post{}
 	author := &User{}
 
-	err := pr.db.QueryRow(query, postID).Scan(
+	err := pr.db.QueryRow(query, viewerID, postID).Scan(
 		&post.ID, &post.UserID, &post.Content, &post.ImagePath, &post.PrivacyLevel, &post.CreatedAt, &post.UpdatedAt,
 		&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.CoverPath, &author.IsPublic, &author.CreatedAt,
-		&post.CommentCount, &post.LikesCount,
+		&post.CommentCount, &post.LikesCount, &post.IsLiked,
 	)
 
 	if err != nil {
@@ -193,7 +195,8 @@ func (pr *PostRepository) GetFeed(options *FeedOptions) ([]*Post, error) {
 		SELECT p.id, p.user_id, p.content, p.image_path, p.privacy_level, p.created_at, p.updated_at,
 		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.cover_path, u.is_public, u.created_at,
 		       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
-		       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count
+		       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count,
+		       (SELECT COUNT(*) > 0 FROM likes WHERE post_id = p.id AND user_id = ?) as is_liked
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
 		WHERE (
@@ -216,6 +219,7 @@ func (pr *PostRepository) GetFeed(options *FeedOptions) ([]*Post, error) {
 	`
 
 	rows, err := pr.db.Query(query,
+		options.UserID,
 		constants.PrivacyPublic,
 		options.UserID,
 		constants.PrivacyAlmostPrivate,
@@ -240,7 +244,7 @@ func (pr *PostRepository) GetFeed(options *FeedOptions) ([]*Post, error) {
 		err := rows.Scan(
 			&post.ID, &post.UserID, &post.Content, &post.ImagePath, &post.PrivacyLevel, &post.CreatedAt, &post.UpdatedAt,
 			&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.CoverPath, &author.IsPublic, &author.CreatedAt,
-			&post.CommentCount, &post.LikesCount,
+			&post.CommentCount, &post.LikesCount, &post.IsLiked,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan post: %w", err)
