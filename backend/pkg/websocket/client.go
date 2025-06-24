@@ -459,23 +459,47 @@ func (h *Hub) SendPrivateMessage(senderID, recipientID int, content string, mess
 		// Get the full message data from database
 		var messageData map[string]interface{}
 		query := `
-			SELECT id, sender_id, receiver_id, content, created_at 
-			FROM messages 
-			WHERE id = ?
+			SELECT m.id, m.sender_id, m.receiver_id, m.content, m.created_at,
+			       u.first_name, u.last_name, u.nickname
+			FROM messages m
+			JOIN users u ON m.sender_id = u.id
+			WHERE m.id = ?
 		`
 		var msgID, msgSenderID, msgReceiverID int
 		var msgContent string
 		var msgCreatedAt time.Time
-
-		err := h.db.QueryRow(query, messageID).Scan(&msgID, &msgSenderID, &msgReceiverID, &msgContent, &msgCreatedAt)
+		var firstName, lastName, nickname sql.NullString
+		
+		err := h.db.QueryRow(query, messageID).Scan(&msgID, &msgSenderID, &msgReceiverID, &msgContent, &msgCreatedAt, &firstName, &lastName, &nickname)
 		if err == nil {
+			// Convert NullString to regular string, using empty string if NULL
+			firstNameStr := ""
+			if firstName.Valid {
+				firstNameStr = firstName.String
+			}
+			
+			lastNameStr := ""
+			if lastName.Valid {
+				lastNameStr = lastName.String
+			}
+			
+			nicknameStr := ""
+			if nickname.Valid {
+				nicknameStr = nickname.String
+			}
+			
 			messageData = map[string]interface{}{
 				"message": map[string]interface{}{
-					"id":          msgID,
-					"sender_id":   msgSenderID,
+					"id":         msgID,
+					"sender_id":  msgSenderID,
 					"receiver_id": msgReceiverID,
-					"content":     msgContent,
-					"created_at":  msgCreatedAt,
+					"content":    msgContent,
+					"created_at": msgCreatedAt,
+					"sender": map[string]interface{}{
+						"first_name": firstNameStr,
+						"last_name":  lastNameStr,
+						"nickname":   nicknameStr,
+					},
 				},
 			}
 		}
