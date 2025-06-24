@@ -18,8 +18,9 @@ const PostList = forwardRef(function PostList(_, ref) {
   const [likingPosts, setLikingPosts] = useState(new Set())
   const likeOperationsRef = useRef(new Set())
   const [toastMessage, setToastMessage] = useState('')
+  const [toastType, setToastType] = useState('success') // 'success' or 'error'
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
   const fetchPosts = async () => {
     try {
@@ -72,20 +73,20 @@ const PostList = forwardRef(function PostList(_, ref) {
         return {
           ...p,
           is_liked: !isLiked,
-          like_count: !isLiked ? (p.like_count || 0) + 1 : Math.max(0, (p.like_count || 1) - 1)
+          likes_count: !isLiked ? (p.likes_count || 0) + 1 : Math.max(0, (p.likes_count || 1) - 1)
         }
       }
       return p
     }))
 
     try {
-      // Simple approach - use UI state to determine action
-      const endpoint = isLiked ? 'unlike' : 'like'
-      const response = await fetch(`${API_URL}/api/posts/${endpoint}/${postId}`, {
+      // Use the single toggle endpoint from main branch
+      const response = await fetch(`${API_URL}/api/posts/like`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ post_id: postId }),
         credentials: 'include',
       })
 
@@ -96,15 +97,35 @@ const PostList = forwardRef(function PostList(_, ref) {
             return {
               ...p,
               is_liked: isLiked,
-              like_count: isLiked ? (p.like_count || 0) + 1 : Math.max(0, (p.like_count || 1) - 1)
+              likes_count: isLiked ? (p.likes_count || 0) + 1 : Math.max(0, (p.likes_count || 1) - 1)
             }
           }
           return p
         }))
         
-        // If conflict, just refresh to get current state
+        // Show error message to user
+        setToastType('error')
+        setToastMessage('Failed to update like. Please try again.')
+        setTimeout(() => setToastMessage(''), 3000)
+        
+        // If conflict, refresh to get current state
         if (response.status === 409) {
           fetchPosts()
+        }
+      } else {
+        // Update with actual server response for consistency
+        const data = await response.json()
+        if (data.success && data.data) {
+          setPosts(prevPosts => prevPosts.map(p => {
+            if (p.id === postId) {
+              return {
+                ...p,
+                is_liked: data.data.liked,
+                likes_count: data.data.like_count
+              }
+            }
+            return p
+          }))
         }
       }
       
@@ -116,11 +137,16 @@ const PostList = forwardRef(function PostList(_, ref) {
           return {
             ...p,
             is_liked: isLiked,
-            like_count: isLiked ? (p.like_count || 0) + 1 : Math.max(0, (p.like_count || 1) - 1)
+            likes_count: isLiked ? (p.likes_count || 0) + 1 : Math.max(0, (p.likes_count || 1) - 1)
           }
         }
         return p
       }))
+      
+      // Show error message to user
+      setToastType('error')
+      setToastMessage('Network error. Please check your connection.')
+      setTimeout(() => setToastMessage(''), 3000)
     } finally {
       // Always remove from ongoing operations
       likeOperationsRef.current.delete(postId)
@@ -146,16 +172,19 @@ const PostList = forwardRef(function PostList(_, ref) {
       } else if (navigator.clipboard) {
         // Fallback to copying link
         await navigator.clipboard.writeText(postUrl)
+        setToastType('success')
         setToastMessage('Link copied to clipboard!')
         // Clear the message after 3 seconds
         setTimeout(() => setToastMessage(''), 3000)
       } else {
         // Final fallback
+        setToastType('error')
         setToastMessage('Sharing not supported on this device')
         setTimeout(() => setToastMessage(''), 3000)
       }
     } catch (err) {
       console.error('Error sharing post:', err)
+      setToastType('error')
       setToastMessage('Failed to share post')
       setTimeout(() => setToastMessage(''), 3000)
     }
@@ -167,7 +196,7 @@ const PostList = forwardRef(function PostList(_, ref) {
     }
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
       const response = await fetch(`${API_URL}/api/posts/delete/${postId}`, {
         method: 'DELETE',
         credentials: 'include',
@@ -190,7 +219,7 @@ const PostList = forwardRef(function PostList(_, ref) {
     if (!editingPost) return
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
       const response = await fetch(`${API_URL}/api/posts/update`, {
         method: 'PUT',
         headers: {
@@ -303,7 +332,7 @@ const PostList = forwardRef(function PostList(_, ref) {
               ) : (
                 <i className={`${post.is_liked ? 'fas' : 'far'} fa-heart`}></i>
               )}
-              Like {post.like_count ? `(${post.like_count})` : ''}
+              Like {post.likes_count ? `(${post.likes_count})` : ''}
             </button>
             <button
               className={styles.actionButton}
@@ -326,8 +355,8 @@ const PostList = forwardRef(function PostList(_, ref) {
         </div>
       ))}
       {toastMessage && (
-        <div className={styles.toast}>
-          <i className="fas fa-check-circle"></i>
+        <div className={`${styles.toast} ${toastType === 'error' ? styles.toastError : styles.toastSuccess}`}>
+          <i className={`fas fa-${toastType === 'error' ? 'exclamation-circle' : 'check-circle'}`}></i>
           {toastMessage}
         </div>
       )}
