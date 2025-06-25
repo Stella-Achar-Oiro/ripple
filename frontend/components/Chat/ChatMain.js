@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useWebSocket } from '../../contexts/WebSocketContext'
 import GroupChatInfo from './GroupChatInfo'
 import styles from './ChatMain.module.css'
+import Avatar from '../shared/Avatar'
 
 export default function ChatMain({ conversation }) {
   const { user } = useAuth()
@@ -266,18 +267,9 @@ export default function ChatMain({ conversation }) {
           {conversation.isGroup ? (
             <i className="fas fa-users"></i>
           ) : (
-            <>
-              {conversation.avatar_path ? (
-                <img 
-                  src={`${API_URL}${conversation.avatar_path}`} 
-                  alt={conversation.name}
-                />
-              ) : (
-                conversation.initials
-              )}
-              {isOnline && <div className="online-indicator"></div>}
-            </>
+            <Avatar user={conversation} size="large" />
           )}
+          {isOnline && !conversation.isGroup && <div className="online-indicator"></div>}
         </div>
         <div>
           <div className={styles.chatHeaderName}>{conversation.name}</div>

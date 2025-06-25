@@ -4,10 +4,12 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useWebSocket } from '../../contexts/WebSocketContext'
 import styles from './OnlineFriends.module.css'
+import { useRouter } from 'next/navigation'
 
 export default function OnlineFriends() {
   const { user } = useAuth()
   const { onlineUsers } = useWebSocket()
+  const router = useRouter()
   
   const [friends, setFriends] = useState([])
   const [loading, setLoading] = useState(true)
@@ -59,6 +61,13 @@ export default function OnlineFriends() {
     }
   }, [user, onlineUsers.length, fetchOnlineFriends])
 
+  // Expose online friends globally for ChatSidebar
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.__onlineFriends = friends
+    }
+  }, [friends])
+
   if (loading) {
     return (
       <div className={styles.widget}>
@@ -89,7 +98,12 @@ export default function OnlineFriends() {
         ) : (
           <div className={styles.onlineFriends}>
             {friends.map(friend => (
-              <div key={friend.id} className={styles.friendItem}>
+              <div
+                key={friend.id}
+                className={styles.friendItem}
+                onClick={() => router.push(`/chat?user=${friend.id}`)}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="friend-avatar">
                   {friend.avatar_path ? (
                     <img 
