@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -721,12 +722,12 @@ func (gh *GroupHandler) CreateGroupComment(w http.ResponseWriter, r *http.Reques
 
 	// Get post ID from URL path
 	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
+	if len(pathParts) < 5 {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Post ID required")
 		return
 	}
 
-	postID, err := strconv.Atoi(pathParts[3])
+	postID, err := strconv.Atoi(pathParts[4])
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid post ID")
 		return
@@ -798,12 +799,12 @@ func (gh *GroupHandler) GetGroupComments(w http.ResponseWriter, r *http.Request)
 
 	// Get post ID from URL path
 	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
+	if len(pathParts) < 6 {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Post ID required")
 		return
 	}
 
-	postID, err := strconv.Atoi(pathParts[3])
+	postID, err := strconv.Atoi(pathParts[5])
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid post ID")
 		return
