@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import styles from './ProfileEditModal.module.css'
 
 export default function ProfileEditModal({ profile, isOpen, onClose, onSave }) {
@@ -19,6 +20,20 @@ export default function ProfileEditModal({ profile, isOpen, onClose, onSave }) {
   const coverInputRef = useRef(null)
   
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+
+  // Lock scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+
+    // Cleanup function
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isOpen])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -64,7 +79,7 @@ export default function ProfileEditModal({ profile, isOpen, onClose, onSave }) {
     }
 
     const result = await response.json()
-    return result.data.file_path
+    return result.data?.file_path || result.file_path
   }
 
   const handleSubmit = async (e) => {
@@ -114,9 +129,13 @@ export default function ProfileEditModal({ profile, isOpen, onClose, onSave }) {
 
   if (!isOpen) return null
 
-  return (
-    <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+  const modalContent = (
+    <div className={styles.modalOverlay} onClick={(e) => {
+      if (e.target === e.currentTarget) {
+        onClose();
+      }
+    }}>
+      <div className={styles.modalContent}>
         <div className={styles.modalHeader}>
           <h2>Edit Profile</h2>
           <button className={styles.closeButton} onClick={onClose}>
@@ -272,4 +291,9 @@ export default function ProfileEditModal({ profile, isOpen, onClose, onSave }) {
       </div>
     </div>
   )
+
+  // Render modal as portal to body to avoid z-index conflicts
+  return typeof window !== 'undefined' 
+    ? createPortal(modalContent, document.body)
+    : null
 }

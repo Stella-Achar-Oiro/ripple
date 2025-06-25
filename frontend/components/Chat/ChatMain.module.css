@@ -357,3 +357,89 @@
   align-self: flex-end;
   margin-bottom: 2px;
 }
+
+/* Image message styles */
+.messageImage {
+  margin-bottom: 4px;
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: 200px;
+}
+
+.messageImage img {
+  width: 100%;
+  height: auto;
+  display: block;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.messageImage img:hover {
+  opacity: 0.9;
+}
+
+.messageText {
+  word-wrap: break-word;
+}
+
+/* Image preview styles */
+.imagePreviewContainer {
+  padding: var(--spacing-md);
+  border-top: 1px solid var(--border);
+  background-color: var(--background);
+}
+
+.imagePreview {
+  position: relative;
+  display: inline-block;
+  max-width: 150px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.imagePreview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.removeImageBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 10px;
+  transition: background 0.2s ease;
+}
+
+.removeImageBtn:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* Attachment button styles */
+.attachmentBtn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.attachmentBtn:hover {
+  color: var(--primary-purple);
+  background-color: var(--purple-gradient-light);
+}

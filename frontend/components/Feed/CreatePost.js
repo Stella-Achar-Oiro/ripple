@@ -13,6 +13,8 @@ export default function CreatePost({ onPostCreated }) {
   const [mediaFile, setMediaFile] = useState(null)
   const [mediaPreview, setMediaPreview] = useState(null)
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
   const handleFileChange = (e) => {
     const file = e.target.files[0]
     if (file) {
@@ -37,7 +39,6 @@ export default function CreatePost({ onPostCreated }) {
     setError('')
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
       let imagePath = null
 
       // If there's a media file, upload it first
@@ -83,7 +84,11 @@ export default function CreatePost({ onPostCreated }) {
       setPostContent('')
       setMediaFile(null)
       setMediaPreview(null)
-      if (onPostCreated) onPostCreated()
+      
+      // Trigger refresh of posts list
+      if (onPostCreated) {
+        onPostCreated()
+      }
     } catch (err) {
       setError(err.message || 'An error occurred while creating the post')
       console.error('Post creation error:', err)
@@ -103,9 +108,22 @@ export default function CreatePost({ onPostCreated }) {
     <div className="card">
       <div className={styles.createPost}>
         <div className={styles.createPostHeader}>
-          <textarea
+          <div className="user-avatar">
+            {user?.avatar_path ? (
+              <img 
+                src={`${API_URL}${user.avatar_path}`}
+                alt={`${user.first_name} ${user.last_name}`}
+                className={styles.avatarImage}
+              />
+            ) : (
+              <span className={styles.avatarText}>
+                {user?.first_name?.charAt(0)}{user?.last_name?.charAt(0)}
+              </span>
+            )}
+          </div>
+          <textarea 
             className={styles.postInput}
-            placeholder={`What's on your mind, ${user?.first_name || 'User'}?`}
+            placeholder={`What's on your mind, ${user?.first_name || 'there'}?`}
             value={postContent}
             onChange={(e) => setPostContent(e.target.value)}
             disabled={isLoading}
@@ -113,11 +131,7 @@ export default function CreatePost({ onPostCreated }) {
         </div>
         {mediaPreview && (
           <div className={styles.imagePreview}>
-            {mediaFile.type.startsWith('video/') ? (
-              <video src={mediaPreview} controls />
-            ) : (
-              <img src={mediaPreview} alt="Preview" />
-            )}
+            <img src={mediaPreview} alt="Preview" />
             <button 
               className={styles.removeImage}
               onClick={() => {
@@ -135,13 +149,13 @@ export default function CreatePost({ onPostCreated }) {
             <label className={styles.postOption}>
               <input
                 type="file"
-                accept="image/*,video/*"
+                accept="image/*"
                 onChange={handleFileChange}
                 style={{ display: 'none' }}
                 disabled={isLoading}
               />
-              <i className="fas fa-photo-video"></i>
-              Photo/Video
+              <i className="fas fa-image"></i>
+              Photo
             </label>
             <div className={styles.postOption}>
               <i className="fas fa-smile"></i>

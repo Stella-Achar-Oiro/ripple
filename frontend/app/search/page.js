@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import RouteGuard from '../../components/Auth/RouteGuard'
 import MainLayout from '../../components/Layout/MainLayout'
+import Avatar from '../../components/shared/Avatar'
 import styles from './page.module.css'
 
 export default function SearchPage() {
@@ -33,25 +35,41 @@ export default function SearchPage() {
 
     try {
       // Search users
-      const usersResponse = await fetch(`${API_URL}/api/auth/search?q=${encodeURIComponent(searchTerm)}`, {
-        credentials: 'include',
-      })
-
       let users = []
-      if (usersResponse.ok) {
-        const usersData = await usersResponse.json()
-        users = usersData.data || []
+      try {
+        const usersResponse = await fetch(`${API_URL}/api/auth/search?q=${encodeURIComponent(searchTerm)}`, {
+          credentials: 'include',
+        })
+
+        if (usersResponse.ok) {
+          const usersData = await usersResponse.json()
+          console.log('Users API response:', usersData)
+          users = Array.isArray(usersData.data) ? usersData.data : []
+        } else {
+          console.error('Users search failed:', usersResponse.status, usersResponse.statusText)
+        }
+      } catch (userError) {
+        console.error('Users search error:', userError.message)
       }
 
       // Search groups  
-      const groupsResponse = await fetch(`${API_URL}/api/groups/search?q=${encodeURIComponent(searchTerm)}`, {
-        credentials: 'include',
-      })
-
       let groups = []
-      if (groupsResponse.ok) {
-        const groupsData = await groupsResponse.json()
-        groups = groupsData.data || []
+      try {
+        const groupsResponse = await fetch(`${API_URL}/api/groups/search?q=${encodeURIComponent(searchTerm)}`, {
+          credentials: 'include',
+        })
+
+        if (groupsResponse.ok) {
+          const groupsData = await groupsResponse.json()
+          console.log('Groups API response:', groupsData)
+          groups = Array.isArray(groupsData.data) ? groupsData.data : []
+        } else {
+          console.warn('Groups search not available:', groupsResponse.status, groupsResponse.statusText)
+          // Don't treat this as a critical error, just continue with empty groups
+        }
+      } catch (groupError) {
+        console.warn('Groups search error:', groupError.message)
+        // Continue with empty groups array
       }
 
       // Future: Search posts (not implemented in backend yet)
@@ -62,6 +80,7 @@ export default function SearchPage() {
     } catch (err) {
       console.error('Search error:', err)
       setError('Failed to perform search. Please try again.')
+      setSearchResults({ users: [], groups: [], posts: [] })
     } finally {
       setLoading(false)
     }
@@ -99,11 +118,11 @@ export default function SearchPage() {
         // Update the user in search results
         setSearchResults(prev => ({
           ...prev,
-          users: prev.users.map(user => 
+          users: Array.isArray(prev.users) ? prev.users.map(user => 
             user.id === userId 
               ? { ...user, is_following: !isFollowing }
               : user
-          )
+          ) : []
         }))
       }
     } catch (error) {
@@ -126,11 +145,11 @@ export default function SearchPage() {
         // Update the group in search results
         setSearchResults(prev => ({
           ...prev,
-          groups: prev.groups.map(group => 
+          groups: Array.isArray(prev.groups) ? prev.groups.map(group => 
             group.id === groupId 
               ? { ...group, membership_status: 'pending' }
               : group
-          )
+          ) : []
         }))
       }
     } catch (error) {
@@ -139,7 +158,10 @@ export default function SearchPage() {
   }
 
   const getTotalResults = () => {
-    return searchResults.users.length + searchResults.groups.length + searchResults.posts.length
+    const users = Array.isArray(searchResults.users) ? searchResults.users : []
+    const groups = Array.isArray(searchResults.groups) ? searchResults.groups : []
+    const posts = Array.isArray(searchResults.posts) ? searchResults.posts : []
+    return users.length + groups.length + posts.length
   }
 
   return (
@@ -199,14 +221,14 @@ export default function SearchPage() {
                   onClick={() => setActiveTab('users')}
                 >
                   <i className="fas fa-users"></i>
-                  Users ({searchResults.users.length})
+                  Users ({Array.isArray(searchResults.users) ? searchResults.users.length : 0})
                 </button>
                 <button
                   className={`${styles.tab} ${activeTab === 'groups' ? styles.active : ''}`}
                   onClick={() => setActiveTab('groups')}
                 >
                   <i className="fas fa-layer-group"></i>
-                  Groups ({searchResults.groups.length})
+                  Groups ({Array.isArray(searchResults.groups) ? searchResults.groups.length : 0})
                 </button>
                 <button
                   className={`${styles.tab} ${activeTab === 'posts' ? styles.active : ''}`}
@@ -214,7 +236,7 @@ export default function SearchPage() {
                   disabled
                 >
                   <i className="fas fa-file-alt"></i>
-                  Posts ({searchResults.posts.length})
+                  Posts ({Array.isArray(searchResults.posts) ? searchResults.posts.length : 0})
                 </button>
               </div>
 
@@ -222,23 +244,21 @@ export default function SearchPage() {
               <div className={styles.searchResults}>
                 {activeTab === 'users' && (
                   <div className={styles.usersResults}>
-                    {searchResults.users.length === 0 ? (
+                    {!Array.isArray(searchResults.users) || searchResults.users.length === 0 ? (
                       <div className={styles.emptyResults}>
                         <i className="fas fa-user-slash"></i>
                         <p>No users found for "{query}"</p>
                       </div>
                     ) : (
-                      searchResults.users.map(user => (
+                      (Array.isArray(searchResults.users) ? searchResults.users : []).map(user => (
                         <div key={user.id} className={styles.userCard}>
-                          <div className={styles.userAvatar}>
-                            {user.avatar_path ? (
-                              <img src={`${API_URL}${user.avatar_path}`} alt={`${user.first_name} ${user.last_name}`} />
-                            ) : (
-                              `${user.first_name?.charAt(0) || ''}${user.last_name?.charAt(0) || ''}`
-                            )}
-                          </div>
+                          <Link href={`/profile/${user.id}`} className={styles.avatarLink}>
+                            <Avatar user={user} size="large" />
+                          </Link>
                           <div className={styles.userInfo}>
-                            <h3>{user.first_name} {user.last_name}</h3>
+                            <Link href={`/profile/${user.id}`} className={styles.userNameLink}>
+                              <h3>{user.first_name} {user.last_name}</h3>
+                            </Link>
                             {user.nickname && <p>@{user.nickname}</p>}
                             {user.about_me && <span>{user.about_me}</span>}
                           </div>
@@ -252,9 +272,19 @@ export default function SearchPage() {
                             {!user.is_own_profile && (
                               <button
                                 onClick={() => handleFollowToggle(user.id, user.is_following)}
-                                className={user.is_following ? "btn-outline" : "btn-primary"}
+                                className={`${styles.followButton} ${user.is_following ? styles.following : ''}`}
                               >
-                                {user.is_following ? 'Unfollow' : 'Follow'}
+                                {user.is_following ? (
+                                  <>
+                                    <i className="fas fa-check"></i>
+                                    Following
+                                  </>
+                                ) : (
+                                  <>
+                                    <i className="fas fa-user-plus"></i>
+                                    Follow
+                                  </>
+                                )}
                               </button>
                             )}
                           </div>
@@ -266,13 +296,13 @@ export default function SearchPage() {
 
                 {activeTab === 'groups' && (
                   <div className={styles.groupsResults}>
-                    {searchResults.groups.length === 0 ? (
+                    {!Array.isArray(searchResults.groups) || searchResults.groups.length === 0 ? (
                       <div className={styles.emptyResults}>
                         <i className="fas fa-users-slash"></i>
                         <p>No groups found for "{query}"</p>
                       </div>
                     ) : (
-                      searchResults.groups.map(group => (
+                      (Array.isArray(searchResults.groups) ? searchResults.groups : []).map(group => (
                         <div key={group.id} className={styles.groupCard}>
                           <div className={styles.groupAvatar}>
                             {group.avatar_path ? (

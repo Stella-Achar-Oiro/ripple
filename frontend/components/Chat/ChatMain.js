@@ -22,9 +22,12 @@ export default function ChatMain({ conversation }) {
 
   const [newMessage, setNewMessage] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [selectedImage, setSelectedImage] = useState(null)
+  const [imagePreview, setImagePreview] = useState(null)
   const [showGroupInfo, setShowGroupInfo] = useState(false)
   const messagesEndRef = useRef(null)
   const typingTimeoutRef = useRef(null)
+  const fileInputRef = useRef(null)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -95,12 +98,62 @@ export default function ChatMain({ conversation }) {
     }, 3000)
   }
 
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      alert('Image size should be less than 5MB')
+      return
+    }
+
+    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+      alert('Only JPEG, PNG and GIF images are allowed')
+      return
+    }
+
+    setSelectedImage(file)
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      setImagePreview(e.target.result)
+    }
+    reader.readAsDataURL(file)
+  }
+
   const handleSendMessage = async (e) => {
     e.preventDefault()
-    if (!newMessage.trim() || !conversation) return
+    if ((!newMessage.trim() && !selectedImage) || !conversation) return
 
-    const messageContent = newMessage.trim()
+    // Handle image upload first if there's an image
+    let imagePath = null
+    if (selectedImage) {
+      try {
+        const formData = new FormData()
+        formData.append('image', selectedImage)
+
+        const response = await fetch(`${API_URL}/api/upload/chat`, {
+          method: 'POST',
+          body: formData,
+          credentials: 'include',
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to upload image')
+        }
+
+        const uploadData = await response.json()
+        imagePath = uploadData.data.file_path
+      } catch (error) {
+        console.error('Image upload failed:', error)
+        alert('Failed to upload image. Please try again.')
+        return
+      }
+    }
+
+    const messageContent = newMessage.trim() || (imagePath ? '[Image]' : '')
     setNewMessage('')
+    setSelectedImage(null)
+    setImagePreview(null)
     
     // Stop typing indicator
     handleTyping(false)
@@ -163,6 +216,14 @@ export default function ChatMain({ conversation }) {
         console.error('Failed to send message:', error)
         // Could show error notification here
       }
+    }
+  }
+
+  const clearImagePreview = () => {
+    setSelectedImage(null)
+    setImagePreview(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
     }
   }
 
@@ -258,7 +319,18 @@ export default function ChatMain({ conversation }) {
                   {message.sender?.first_name || `User ${message.from}`}
                 </div>
               )}
-              <div className={styles.messageContent}>
+              <div className={styles.messageBubble}>
+                {message.image_path && (
+                  <div className={styles.messageImage}>
+                    <img 
+                      src={`${API_URL}${message.image_path}`} 
+                      alt="Shared image" 
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+                {message.content && message.content !== '[Image]' && (
+                  <div className={styles.messageContent}>
                 {message.content}
                 {message.isPending && (
                   <span className={styles.pendingIndicator}>
@@ -266,8 +338,13 @@ export default function ChatMain({ conversation }) {
                   </span>
                 )}
               </div>
-              <div className={styles.messageTime}>
-                {formatTime(message.timestamp)}
+                )}
+                <div className={styles.messageTime}>
+                  {formatTime(message.timestamp)}
+                  {message.isOwn && !conversation.isGroup && (
+                    <i className={`fas ${message.read_at ? 'fa-check-double' : 'fa-check'} ${styles.readStatus}`}></i>
+                  )}
+                </div>
               </div>
             </div>
           ))
@@ -288,6 +365,22 @@ export default function ChatMain({ conversation }) {
         <div ref={messagesEndRef} />
       </div>
       
+      <div className={styles.chatInput}>
+        {/* Image preview */}
+        {imagePreview && (
+          <div className={styles.imagePreviewContainer}>
+            <div className={styles.imagePreview}>
+              <img src={imagePreview} alt="Preview" />
+              <button 
+                type="button" 
+                className={styles.removeImageBtn}
+                onClick={clearImagePreview}
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        )}
       <form onSubmit={handleSendMessage} className={styles.chatInput}>
         <div className={styles.inputWrapper}>
           <input
@@ -297,9 +390,24 @@ export default function ChatMain({ conversation }) {
             placeholder={`Message ${conversation.isGroup ? 'group' : conversation.name}...`}
             className={styles.messageInput}
           />
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImageSelect}
+            accept="image/*"
+            style={{ display: 'none' }}
+          />
+          <button 
+            type="button"
+            className={styles.attachmentBtn}
+            onClick={() => fileInputRef.current.click()}
+          >
+            <i className="fas fa-image"></i>
+          </button>
+          
           <button 
             type="submit" 
-            disabled={!newMessage.trim()}
+            disabled={!newMessage.trim() && !selectedImage}
             className={styles.sendButton}
           >
             <i className="fas fa-paper-plane"></i>

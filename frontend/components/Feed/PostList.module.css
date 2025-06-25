@@ -30,9 +30,28 @@
   flex-direction: column;
 }
 
+.avatarLink {
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.avatarLink:hover {
+  opacity: 0.8;
+}
+
+.userNameLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.userNameLink:hover .userName {
+  color: var(--primary-purple, #8b5cf6);
+}
+
 .userName {
   font-weight: 600;
   color: #1a1a1a;
+  transition: color 0.2s;
 }
 
 .postTime {
@@ -140,7 +159,11 @@
 }
 
 .actionButton.liked {
-  color: red;
+  color: #e74c3c;
+}
+
+.actionButton.liked i {
+  color: #e74c3c;
 }
 
 .loading {
@@ -201,4 +224,40 @@
 .saveButton {
   background-color: #1877f2;
   color: white;
+}
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  animation: slideInUp 0.3s ease-out;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.toastSuccess {
+  background-color: var(--primary-purple, #8b5cf6);
+}
+
+.toastError {
+  background-color: #e74c3c;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 } 

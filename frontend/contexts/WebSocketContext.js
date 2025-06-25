@@ -402,6 +402,14 @@ export const WebSocketProvider = ({ children }) => {
     return unreadCounts.get(conversationId) || 0
   }, [unreadCounts])
 
+  const getTotalUnreadCount = useCallback(() => {
+    let total = 0
+    unreadCounts.forEach((count) => {
+      total += count
+    })
+    return total
+  }, [unreadCounts])
+
   const markConversationAsRead = useCallback((conversationId) => {
     setUnreadCounts(prev => {
       const updated = new Map(prev)
@@ -480,6 +488,7 @@ export const WebSocketProvider = ({ children }) => {
     // Data accessors
     getConversationMessages,
     getUnreadCount,
+    getTotalUnreadCount,
     markConversationAsRead,
     getTypingUsers,
     isUserOnline,

@@ -223,25 +223,25 @@ body {
 .form-textarea {
   width: 100%;
   padding: var(--spacing-md) var(--spacing-lg);
-  border: 1px solid var(--linkedin-border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   font-size: 14px;
   font-family: inherit;
-  background: var(--linkedin-card);
-  color: var(--linkedin-text-primary);
+  background: var(--card);
+  color: var(--text-primary);
   transition: all 0.15s ease-in-out;
   resize: vertical;
   min-height: 80px;
 }
 
 .form-textarea:focus {
-  border-color: var(--linkedin-blue);
+  border-color: var(--primary-purple);
   outline: none;
-  box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.1);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
 }
 
 .form-textarea::placeholder {
-  color: var(--linkedin-text-muted);
+  color: var(--text-muted);
 }
 
 /* Avatar Components */
@@ -249,8 +249,8 @@ body {
   width: 40px;
   height: 40px;
   border-radius: var(--radius-full);
-  background-color: var(--linkedin-blue);
-  color: var(--linkedin-card);
+  background: var(--purple-gradient);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -283,8 +283,8 @@ body {
   width: 32px;
   height: 32px;
   border-radius: var(--radius-full);
-  background-color: var(--linkedin-blue);
-  color: var(--linkedin-card);
+  background: var(--purple-gradient);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -300,8 +300,8 @@ body {
   right: -2px;
   width: 12px;
   height: 12px;
-  background-color: var(--linkedin-success);
-  border: 2px solid var(--linkedin-card);
+  background-color: var(--success);
+  border: 2px solid var(--card);
   border-radius: var(--radius-full);
 }
 
@@ -310,30 +310,32 @@ body {
   position: absolute;
   top: -4px;
   right: -4px;
-  background-color: var(--linkedin-error);
-  color: var(--linkedin-card);
+  background-color: var(--error);
+  color: white;
   border-radius: var(--radius-full);
-  width: 20px;
+  min-width: 20px;
   height: 20px;
   font-size: 12px;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--linkedin-card);
+  border: 2px solid var(--card);
+  padding: 0 4px;
+  z-index: 10;
 }
 
 /* Typography Utilities */
 .text-primary {
-  color: var(--linkedin-text-primary);
+  color: var(--text-primary);
 }
 
 .text-secondary {
-  color: var(--linkedin-text-secondary);
+  color: var(--text-secondary);
 }
 
 .text-muted {
-  color: var(--linkedin-text-muted);
+  color: var(--text-muted);
 }
 
 .text-sm {
