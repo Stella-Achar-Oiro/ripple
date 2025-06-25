@@ -381,48 +381,49 @@ export default function ChatMain({ conversation }) {
             </div>
           </div>
         )}
-      <form onSubmit={handleSendMessage} className={styles.chatInput}>
-        <div className={styles.inputWrapper}>
-          <input
-            type="text"
-            value={newMessage}
-            onChange={handleInputChange}
-            placeholder={`Message ${conversation.isGroup ? 'group' : conversation.name}...`}
-            className={styles.messageInput}
-          />
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleImageSelect}
-            accept="image/*"
-            style={{ display: 'none' }}
-          />
-          <button 
-            type="button"
-            className={styles.attachmentBtn}
-            onClick={() => fileInputRef.current.click()}
-          >
-            <i className="fas fa-image"></i>
-          </button>
-          
-          <button 
-            type="submit" 
-            disabled={!newMessage.trim() && !selectedImage}
-            className={styles.sendButton}
-          >
-            <i className="fas fa-paper-plane"></i>
-          </button>
-        </div>
-      </form>
+        <form onSubmit={handleSendMessage} className={styles.chatInput}>
+          <div className={styles.inputWrapper}>
+            <input
+              type="text"
+              value={newMessage}
+              onChange={handleInputChange}
+              placeholder={`Message ${conversation.isGroup ? 'group' : conversation.name}...`}
+              className={styles.messageInput}
+            />
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageSelect}
+              accept="image/*"
+              style={{ display: 'none' }}
+            />
+            <button 
+              type="button"
+              className={styles.attachmentBtn}
+              onClick={() => fileInputRef.current.click()}
+            >
+              <i className="fas fa-image"></i>
+            </button>
+            
+            <button 
+              type="submit" 
+              disabled={!newMessage.trim() && !selectedImage}
+              className={styles.sendButton}
+            >
+              <i className="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </form>
 
-      {showGroupInfo && conversation.isGroup && (
-        <div className={styles.groupInfoOverlay}>
-          <GroupChatInfo 
-            group={conversation}
-            onClose={() => setShowGroupInfo(false)}
-          />
-        </div>
-      )}
+        {showGroupInfo && conversation.isGroup && (
+          <div className={styles.groupInfoOverlay}>
+            <GroupChatInfo 
+              group={conversation}
+              onClose={() => setShowGroupInfo(false)}
+            />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
