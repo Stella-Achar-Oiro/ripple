@@ -1,4 +1,4 @@
-// backend/pkg/websocket/hub.go 
+// backend/pkg/websocket/hub.go
 package websocket
 
 import (
@@ -68,20 +68,20 @@ type Client struct {
 type MessageType string
 
 const (
-	MessageTypePrivate       MessageType = "private_message"
-	MessageTypeGroup         MessageType = "group_message"
-	MessageTypeNotification  MessageType = "notification"
-	MessageTypeUserOnline    MessageType = "user_online"
-	MessageTypeUserOffline   MessageType = "user_offline"
-	MessageTypeTyping        MessageType = "typing"
-	MessageTypeReadStatus    MessageType = "read_status"
-	MessageTypeDelivered     MessageType = "delivered"
-	MessageTypeError         MessageType = "error"
-	MessageTypeHeartbeat     MessageType = "heartbeat"
-	MessageTypeUserList      MessageType = "user_list"
-	MessageTypePresence      MessageType = "presence"
-	MessageTypePing          MessageType = "ping"
-	MessageTypePong          MessageType = "pong"
+	MessageTypePrivate      MessageType = "private_message"
+	MessageTypeGroup        MessageType = "group_message"
+	MessageTypeNotification MessageType = "notification"
+	MessageTypeUserOnline   MessageType = "user_online"
+	MessageTypeUserOffline  MessageType = "user_offline"
+	MessageTypeTyping       MessageType = "typing"
+	MessageTypeReadStatus   MessageType = "read_status"
+	MessageTypeDelivered    MessageType = "delivered"
+	MessageTypeError        MessageType = "error"
+	MessageTypeHeartbeat    MessageType = "heartbeat"
+	MessageTypeUserList     MessageType = "user_list"
+	MessageTypePresence     MessageType = "presence"
+	MessageTypePing         MessageType = "ping"
+	MessageTypePong         MessageType = "pong"
 )
 
 // WebSocket message structure
@@ -93,7 +93,7 @@ type WSMessage struct {
 	GroupID   int         `json:"group_id,omitempty"`
 	MessageID int         `json:"message_id,omitempty"`
 	Timestamp time.Time   `json:"timestamp"`
-	Data      interface{} `json:"data,omitempty"`
+	Data      any         `json:"data,omitempty"`
 }
 
 // NewHub creates a new WebSocket hub
@@ -260,7 +260,9 @@ func (h *Hub) sendToClient(client *Client, message WSMessage) {
 
 	select {
 	case client.send <- messageBytes:
-		log.Printf("WebSocket: Message sent to user %d", client.userID)
+		if message.Type != MessageTypePong {
+			log.Printf("WebSocket: Message sent to user %d", client.userID)
+		}
 	default:
 		// Client's send channel is full, close the connection
 		h.unregisterClient(client)
@@ -322,7 +324,7 @@ func (h *Hub) loadUserGroups(client *Client) {
 func (h *Hub) sendInitialPresenceData(client *Client) {
 	// Get user's contacts
 	contacts := h.getUserContacts(client.userID)
-	
+
 	// Filter contacts to only online ones
 	var onlineContacts []int
 	h.mu.RLock()
@@ -350,7 +352,7 @@ func (h *Hub) updateUserPresence(userID int, isOnline bool) {
 		INSERT OR REPLACE INTO user_presence (user_id, last_seen, is_online)
 		VALUES (?, ?, ?)
 	`
-	
+
 	_, err := h.db.Exec(query, userID, time.Now(), isOnline)
 	if err != nil {
 		log.Printf("WebSocket: Error updating user presence: %v", err)
@@ -360,7 +362,7 @@ func (h *Hub) updateUserPresence(userID int, isOnline bool) {
 // notifyUserOnline notifies contacts that a user came online
 func (h *Hub) notifyUserOnline(userID int) {
 	h.updateUserPresence(userID, true)
-	
+
 	contacts := h.getUserContacts(userID)
 
 	message := WSMessage{
@@ -540,7 +542,7 @@ func (h *Hub) sendQueuedMessages(client *Client) {
 // 	h.mu.RLock()
 // 	if client, exists := h.userClients[recipientID]; exists {
 // 		h.sendToClient(client, message)
-		
+
 // 		// Send delivery confirmation back to sender
 // 		deliveredMsg := WSMessage{
 // 			Type:      MessageTypeDelivered,
@@ -549,7 +551,7 @@ func (h *Hub) sendQueuedMessages(client *Client) {
 // 			MessageID: messageID,
 // 			Timestamp: time.Now(),
 // 		}
-		
+
 // 		if senderClient, senderExists := h.userClients[senderID]; senderExists {
 // 			h.sendToClient(senderClient, deliveredMsg)
 // 		}
@@ -684,7 +686,7 @@ func (h *Hub) cleanupRoutine() {
 			h.mu.RLock()
 			var inactiveClients []*Client
 			cutoff := time.Now().Add(-2 * time.Minute)
-			
+
 			for client := range h.clients {
 				if client.lastSeen.Before(cutoff) {
 					inactiveClients = append(inactiveClients, client)
@@ -702,4 +704,51 @@ func (h *Hub) cleanupRoutine() {
 			return
 		}
 	}
+}
+
+// SendToUser sends a message to a specific user
+func (h *Hub) SendToUser(userID int, message WSMessage) {
+	h.mu.RLock()
+	client, exists := h.userClients[userID]
+	h.mu.RUnlock()
+
+	if exists {
+		h.sendToClient(client, message)
+	} else {
+		// User is offline, could queue message for later delivery
+		log.Printf("WebSocket: User %d is offline, message not delivered", userID)
+	}
+}
+
+// BroadcastToGroup sends a message to all members of a group except the sender
+func (h *Hub) BroadcastToGroup(groupID int, message WSMessage, senderID int) {
+	h.mu.RLock()
+	groupClients, exists := h.groupClients[groupID]
+	h.mu.RUnlock()
+
+	if !exists {
+		log.Printf("WebSocket: No clients found for group %d", groupID)
+		return
+	}
+
+	messageBytes, err := json.Marshal(message)
+	if err != nil {
+		log.Printf("WebSocket: Error marshaling group message: %v", err)
+		return
+	}
+
+	h.mu.RLock()
+	for client := range groupClients {
+		// Don't send to the sender
+		if client.userID != senderID {
+			select {
+			case client.send <- messageBytes:
+				log.Printf("WebSocket: Group message sent to user %d in group %d", client.userID, groupID)
+			default:
+				// Client's send channel is full, skip this client
+				log.Printf("WebSocket: Client %d send channel full, skipping", client.userID)
+			}
+		}
+	}
+	h.mu.RUnlock()
 }

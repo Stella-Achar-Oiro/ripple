@@ -8,7 +8,7 @@ import styles from './RegisterForm.module.css'
 
 export default function RegisterForm() {
   const router = useRouter()
-  const [currentStep, setCurrentStep] = useState(1)
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -24,8 +24,6 @@ export default function RegisterForm() {
   const [isConflictError, setIsConflictError] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState(null)
   const fileInputRef = useRef(null)
-
-  const totalSteps = 3
 
   // Get API URL from environment variable
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
@@ -237,83 +235,18 @@ export default function RegisterForm() {
 
   const passwordStrength = getPasswordStrength()
 
-  const nextStep = () => {
-    if (validateCurrentStep()) {
-      setCurrentStep(prev => Math.min(prev + 1, totalSteps))
-    }
-  }
+  // Removed step-based validation - now using complete form validation
 
-  const prevStep = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 1))
-  }
+  // Removed progress bar - single step form
 
-  const validateCurrentStep = () => {
-    const newErrors = {}
-    
-    if (currentStep === 1) {
-      // Step 1: Basic Info
-      if (!formData.email) {
-        newErrors.email = 'Email is required'
-      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-        newErrors.email = 'Email is invalid'
-      }
+  // Render all fields in single form
+  const renderAllFields = () => (
+    <div className={styles.stepContent}>
+      <h3 className={styles.stepTitle}>Create Your Account</h3>
+      <p className={styles.stepDescription}>Fill in your details to get started</p>
       
-      if (!formData.password) {
-        newErrors.password = 'Password is required'
-      } else if (formData.password.length < 8) {
-        newErrors.password = 'Password must be at least 8 characters'
-      } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-        newErrors.password = 'Password must contain uppercase, lowercase and number'
-      }
-    } else if (currentStep === 2) {
-      // Step 2: Personal Info
-      if (!formData.first_name) {
-        newErrors.first_name = 'First name is required'
-      }
-      if (!formData.last_name) {
-        newErrors.last_name = 'Last name is required'
-      }
-      if (!formData.date_of_birth) {
-        newErrors.date_of_birth = 'Date of birth is required'
-      } else {
-        const birthDate = new Date(formData.date_of_birth)
-        const today = new Date()
-        let age = today.getFullYear() - birthDate.getFullYear()
-        const monthDiff = today.getMonth() - birthDate.getMonth()
-        
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-          age--
-        }
-        
-        if (age < 13) {
-          newErrors.date_of_birth = 'You must be at least 13 years old'
-        }
-      }
-    }
-    
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const renderProgressBar = () => (
-    <div className={styles.progressContainer}>
-      <div className={styles.progressBar}>
-        <div 
-          className={styles.progressFill} 
-          style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-        />
-      </div>
-      <div className={styles.progressText}>
-        Step {currentStep} of {totalSteps}
-      </div>
-    </div>
-  )
-
-  const renderStep1 = () => (
-    <div className={styles.stepContent + ' fade-in'}>
-      <h3 className={styles.stepTitle}>Let's get started</h3>
-      <p className={styles.stepDescription}>Create your account with email and password</p>
-      
+      {/* Account Credentials */}
+      <div className={styles.sectionTitle}>Account Information</div>
       <div className={styles.formGroup}>
         <label className={styles.formLabel} htmlFor="email">
           Email Address <span className={styles.required}>*</span>
@@ -367,14 +300,9 @@ export default function RegisterForm() {
           At least 8 characters with uppercase, lowercase, and numbers
         </div>
       </div>
-    </div>
-  )
 
-  const renderStep2 = () => (
-    <div className={styles.stepContent + ' fade-in'}>
-      <h3 className={styles.stepTitle}>Tell us about yourself</h3>
-      <p className={styles.stepDescription}>Help us personalize your experience</p>
-      
+      {/* Personal Information */}
+      <div className={styles.sectionTitle}>Personal Information</div>
       <div className={styles.nameFields}>
         <div className={styles.formGroup}>
           <label className={styles.formLabel} htmlFor="first_name">
@@ -426,14 +354,9 @@ export default function RegisterForm() {
         />
         {errors.date_of_birth && <div className={styles.errorText}>{errors.date_of_birth}</div>}
       </div>
-    </div>
-  )
 
-  const renderStep3 = () => (
-    <div className={styles.stepContent + ' fade-in'}>
-      <h3 className={styles.stepTitle}>Complete your profile</h3>
-      <p className={styles.stepDescription}>Add optional details to make your profile stand out</p>
-      
+      {/* Optional Profile Details */}
+      <div className={styles.sectionTitle}>Profile Details <span className={styles.optional}>(optional)</span></div>
       <div className={styles.formGroup}>
         <label className={styles.formLabel} htmlFor="avatar">
           Profile Picture <span className={styles.optional}>(optional)</span>
@@ -515,8 +438,6 @@ export default function RegisterForm() {
 
   return (
     <form className={styles.registerForm} onSubmit={handleSubmit}>
-      {renderProgressBar()}
-      
       {submitError && (
         <div className={`${styles.errorMessage} ${isConflictError ? styles.conflict : ''}`}>
           {submitError}
@@ -531,7 +452,6 @@ export default function RegisterForm() {
                 onClick={() => {
                   setSubmitError('')
                   setIsConflictError(false)
-                  setCurrentStep(1)
                 }}
               >
                 Try Different Email
@@ -541,46 +461,24 @@ export default function RegisterForm() {
         </div>
       )}
 
-      {/* Step Content */}
-      {currentStep === 1 && renderStep1()}
-      {currentStep === 2 && renderStep2()}
-      {currentStep === 3 && renderStep3()}
+      {/* All Form Fields */}
+      {renderAllFields()}
 
-      {/* Navigation Buttons */}
-      <div className={styles.stepNavigation}>
-        {currentStep > 1 && (
-          <button 
-            type="button" 
-            className={styles.btnSecondary}
-            onClick={prevStep}
-          >
-            ← Previous
-          </button>
-        )}
-        
-        {currentStep < totalSteps ? (
-          <button 
-            type="button" 
-            className={styles.btnPrimary}
-            onClick={nextStep}
-          >
-            Continue →
-          </button>
-        ) : (
-          <button 
-            type="submit" 
-            className={styles.btnRegister}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <span className="pulse">Creating Account...</span>
-              </>
-            ) : (
-              'Create Account 🚀'
-            )}
-          </button>
-        )}
+      {/* Submit Button */}
+      <div className={styles.submitSection}>
+        <button 
+          type="submit" 
+          className={styles.btnRegister}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <span className="pulse">Creating Account...</span>
+            </>
+          ) : (
+            'Create Account 🚀'
+          )}
+        </button>
       </div>
       
       <div className={styles.registerFooter}>

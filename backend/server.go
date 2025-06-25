@@ -62,7 +62,7 @@ func main() {
 	eventHandler := handlers.NewEventHandler(eventRepo, groupRepo, notificationRepo)
 	notificationHandler := handlers.NewNotificationHandler(notificationRepo)
 	uploadHandler := handlers.NewUploadHandler(cfg)
-	chatHandler := handlers.NewChatHandler(messageRepo, followRepo, groupRepo, wsHub)
+	chatHandler := handlers.NewChatHandler(messageRepo, followRepo, groupRepo, userRepo, wsHub)
 
 	// Setup routes
 	handler := router.SetupRoutes(

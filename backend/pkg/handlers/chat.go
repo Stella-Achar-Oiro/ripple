@@ -17,14 +17,16 @@ type ChatHandler struct {
 	messageRepo *models.MessageRepository
 	followRepo  *models.FollowRepository
 	groupRepo   *models.GroupRepository
+	userRepo    *models.UserRepository
 	hub         *websocket.Hub
 }
 
-func NewChatHandler(messageRepo *models.MessageRepository, followRepo *models.FollowRepository, groupRepo *models.GroupRepository, hub *websocket.Hub) *ChatHandler {
+func NewChatHandler(messageRepo *models.MessageRepository, followRepo *models.FollowRepository, groupRepo *models.GroupRepository, userRepo *models.UserRepository, hub *websocket.Hub) *ChatHandler {
 	return &ChatHandler{
 		messageRepo: messageRepo,
 		followRepo:  followRepo,
 		groupRepo:   groupRepo,
+		userRepo:    userRepo,
 		hub:         hub,
 	}
 }
@@ -120,12 +122,12 @@ func (ch *ChatHandler) GetGroupMessages(w http.ResponseWriter, r *http.Request) 
 
 	// Get group ID from URL path
 	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 5 {
+	if len(pathParts) < 6 {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Group ID required")
 		return
 	}
 
-	groupID, err := strconv.Atoi(pathParts[4])
+	groupID, err := strconv.Atoi(pathParts[5])
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid group ID")
 		return
@@ -336,4 +338,142 @@ func (ch *ChatHandler) GetUnreadCounts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteSuccessResponse(w, http.StatusOK, counts)
+}
+
+// CreatePrivateMessage creates a new private message
+func (ch *ChatHandler) CreatePrivateMessage(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	var req models.CreatePrivateMessageRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	// Check if users can message each other
+	canMessage, err := ch.followRepo.CanSendMessage(userID, req.ReceiverID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+	if !canMessage {
+		utils.WriteErrorResponse(w, http.StatusForbidden, "Cannot send message to this user")
+		return
+	}
+
+	// Create message
+	message, err := ch.messageRepo.CreatePrivateMessage(userID, req.ReceiverID, req.Content)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	// Get sender and receiver info for the response
+	sender, err := ch.userRepo.GetUserByID(userID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+	receiver, err := ch.userRepo.GetUserByID(req.ReceiverID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	message.Sender = sender.ToResponse()
+	message.Receiver = receiver.ToResponse()
+
+	// Send real-time message via WebSocket
+	wsMessage := websocket.WSMessage{
+		Type:      websocket.MessageTypePrivate,
+		Content:   message.Content,
+		From:      userID,
+		To:        req.ReceiverID,
+		MessageID: message.ID,
+		Timestamp: message.CreatedAt,
+		Data: map[string]interface{}{
+			"message": message,
+		},
+	}
+
+	ch.hub.SendToUser(req.ReceiverID, wsMessage)
+
+	utils.WriteSuccessResponse(w, http.StatusCreated, map[string]interface{}{
+		"message": message,
+	})
+}
+
+// CreateGroupMessage creates a new group message
+func (ch *ChatHandler) CreateGroupMessage(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	var req models.CreateGroupMessageRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	// Check if user is a member of the group
+	isMember, err := ch.groupRepo.IsMember(req.GroupID, userID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+	if !isMember {
+		utils.WriteErrorResponse(w, http.StatusForbidden, "Only group members can send messages")
+		return
+	}
+
+	// Create message
+	message, err := ch.messageRepo.CreateGroupMessage(req.GroupID, userID, req.Content)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	// Get sender info for the response
+	sender, err := ch.userRepo.GetUserByID(userID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	message.Sender = sender.ToResponse()
+
+	// Send real-time message via WebSocket to all group members
+	wsMessage := websocket.WSMessage{
+		Type:      websocket.MessageTypeGroup,
+		Content:   message.Content,
+		From:      userID,
+		GroupID:   req.GroupID,
+		MessageID: message.ID,
+		Timestamp: message.CreatedAt,
+		Data: map[string]interface{}{
+			"message": message,
+		},
+	}
+
+	ch.hub.BroadcastToGroup(req.GroupID, wsMessage, userID)
+
+	utils.WriteSuccessResponse(w, http.StatusCreated, map[string]interface{}{
+		"message": message,
+	})
 }

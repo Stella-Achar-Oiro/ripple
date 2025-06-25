@@ -146,7 +146,7 @@ body {
   color: white;
   border: none;
   border-radius: var(--radius-lg);
-  padding: var(--spacing-md) var(--spacing-2xl);
+  padding: var(--spacing-md) var(--spacing-xl);
   font-size: 16px;
   font-weight: 600;
   font-family: inherit;
@@ -174,8 +174,8 @@ body {
   background-color: transparent;
   color: var(--primary-purple);
   border: 2px solid var(--primary-purple);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-md) var(--spacing-2xl);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-lg);
   font-size: 16px;
   font-weight: 600;
   font-family: inherit;
