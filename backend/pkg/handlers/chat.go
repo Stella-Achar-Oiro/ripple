@@ -221,7 +221,7 @@ func (ch *ChatHandler) GetConversations(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
-// GetOnlineUsers gets list of currently online users
+// GetOnlineUsers gets list of currently online friends (followers or following)
 func (ch *ChatHandler) GetOnlineUsers(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -236,23 +236,47 @@ func (ch *ChatHandler) GetOnlineUsers(w http.ResponseWriter, r *http.Request) {
 
 	// Get online users from the hub
 	onlineUserIDs := ch.hub.GetOnlineUsers()
+	onlineUserSet := make(map[int]struct{}, len(onlineUserIDs))
+	for _, id := range onlineUserIDs {
+		onlineUserSet[id] = struct{}{}
+	}
 
-	// Filter to only users that current user can message
-	var accessibleUsers []int
-	for _, onlineUserID := range onlineUserIDs {
-		if onlineUserID == userID {
-			continue // Skip self
+	// Get followers and following (friends)
+	followers, err := ch.followRepo.GetFollowers(userID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+	following, err := ch.followRepo.GetFollowing(userID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	// Merge followers and following, remove duplicates, skip self, and filter to only online
+	friendMap := make(map[int]*models.UserResponse)
+	for _, u := range followers {
+		if u.ID != userID {
+			friendMap[u.ID] = u
 		}
+	}
+	for _, u := range following {
+		if u.ID != userID {
+			friendMap[u.ID] = u
+		}
+	}
 
-		canMessage, err := ch.followRepo.CanSendMessage(userID, onlineUserID)
-		if err == nil && canMessage {
-			accessibleUsers = append(accessibleUsers, onlineUserID)
+	onlineFriends := make([]*models.UserResponse, 0)
+	for id, user := range friendMap {
+		if _, isOnline := onlineUserSet[id]; isOnline {
+			onlineFriends = append(onlineFriends, user)
 		}
 	}
 
 	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
-		"online_users": accessibleUsers,
-		"count":        len(accessibleUsers),
+		"success":      true,
+		"online_users": onlineFriends,
+		"count":        len(onlineFriends),
 	})
 }
 

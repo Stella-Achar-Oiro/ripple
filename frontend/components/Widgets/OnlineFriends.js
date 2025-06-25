@@ -26,10 +26,10 @@ export default function OnlineFriends() {
       }
 
       const data = await response.json()
-      
+
       if (data.success && data.data) {
         // Filter for users who are currently online and are followed by current user
-        const onlineFriends = data.data
+        const onlineFriends = data.data.online_users
           .filter(friend => onlineUsers.includes(friend.id))
           .map(friend => ({
             id: friend.id,
