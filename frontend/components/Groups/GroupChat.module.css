@@ -76,7 +76,7 @@
 .ownMessage {
   margin-bottom: 6px;
   padding: 7px 12px;
-  background: var(--success-green);
+  background: var(--success);
   color: var(--white);
   border-radius: 16px 16px 4px 16px;
   min-width: 10%;
@@ -99,9 +99,9 @@
   font-size: 12px;
   margin-bottom: 2px;
   color: #3b5998;
-  background: #f0f4fa;
+  background: #d9dee7;
   padding: 2px 8px 2px 8px;
-  border-radius: 8px 8px 2px 2px;
+  border-radius: var(--spacing-sm);
   width: fit-content;
   margin-left: -8px;
   margin-top: -7px;

@@ -16,17 +16,20 @@
   --secondary-purple: #7C3AED;
   --purple-gradient: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #A855F7 100%);
   --purple-gradient-light: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 50%, rgba(168, 85, 247, 0.1) 100%);
+  --primary-navy: var(--accent-purple);
+  --secondary-navy: #4F46E5;
   
   /* Neutral Colors */
   --background: #FAFBFC;
   --card: #FFFFFF;
   --card-hover: #F8FAFC;
+  --card-background: #eaecf1;
   --border: #E2E8F0;
   --border-light: #F1F5F9;
   --text-primary: #1E293B;
   --text-secondary: #64748B;
   --text-muted: #94A3B8;
-  --text-light: #CBD5E1;
+  --text-light: #1c385b;
   
   /* Status Colors */
   --success: #10B981;
