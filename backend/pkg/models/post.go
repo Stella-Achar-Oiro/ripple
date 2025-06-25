@@ -381,6 +381,11 @@ func (pr *PostRepository) DeletePost(postID, userID int) error {
 
 // CreateComment creates a new comment on a post
 func (pr *PostRepository) CreateComment(userID int, req *CreateCommentRequest) (*Comment, error) {
+	// Validate content
+	if strings.TrimSpace(req.Content) == "" && req.ImagePath == nil {
+		return nil, fmt.Errorf("comment must have content or image")
+	}
+	
 	// First, check if the user is allowed to comment on this post
 	post, err := pr.GetPost(req.PostID, userID)
 	if err != nil {

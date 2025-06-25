@@ -8,7 +8,7 @@ import styles from './RegisterForm.module.css'
 
 export default function RegisterForm() {
   const router = useRouter()
-  // Removed step management - now single step
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -24,8 +24,6 @@ export default function RegisterForm() {
   const [isConflictError, setIsConflictError] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState(null)
   const fileInputRef = useRef(null)
-
-  // Removed step management - now single step
 
   // Get API URL from environment variable
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'

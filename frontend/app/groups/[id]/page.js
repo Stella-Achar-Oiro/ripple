@@ -9,6 +9,8 @@ import JoinRequestsManager from '../../../components/Groups/JoinRequestsManager'
 import GroupPostList from '../../../components/Groups/GroupPostList'
 import EventList from '../../../components/Events/EventList'
 import CreateEventModal from '../../../components/Events/CreateEventModal'
+import GroupSettingsModal from '../../../components/Groups/GroupSettingsModal'
+import GroupChat from '../../../components/Groups/GroupChat'
 import styles from './page.module.css'
 
 export default function GroupDetailPage() {
@@ -23,6 +25,7 @@ export default function GroupDetailPage() {
   const [error, setError] = useState('')
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [isCreateEventModalOpen, setIsCreateEventModalOpen] = useState(false)
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('members')
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
@@ -107,6 +110,19 @@ export default function GroupDetailPage() {
 
   const handleBackToGroups = () => {
     router.push('/groups')
+  }
+
+  const handleSettings = () => {
+    setIsSettingsModalOpen(true)
+  }
+
+  const handleSettingsModalClose = () => {
+    setIsSettingsModalOpen(false)
+  }
+
+  const handleGroupUpdated = (updatedGroup) => {
+    setGroup(updatedGroup)
+    setIsSettingsModalOpen(false)
   }
 
   if (isLoading) {
@@ -226,7 +242,7 @@ export default function GroupDetailPage() {
                     Create Event
                   </button>
                   {group.is_creator && (
-                    <button className="btn-outline">
+                    <button className="btn-outline" onClick={handleSettings}>
                       <i className="fas fa-cog"></i>
                       Settings
                     </button>
@@ -272,6 +288,15 @@ export default function GroupDetailPage() {
                 <i className="fas fa-calendar"></i>
                 Events
               </button>
+              {(group.is_member || group.is_creator) && (
+                <button
+                  className={`${styles.tab} ${activeTab === 'chat' ? styles.active : ''}`}
+                  onClick={() => setActiveTab('chat')}
+                >
+                  <i className="fas fa-comments"></i>
+                  Chat
+                </button>
+              )}
             </div>
 
             {/* Tab Content */}
@@ -355,6 +380,12 @@ export default function GroupDetailPage() {
                   title="Group Events"
                 />
               )}
+
+              {activeTab === 'chat' && (group.is_member || group.is_creator) && (
+                <div className={styles.chatContainer}>
+                  <GroupChat groupId={groupId} groupTitle={group.title} />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -375,6 +406,14 @@ export default function GroupDetailPage() {
           onSuccess={handleEventCreated}
           groupId={groupId}
           groupTitle={group.title}
+        />
+
+        {/* Group Settings Modal */}
+        <GroupSettingsModal
+          isOpen={isSettingsModalOpen}
+          onClose={handleSettingsModalClose}
+          onGroupUpdated={handleGroupUpdated}
+          group={group}
         />
       </MainLayout>
     </RouteGuard>

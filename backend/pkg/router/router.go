@@ -81,7 +81,7 @@ func SetupRoutes(
 		handlers.PanicRecoveryMiddleware,
 		handlers.SecurityHeadersMiddleware,
 		corsMiddleware(cfg.AllowedOrigins),
-		// handlers.JSONMiddleware, // JSON middleware should not apply to static files
+		handlers.JSONMiddleware, // JSON middleware should not apply to static files
 	)
 
 	// Mount API routes with middleware
@@ -102,48 +102,4 @@ func SetupRoutes(
 	mainMux.Handle("/uploads/", staticWithMiddleware)
 
 	return mainMux
-}
-
-func setupPostRoutes(mux *http.ServeMux, postHandler *handlers.PostHandler, authMiddleware func(http.Handler) http.Handler) {
-	mux.Handle("/api/posts/create", authMiddleware(http.HandlerFunc(postHandler.CreatePost)))
-	mux.Handle("/api/posts/feed", authMiddleware(http.HandlerFunc(postHandler.GetFeed)))
-	mux.Handle("/api/posts/user/", authMiddleware(http.HandlerFunc(postHandler.GetUserPosts))) // Expects /api/posts/user/{id}
-	mux.Handle("/api/posts/delete/", authMiddleware(http.HandlerFunc(postHandler.DeletePost))) // Expects /api/posts/delete/{id}
-	mux.Handle("/api/posts/update", authMiddleware(http.HandlerFunc(postHandler.UpdatePost)))
-	mux.Handle("/api/posts/comments/create", authMiddleware(http.HandlerFunc(postHandler.CreateComment)))
-	mux.Handle("/api/posts/comments/", authMiddleware(http.HandlerFunc(postHandler.GetComments))) // Expects /api/posts/comments/{id}
-	mux.Handle("/api/posts/", authMiddleware(http.HandlerFunc(postHandler.GetPost)))              // Expects /api/posts/{id}
-}
-
-func setupGroupRoutes(mux *http.ServeMux, groupHandler *handlers.GroupHandler, authMiddleware func(http.Handler) http.Handler) {
-	// TODO: Implement group routes
-}
-
-func setupEventRoutes(mux *http.ServeMux, eventHandler *handlers.EventHandler, authMiddleware func(http.Handler) http.Handler) {
-	// TODO: Implement event routes
-}
-
-func setupUploadRoutes(mux *http.ServeMux, uploadHandler *handlers.UploadHandler, authMiddleware func(http.Handler) http.Handler) {
-	mux.Handle("/api/upload/post", authMiddleware(http.HandlerFunc(uploadHandler.UploadPostImage)))
-	mux.Handle("/api/upload/comment", authMiddleware(http.HandlerFunc(uploadHandler.UploadCommentImage)))
-	// Add other upload routes as needed
-}
-
-func setupNotificationRoutes(mux *http.ServeMux, notificationHandler *handlers.NotificationHandler, authMiddleware func(http.Handler) http.Handler) {
-	// TODO: Implement notification routes
-}
-
-func setupChatRoutes(mux *http.ServeMux, chatHandler *handlers.ChatHandler, authMiddleware func(http.Handler) http.Handler) {
-	// TODO: Implement chat routes
-}
-
-// setupLikeRoutes configures routes related to likes
-func setupLikeRoutes(mux *http.ServeMux, likeHandler *handlers.LikeHandler, authMiddleware func(http.Handler) http.Handler) {
-	mux.Handle("/api/posts/like", authMiddleware(http.HandlerFunc(likeHandler.ToggleLike)))
-}
-
-// setupFollowRoutes configures routes related to follows
-func setupFollowRoutes(mux *http.ServeMux, followHandler *handlers.FollowHandler, authMiddleware func(http.Handler) http.Handler) {
-	mux.Handle("/api/follow", authMiddleware(http.HandlerFunc(followHandler.FollowUser)))
-	mux.Handle("/api/unfollow", authMiddleware(http.HandlerFunc(followHandler.UnfollowUser)))
 }

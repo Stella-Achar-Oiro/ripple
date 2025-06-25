@@ -61,7 +61,7 @@ export default function CreatePost({ onPostCreated }) {
       }
 
       // Create the post
-      const responsePost = await fetch(`${API_URL}/api/posts/create`, {
+      const responsePost = await fetch(`${API_URL}/api/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
