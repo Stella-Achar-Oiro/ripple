@@ -111,25 +111,23 @@ export default function GroupSettingsModal({ isOpen, onClose, onGroupUpdated, gr
     }
   }
 
-  const uploadImage = async (file, type) => {
+  const uploadImage = async (file, endpoint) => {
     const formData = new FormData()
-    formData.append('image', file)
+    const fieldName = endpoint === 'group-avatar' ? 'group-avatar' : 'group-cover'
+    formData.append(fieldName, file)
 
-    const endpoint = type === 'avatar' ? '/api/upload/group-avatar' : '/api/upload/group-cover'
-    
-    const response = await fetch(`${API_URL}${endpoint}`, {
+    const response = await fetch(`${API_URL}/api/upload/${endpoint}`, {
       method: 'POST',
-      credentials: 'include',
-      body: formData
+      body: formData,
+      credentials: 'include'
     })
 
     if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.error || `Failed to upload ${type}`)
+      throw new Error(`Failed to upload ${endpoint}`)
     }
 
-    const data = await response.json()
-    return data.data.path
+    const result = await response.json()
+    return result.data?.file_path || result.file_path
   }
 
   const handleSubmit = async (e) => {
@@ -143,12 +141,12 @@ export default function GroupSettingsModal({ isOpen, onClose, onGroupUpdated, gr
 
       // Upload new avatar if selected
       if (avatarFile) {
-        avatarPath = await uploadImage(avatarFile, 'avatar')
+        avatarPath = await uploadImage(avatarFile, 'group-avatar')
       }
 
       // Upload new cover if selected
       if (coverFile) {
-        coverPath = await uploadImage(coverFile, 'cover')
+        coverPath = await uploadImage(coverFile, 'group-cover')
       }
 
       // Update group

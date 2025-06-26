@@ -25,7 +25,13 @@ const PostList = forwardRef(function PostList(_, ref) {
   const fetchPosts = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`${API_URL}/api/posts/feed`, {
+      let url
+      if (typeof _.userId !== 'undefined' && _.userId !== null) {
+        url = `${API_URL}/api/posts/user/${_.userId}`
+      } else {
+        url = `${API_URL}/api/posts/feed`
+      }
+      const response = await fetch(url, {
         credentials: 'include',
       })
 
@@ -248,6 +254,11 @@ const PostList = forwardRef(function PostList(_, ref) {
     }
   }
 
+  // Helper to get privacy icon class
+  const getPrivacyIcon = (privacy) => {
+    return privacy === 'Public' || privacy === 'public' ? 'fas fa-globe' : 'fas fa-users'
+  }
+
   useEffect(() => {
     fetchPosts()
   }, [])
@@ -256,12 +267,12 @@ const PostList = forwardRef(function PostList(_, ref) {
     return <div className={styles.loading}>Loading posts...</div>
   }
 
-  if (error) {
-    return <div className={styles.error}>{typeof error === 'string' ? error : JSON.stringify(error)}</div>
+  if (posts.length === 0) {
+    return <div className={styles.noPosts}>No posts yet.</div>
   }
 
-  if (posts.length === 0) {
-    return <div className={styles.noPosts}>No posts yet. Be the first to post!</div>
+  if (error) {
+    return <div className={styles.error}>{typeof error === 'string' ? error : JSON.stringify(error)}</div>
   }
 
   return (
@@ -284,9 +295,11 @@ const PostList = forwardRef(function PostList(_, ref) {
                 </span>
               </div>
             </div>
+          
             <div className={styles.postPrivacy}>
-              <i className={`fas fa-${post.privacy_level === 'public' ? 'globe' : 'lock'}`}></i>
+              <i className={`${getPrivacyIcon(post.privacy_level)} ${styles.postPrivacyIcon}`}></i>{post.privacy_level}
             </div>
+
             {user && user.id === post.author?.id && (
               <div className={styles.postMenu}>
                 <button onClick={() => setActiveMenuPostId(activeMenuPostId === post.id ? null : post.id)} className={styles.menuButton}>
@@ -301,6 +314,7 @@ const PostList = forwardRef(function PostList(_, ref) {
               </div>
             )}
           </div>
+
           {editingPost && editingPost.id === post.id ? (
             <div className={styles.editPost}>
               <textarea

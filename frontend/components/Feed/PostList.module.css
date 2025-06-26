@@ -19,6 +19,10 @@
   margin-bottom: 1rem;
 }
 
+.postPrivacyIcon {
+  margin-right: 0.5rem;
+}
+
 .userInfo {
   display: flex;
   align-items: center;
