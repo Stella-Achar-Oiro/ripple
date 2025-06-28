@@ -267,6 +267,53 @@ func (ur *UserRepository) SearchUsers(query string, limit, offset int) ([]*User,
 	return users, nil
 }
 
+// GetAll retrieves all users from the database, except for the specified user ID.
+// It's designed to fetch a list of potential chat partners.
+func (ur *UserRepository) GetAll(currentUserID int) ([]*User, error) {
+	// Select all fields needed to create a full User object for a consistent response.
+	query := `
+		SELECT id, email, password_hash, first_name, last_name, date_of_birth, nickname, about_me, avatar_path, cover_path, is_public, created_at, updated_at
+		FROM users
+		WHERE id != ?
+		ORDER BY first_name ASC, last_name ASC
+	`
+	rows, err := ur.db.Query(query, currentUserID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query all users: %w", err)
+	}
+	defer rows.Close()
+
+	var users []*User
+	for rows.Next() {
+		user := &User{}
+		err := rows.Scan(
+			&user.ID,
+			&user.Email,
+			&user.PasswordHash,
+			&user.FirstName,
+			&user.LastName,
+			&user.DateOfBirth,
+			&user.Nickname,
+			&user.AboutMe,
+			&user.AvatarPath,
+			&user.CoverPath,
+			&user.IsPublic,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan user row: %w", err)
+		}
+		users = append(users, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error during user rows iteration: %w", err)
+	}
+
+	return users, nil
+}
+
 func (u *User) ToResponse() *UserResponse {
 	return &UserResponse{
 		ID:          u.ID,
