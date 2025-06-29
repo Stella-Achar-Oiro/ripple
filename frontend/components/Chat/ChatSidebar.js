@@ -56,6 +56,7 @@ export default function ChatSidebar({
     if (initialAllUsers) {
       const transformed = initialAllUsers.map(u => ({
         ...u,
+        name: `${u.first_name} ${u.last_name}`,
         initials: `${u.first_name?.charAt(0) || ''}${u.last_name?.charAt(0) || ''}`.toUpperCase(),
         isOnline: isUserOnline(u.id),
       }))
