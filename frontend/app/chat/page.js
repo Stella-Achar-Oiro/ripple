@@ -11,7 +11,6 @@ import { useSearchParams } from 'next/navigation'
 
 export default function ChatPage() {
   const [selectedConversation, setSelectedConversation] = useState(null)
-  const [selectedChatId, setSelectedChatId] = useState(null)
   const { isConnected, connectionError } = useWebSocket()
   const searchParams = useSearchParams()
 
@@ -31,7 +30,6 @@ export default function ChatPage() {
 
   const handleSelectChat = (conversation) => {
     setSelectedConversation(conversation)
-    setSelectedChatId(conversation.id)
   }
 
   return (
@@ -54,7 +52,7 @@ export default function ChatPage() {
           )}
 
           <ChatSidebar
-            selectedChat={selectedChatId}
+            selectedChat={selectedConversation}
             onSelectChat={handleSelectChat}
           />
           
