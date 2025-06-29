@@ -1,7 +1,10 @@
 .chatContainer {
   display: flex;
   flex-direction: column;
-  height: 100%; /* Fill the height of the parent container from MainLayout */
+  /* Set a fixed height relative to the viewport.
+     This assumes a header/navbar and padding take up ~100px.
+     This is the key to containing the layout and enabling internal scrolling. */
+  height: calc(100vh - 100px);
   width: 100%;
   background-color: var(--white);
   border-radius: 12px;
