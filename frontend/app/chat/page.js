@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useAuth } from '../../contexts/AuthContext'
 import { useWebSocket } from '../../contexts/WebSocketContext'
 import RouteGuard from '../../components/Auth/RouteGuard'
 import MainLayout from '../../components/Layout/MainLayout'
@@ -10,9 +11,66 @@ import styles from './page.module.css'
 import { useSearchParams } from 'next/navigation'
 
 export default function ChatPage() {
+  const { user } = useAuth()
   const [selectedConversation, setSelectedConversation] = useState(null)
-  const { isConnected, connectionError } = useWebSocket()
+  const { isConnected, connectionError, isUserOnline, getUnreadCount, getConversationId } = useWebSocket()
   const searchParams = useSearchParams()
+
+  // State lifted from ChatSidebar
+  const [conversations, setConversations] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [allUsers, setAllUsers] = useState([])
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [usersError, setUsersError] = useState(null)
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+
+  // Fetch conversations from the backend
+  const fetchConversations = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await fetch(`${API_URL}/api/chat/conversations`, {
+        credentials: 'include',
+      })
+      if (!response.ok) throw new Error('Failed to fetch conversations')
+      const data = await response.json()
+      if (data.success && data.data?.conversations) {
+        setConversations(data.data.conversations)
+      } else {
+        setConversations([])
+      }
+    } catch (err) {
+      console.error('Error fetching conversations:', err)
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [API_URL])
+
+  // Fetch all users for starting new chats
+  const fetchAllUsers = useCallback(async () => {
+    try {
+      setUsersLoading(true)
+      setUsersError(null)
+      const response = await fetch(`${API_URL}/api/chat/users`, {
+        credentials: 'include',
+      })
+      if (!response.ok) throw new Error('Failed to fetch users')
+      const data = await response.json()
+      if (data.success && data.data?.users) {
+        setAllUsers(data.data.users)
+      } else {
+        setAllUsers([])
+      }
+    } catch (err) {
+      console.error('Error fetching all users:', err)
+      setUsersError(err.message)
+    } finally {
+      setUsersLoading(false)
+    }
+  }, [API_URL])
 
   // Helper to select a conversation by user ID
   const handleSelectByUserId = (userId) => {
@@ -22,14 +80,25 @@ export default function ChatPage() {
   }
 
   useEffect(() => {
+    if (user) {
+      fetchConversations()
+      fetchAllUsers()
+    }
+  }, [user, fetchConversations, fetchAllUsers])
+
+  useEffect(() => {
     const userId = searchParams.get('user')
-    if (userId) {
+    if (userId && conversations.length > 0) {
       handleSelectByUserId(userId)
     }
-  }, [searchParams])
+  }, [searchParams, conversations])
 
   const handleSelectChat = (conversation) => {
     setSelectedConversation(conversation)
+  }
+
+  const handleConversationStarted = () => {
+    fetchConversations()
   }
 
   return (
@@ -54,10 +123,19 @@ export default function ChatPage() {
           <ChatSidebar
             selectedChat={selectedConversation}
             onSelectChat={handleSelectChat}
+            conversations={conversations}
+            allUsers={allUsers}
+            loading={loading || usersLoading}
+            error={error || usersError}
+            onRetry={() => {
+              fetchConversations()
+              fetchAllUsers()
+            }}
           />
           
           <ChatMain
             conversation={selectedConversation}
+            onConversationStarted={handleConversationStarted}
           />
         </div>
       </MainLayout>
