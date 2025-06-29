@@ -46,12 +46,12 @@ func (ch *ChatHandler) GetPrivateMessages(w http.ResponseWriter, r *http.Request
 
 	// Get other user ID from URL path
 	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 5 {
+	if len(pathParts) < 6 {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Other user ID required")
 		return
 	}
 
-	otherUserID, err := strconv.Atoi(pathParts[4])
+	otherUserID, err := strconv.Atoi(pathParts[5])
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid user ID")
 		return
