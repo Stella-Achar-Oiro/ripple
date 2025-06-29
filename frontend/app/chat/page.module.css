@@ -9,10 +9,6 @@
   box-shadow: var(--shadow);
 }
 
-.connectionBanners {
-  /* This container just holds the banners at the top */
-}
-
 .connectionStatus,
 .connectionError {
   padding: 10px 20px;
