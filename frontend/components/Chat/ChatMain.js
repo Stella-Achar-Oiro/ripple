@@ -7,7 +7,7 @@ import GroupChatInfo from './GroupChatInfo'
 import styles from './ChatMain.module.css'
 import Avatar from '../shared/Avatar'
 
-export default function ChatMain({ conversation }) {
+export default function ChatMain({ conversation, onConversationStarted }) {
   const { user } = useAuth()
   const {
     sendPrivateMessage,

@@ -5,113 +5,63 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useWebSocket } from '../../contexts/WebSocketContext'
 import styles from './ChatSidebar.module.css'
 
-export default function ChatSidebar({ selectedChat, onSelectChat }) {
+export default function ChatSidebar({ 
+  selectedChat, 
+  onSelectChat,
+  conversations: initialConversations,
+  allUsers: initialAllUsers,
+  loading,
+  error,
+  onRetry
+}) {
   const { user } = useAuth()
   const { isUserOnline, getUnreadCount, getConversationId } = useWebSocket()
 
   const [searchQuery, setSearchQuery] = useState('')
   const [conversations, setConversations] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
   const [allUsers, setAllUsers] = useState([])
-  const [usersLoading, setUsersLoading] = useState(false)
-  const [usersError, setUsersError] = useState(null)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
-  // Fetch conversations from the backend
-  const fetchConversations = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError(null)
-      const response = await fetch(`${API_URL}/api/chat/conversations`, {
-        credentials: 'include',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch conversations')
-      }
-
-      const data = await response.json()
-
-      if (data.success && data.data?.conversations && Array.isArray(data.data.conversations)) {
-        // Transform conversations for display
-        const transformedConversations = data.data.conversations.map(conv => {
-          const isGroup = !!conv.group_id
-          const conversationId = getConversationId(
-            isGroup ? null : user?.id,
-            isGroup ? null : conv.user_id || conv.id,
-            isGroup ? conv.group_id : null
-          )
-          
-          const participant = conv.participant || {}
-
-          return {
-            id: isGroup ? conv.group_id : participant.id,
-            conversationId,
-            name: isGroup ? conv.title : `${participant.first_name} ${participant.last_name}`,
-            isGroup,
-            avatar_path: isGroup ? conv.group_info?.avatar_path : participant.avatar_path,
-            initials: isGroup ? conv.title?.charAt(0)?.toUpperCase() : `${participant.first_name?.charAt(0) || ''}${participant.last_name?.charAt(0) || ''}`,
-            lastMessage: conv.last_message || 'No messages yet',
-            lastMessageTime: conv.last_message_at,
-            isOnline: isGroup ? false : isUserOnline(participant.id),
-            unread: getUnreadCount(conversationId),
-            memberCount: isGroup ? conv.group_info?.member_count : null
-          }
-        })
-
-        setConversations(transformedConversations)
-      } else {
-        // No conversations or empty data
-        setConversations([])
-      }
-    } catch (err) {
-      console.error('Error fetching conversations:', err)
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }, [API_URL, user?.id, getConversationId, isUserOnline, getUnreadCount])
-
-  // Fetch all users for starting new chats
-  const fetchAllUsers = useCallback(async () => {
-    try {
-      setUsersLoading(true)
-      setUsersError(null)
-      const response = await fetch(`${API_URL}/api/chat/users`, {
-        credentials: 'include',
-      })
-      if (!response.ok) {
-        throw new Error('Failed to fetch users')
-      }
-      const data = await response.json()
-      if (data.success && data.data?.users) {
-        const transformed = data.data.users.map(u => ({
-          ...u,
-          initials: `${u.first_name?.charAt(0) || ''}${u.last_name?.charAt(0) || ''}`.toUpperCase(),
-          isOnline: isUserOnline(u.id),
-        }))
-        setAllUsers(transformed)
-      } else {
-        setAllUsers([])
-      }
-    } catch (err) {
-      console.error('Error fetching all users:', err)
-      setUsersError(err.message)
-    } finally {
-      setUsersLoading(false)
-    }
-  }, [API_URL, isUserOnline])
-
-  // Load conversations and all users on mount
+  // This effect will now transform the raw data from props into the display format
   useEffect(() => {
-    if (user) {
-      fetchConversations()
-      fetchAllUsers()
+    if (initialConversations) {
+      const transformedConversations = initialConversations.map(conv => {
+        const isGroup = !!conv.group_id
+        const conversationId = getConversationId(
+          isGroup ? null : user?.id,
+          isGroup ? null : conv.user_id || conv.id,
+          isGroup ? conv.group_id : null
+        )
+        const participant = conv.participant || {}
+        return {
+          id: isGroup ? conv.group_id : participant.id,
+          conversationId,
+          name: isGroup ? conv.title : `${participant.first_name} ${participant.last_name}`,
+          isGroup,
+          avatar_path: isGroup ? conv.group_info?.avatar_path : participant.avatar_path,
+          initials: isGroup ? conv.title?.charAt(0)?.toUpperCase() : `${participant.first_name?.charAt(0) || ''}${participant.last_name?.charAt(0) || ''}`,
+          lastMessage: conv.last_message || 'No messages yet',
+          lastMessageTime: conv.last_message_at,
+          isOnline: isGroup ? false : isUserOnline(participant.id),
+          unread: getUnreadCount(conversationId),
+          memberCount: isGroup ? conv.group_info?.member_count : null
+        }
+      })
+      setConversations(transformedConversations)
     }
-  }, [user, fetchConversations, fetchAllUsers])
+  }, [initialConversations, user?.id, getConversationId, isUserOnline, getUnreadCount])
+
+  useEffect(() => {
+    if (initialAllUsers) {
+      const transformed = initialAllUsers.map(u => ({
+        ...u,
+        initials: `${u.first_name?.charAt(0) || ''}${u.last_name?.charAt(0) || ''}`.toUpperCase(),
+        isOnline: isUserOnline(u.id),
+      }))
+      setAllUsers(transformed)
+    }
+  }, [initialAllUsers, isUserOnline])
 
   // Update lists when online status or unread counts change
   useEffect(() => {
@@ -130,42 +80,7 @@ export default function ChatSidebar({ selectedChat, onSelectChat }) {
     }
   }, [isUserOnline, getUnreadCount]) // Removed length dependencies to avoid re-renders
 
-  // Listen for select-chat-by-user event
-  useEffect(() => {
-    function handleSelectChatByUser(e) {
-      const userId = e.detail.userId
-      // Try to find the conversation
-      const conv = conversations.find(c => !c.isGroup && c.id === userId)
-      if (conv) {
-        onSelectChat(conv)
-      } else {
-        // Try to get user info from window.__onlineFriends (set by OnlineFriends.js)
-        let friendInfo = null
-        if (typeof window !== 'undefined' && window.__onlineFriends) {
-          friendInfo = window.__onlineFriends.find(f => f.id === userId)
-        }
-        // If not found, fallback to minimal info
-        const tempConv = {
-          id: userId,
-          conversationId: `private_${user?.id}_${userId}`,
-          name: friendInfo ? friendInfo.name : 'New Conversation',
-          isGroup: false,
-          avatar_path: friendInfo ? friendInfo.avatar_path : null,
-          initials: friendInfo ? friendInfo.initials : '?',
-          lastMessage: '',
-          lastMessageTime: null,
-          isOnline: true,
-          unread: 0,
-          memberCount: null
-        }
-        onSelectChat(tempConv)
-      }
-    }
-    window.addEventListener('select-chat-by-user', handleSelectChatByUser)
-    return () => window.removeEventListener('select-chat-by-user', handleSelectChatByUser)
-  }, [conversations, onSelectChat, user?.id])
-
-  const handleStartNewChat = (targetUser) => {
+  const handleStartNewChat = useCallback((targetUser) => {
     // Check if a conversation with this user already exists
     const existingConv = conversations.find(c => !c.isGroup && c.id === targetUser.id)
     if (existingConv) {
@@ -185,7 +100,30 @@ export default function ChatSidebar({ selectedChat, onSelectChat }) {
       isNew: true, // Flag to indicate this is a new chat that isn't in the conversation list yet
     }
     onSelectChat(tempConv)
-  }
+  }, [conversations, getConversationId, isUserOnline, onSelectChat, user?.id])
+
+  // Listen for select-chat-by-user event
+  useEffect(() => {
+    const handleSelectChatByUser = (e) => {
+      const userId = e.detail.userId
+      // Try to find an existing conversation first
+      const conv = conversations.find(c => !c.isGroup && c.id === userId)
+      if (conv) {
+        onSelectChat(conv)
+      } else {
+        // If no conversation exists, find the user in the allUsers list
+        // and start a new chat with them.
+        const targetUser = allUsers.find(u => u.id === userId)
+        if (targetUser) {
+          handleStartNewChat(targetUser)
+        } else {
+          console.warn(`User with ID ${userId} not found to start a new chat.`)
+        }
+      }
+    }
+    window.addEventListener('select-chat-by-user', handleSelectChatByUser)
+    return () => window.removeEventListener('select-chat-by-user', handleSelectChatByUser)
+  }, [conversations, allUsers, onSelectChat, handleStartNewChat])
 
   const formatTime = (timestamp) => {
     if (!timestamp) return ''
@@ -329,11 +267,10 @@ export default function ChatSidebar({ selectedChat, onSelectChat }) {
       </div>
 
       <div className={styles.chatList}>
-        {(loading || usersLoading) && renderLoadingState('Loading...')}
-        {error && renderErrorState('Failed to load conversations', fetchConversations)}
-        {usersError && !error && renderErrorState('Failed to load users', fetchAllUsers)}
+        {loading && renderLoadingState('Loading...')}
+        {error && renderErrorState('Failed to load data', onRetry)}
 
-        {!(loading || usersLoading || error || usersError) && (
+        {!loading && !error && (
           <>
             {/* Render conversations */}
             {sortedConversations.map(conv => renderUserItem(conv, true))}
