@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useWebSocket } from '../../contexts/WebSocketContext'
 import GroupChatInfo from './GroupChatInfo'
@@ -26,6 +26,9 @@ export default function ChatMain({ conversation, onConversationStarted }) {
   const [selectedImage, setSelectedImage] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
   const [showGroupInfo, setShowGroupInfo] = useState(false)
+  const [chatMessages, setChatMessages] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
   const messagesEndRef = useRef(null)
   const typingTimeoutRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -41,8 +44,68 @@ export default function ChatMain({ conversation, onConversationStarted }) {
       )
     : null
 
-  const messages = conversationId ? getConversationMessages(conversationId) : []
+  const wsMessages = conversationId ? getConversationMessages(conversationId) : []
   const typingUsers = conversationId ? getTypingUsers(conversationId) : []
+
+  // Effect to fetch historical messages when conversation changes
+  useEffect(() => {
+    // Don't fetch for new, unsaved conversations
+    if (!conversation?.id || conversation.isNew) {
+      setChatMessages([])
+      setIsLoading(false)
+      setError(null)
+      return
+    }
+
+    const fetchMessageHistory = async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const endpoint = conversation.isGroup
+          ? `${API_URL}/api/chat/messages/group/${conversation.id}`
+          : `${API_URL}/api/chat/messages/private/${conversation.id}`
+
+        const response = await fetch(endpoint, {
+          credentials: 'include',
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error?.message || 'Failed to fetch message history')
+        }
+
+        const data = await response.json()
+        if (data.success && data.data?.messages) {
+          // API returns newest first, reverse to show oldest first
+          const processed = data.data.messages
+            .map(m => ({
+              ...m,
+              timestamp: m.created_at, // Standardize timestamp property
+              isOwn: m.sender?.id === user.id,
+            }))
+            .reverse()
+          setChatMessages(processed)
+        } else {
+          setChatMessages([])
+        }
+      } catch (err) {
+        console.error('Error fetching message history:', err)
+        setError(err.message)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchMessageHistory()
+  }, [conversation?.id, conversation?.isNew, conversation?.isGroup, user?.id, API_URL])
+
+  // Combine historical and real-time messages
+  const messages = useMemo(() => {
+    // Create a Set of IDs from wsMessages to avoid duplicates if messages arrive while fetching
+    const wsMessageIds = new Set(wsMessages.map(m => m.id))
+    const uniqueHistoricalMessages = chatMessages.filter(m => !wsMessageIds.has(m.id))
+    return [...uniqueHistoricalMessages, ...wsMessages]
+  }, [chatMessages, wsMessages])
 
   // Auto scroll to bottom when new messages arrive
   const scrollToBottom = useCallback(() => {
@@ -50,7 +113,9 @@ export default function ChatMain({ conversation, onConversationStarted }) {
   }, [])
 
   useEffect(() => {
-    scrollToBottom()
+    if (messages.length > 0) {
+      scrollToBottom()
+    }
   }, [messages, scrollToBottom])
 
   // Mark conversation as read when it's selected
@@ -295,51 +360,61 @@ export default function ChatMain({ conversation, onConversationStarted }) {
       </div>
       
       <div className={styles.chatMessages}>
-        {messages.length === 0 ? (
-          <div className={styles.emptyMessages}>
-            <i className="fas fa-comments"></i>
-            <p>No messages yet. Start the conversation!</p>
+        {isLoading ? (
+          <div className={styles.loadingState}>
+            <i className="fas fa-spinner fa-spin"></i>
+            <span>Loading messages...</span>
           </div>
+        ) : error ? (
+          <div className={styles.errorState}>
+            <i className="fas fa-exclamation-triangle"></i>
+            <span>{error}</span>
+          </div>
+        ) : messages.length === 0 ? (
+            <div className={styles.emptyMessages}>
+              <i className="fas fa-comments"></i>
+              <p>No messages yet. Start the conversation!</p>
+            </div>
         ) : (
-          messages.map(message => (
-            <div 
-              key={message.id} 
-              className={`${styles.message} ${message.isOwn ? styles.own : ''}`}
-            >
-              {!message.isOwn && conversation.isGroup && (
-                <div className={styles.messageSender}>
-                  {message.sender?.first_name || `User ${message.from}`}
-                </div>
-              )}
-              <div className={styles.messageBubble}>
-                {message.image_path && (
-                  <div className={styles.messageImage}>
-                    <img 
-                      src={`${API_URL}${message.image_path}`} 
-                      alt="Shared image" 
-                      loading="lazy"
-                    />
+            messages.map(message => (
+              <div
+                key={message.id}
+                className={`${styles.message} ${message.isOwn ? styles.own : ''}`}
+              >
+                {!message.isOwn && conversation.isGroup && (
+                  <div className={styles.messageSender}>
+                    {message.sender?.first_name || `User ${message.from}`}
                   </div>
                 )}
-                {message.content && message.content !== '[Image]' && (
-                  <div className={styles.messageContent}>
-                {message.content}
-                {message.isPending && (
-                  <span className={styles.pendingIndicator}>
-                    <i className="fas fa-clock"></i>
-                  </span>
-                )}
-              </div>
-                )}
-                <div className={styles.messageTime}>
-                  {formatTime(message.timestamp)}
-                  {message.isOwn && !conversation.isGroup && (
-                    <i className={`fas ${message.read_at ? 'fa-check-double' : 'fa-check'} ${styles.readStatus}`}></i>
+                <div className={styles.messageBubble}>
+                  {message.image_path && (
+                    <div className={styles.messageImage}>
+                      <img
+                        src={`${API_URL}${message.image_path}`}
+                        alt="Shared image"
+                        loading="lazy"
+                      />
+                    </div>
                   )}
+                  {message.content && message.content !== '[Image]' && (
+                    <div className={styles.messageContent}>
+                      {message.content}
+                      {message.isPending && (
+                        <span className={styles.pendingIndicator}>
+                          <i className="fas fa-clock"></i>
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <div className={styles.messageTime}>
+                    {formatTime(message.timestamp)}
+                    {message.isOwn && !conversation.isGroup && (
+                      <i className={`fas ${message.read_at ? 'fa-check-double' : 'fa-check'} ${styles.readStatus}`}></i>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            ))
         )}
         
         {typingUsers.length > 0 && (
