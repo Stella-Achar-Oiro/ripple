@@ -276,8 +276,8 @@ export default function ChatSidebar({
             {/* Render conversations */}
             {sortedConversations.map(conv => renderUserItem(conv, true))}
 
-            {/* Render separator if both lists have items and we are not searching */}
-            {searchQuery === '' && sortedConversations.length > 0 && filteredUsers.length > 0 && (
+            {/* Render a header if there are other users to display and we are not searching */}
+            {searchQuery === '' && filteredUsers.length > 0 && (
               <h3 className={styles.listHeader}>Start a new chat</h3>
             )}
 
