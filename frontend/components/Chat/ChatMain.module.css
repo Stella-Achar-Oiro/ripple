@@ -1,6 +1,9 @@
 .chatMain {
   display: flex;
   flex-direction: column;
+  /* Ensure the main chat area fills the grid cell and can contain a scrolling child */
+  height: 100%;
+  min-height: 0;
 }
 
 .noConversation {

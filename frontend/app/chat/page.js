@@ -104,39 +104,43 @@ export default function ChatPage() {
   return (
     <RouteGuard requireAuth={true}>
       <MainLayout currentPage="chat">
-        <div className={styles.chatLayout}>
-          {/* Connection status indicator */}
-          {connectionError && (
-            <div className={styles.connectionError}>
-              <i className="fas fa-exclamation-triangle"></i>
-              <span>{connectionError}</span>
-            </div>
-          )}
-          
-          {!isConnected && !connectionError && (
-            <div className={styles.connectionStatus}>
-              <i className="fas fa-wifi"></i>
-              <span>Connecting to chat...</span>
-            </div>
-          )}
+        <div className={styles.chatContainer}>
+          <div className={styles.connectionBanners}>
+            {/* Connection status indicator */}
+            {connectionError && (
+              <div className={styles.connectionError}>
+                <i className="fas fa-exclamation-triangle"></i>
+                <span>{connectionError}</span>
+              </div>
+            )}
+            
+            {!isConnected && !connectionError && (
+              <div className={styles.connectionStatus}>
+                <i className="fas fa-wifi"></i>
+                <span>Connecting to chat...</span>
+              </div>
+            )}
+          </div>
 
-          <ChatSidebar
-            selectedChat={selectedConversation}
-            onSelectChat={handleSelectChat}
-            conversations={conversations}
-            allUsers={allUsers}
-            loading={loading || usersLoading}
-            error={error || usersError}
-            onRetry={() => {
-              fetchConversations()
-              fetchAllUsers()
-            }}
-          />
-          
-          <ChatMain
-            conversation={selectedConversation}
-            onConversationStarted={handleConversationStarted}
-          />
+          <div className={styles.chatLayout}>
+            <ChatSidebar
+              selectedChat={selectedConversation}
+              onSelectChat={handleSelectChat}
+              conversations={conversations}
+              allUsers={allUsers}
+              loading={loading || usersLoading}
+              error={error || usersError}
+              onRetry={() => {
+                fetchConversations()
+                fetchAllUsers()
+              }}
+            />
+            
+            <ChatMain
+              conversation={selectedConversation}
+              onConversationStarted={handleConversationStarted}
+            />
+          </div>
         </div>
       </MainLayout>
     </RouteGuard>
