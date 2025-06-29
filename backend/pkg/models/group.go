@@ -641,3 +641,37 @@ func (gr *GroupRepository) GetMembershipStatus(groupID, userID int) (string, err
 
 	return status, nil
 }
+
+// RemoveMemberFromGroup removes a user from a group
+func (gr *GroupRepository) RemoveMemberFromGroup(groupID, userID int) error {
+	// Check if user is the group creator
+	isCreator, err := gr.IsCreator(groupID, userID)
+	if err != nil {
+		return fmt.Errorf("failed to check creator status: %w", err)
+	}
+	if isCreator {
+		return fmt.Errorf("group creator cannot be removed from the group")
+	}
+
+	// Delete the membership record
+	query := `
+		DELETE FROM group_members 
+		WHERE group_id = ? AND user_id = ?
+	`
+
+	result, err := gr.db.Exec(query, groupID, userID)
+	if err != nil {
+		return fmt.Errorf("failed to remove member from group: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("user is not a member of this group")
+	}
+
+	return nil
+}

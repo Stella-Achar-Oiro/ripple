@@ -523,6 +523,67 @@ func (gh *GroupHandler) GetPendingInvitations(w http.ResponseWriter, r *http.Req
 	})
 }
 
+// LeaveGroup allows a user to leave a group
+func (gh *GroupHandler) LeaveGroup(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	// Get group ID from URL path
+	pathParts := strings.Split(r.URL.Path, "/")
+	if len(pathParts) < 5 {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Group ID required")
+		return
+	}
+	// fmt.Printf("leave group pathParts: %q\n", pathParts)
+
+	groupID, err := strconv.Atoi(pathParts[4])
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid group ID")
+		return
+	}
+
+	// Check if user is the group creator
+	isCreator, err := gh.groupRepo.IsCreator(groupID, userID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+	if isCreator {
+		utils.WriteErrorResponse(w, http.StatusForbidden, "Group creator cannot leave the group. Transfer ownership or delete the group instead.")
+		return
+	}
+
+	// Check if user is a member of the group
+	isMember, err := gh.groupRepo.IsMember(groupID, userID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+	if !isMember {
+		utils.WriteErrorResponse(w, http.StatusForbidden, "You are not a member of this group")
+		return
+	}
+
+	// Remove user from group
+	err = gh.groupRepo.RemoveMemberFromGroup(groupID, userID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	utils.WriteSuccessResponse(w, http.StatusOK, map[string]string{
+		"message": "Successfully left the group",
+	})
+}
+
 // GetPendingJoinRequests gets pending join requests for a group (creator only)
 func (gh *GroupHandler) GetPendingJoinRequests(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -859,6 +920,112 @@ func (gh *GroupHandler) GetGroupComments(w http.ResponseWriter, r *http.Request)
 		"limit":    limit,
 		"offset":   offset,
 		"count":    len(comments),
+	})
+}
+
+// UpdateGroupPost updates an existing group post
+func (gh *GroupHandler) UpdateGroupPost(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	var req struct {
+		PostID  int    `json:"post_id"`
+		Content string `json:"content"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid JSON format")
+		return
+	}
+
+	if req.PostID <= 0 {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Valid post ID required")
+		return
+	}
+
+	// Validate content
+	if strings.TrimSpace(req.Content) == "" {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Post content cannot be empty")
+		return
+	}
+
+	if len(strings.TrimSpace(req.Content)) > 2000 {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Content must be less than 2000 characters")
+		return
+	}
+
+	// Update the post
+	updatedPost, err := gh.groupPostRepo.UpdateGroupPost(req.PostID, userID, req.Content)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			utils.WriteErrorResponse(w, http.StatusNotFound, "Post not found")
+			return
+		}
+		if strings.Contains(err.Error(), "not authorized") {
+			utils.WriteErrorResponse(w, http.StatusForbidden, "You can only edit your own posts")
+			return
+		}
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
+		"post":    updatedPost,
+		"message": "Post updated successfully",
+	})
+}
+
+// DeleteGroupPost deletes a group post
+func (gh *GroupHandler) DeleteGroupPost(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	// Get post ID from URL path
+	pathParts := strings.Split(r.URL.Path, "/")
+	if len(pathParts) < 6 {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Post ID required")
+		return
+	}
+
+	postID, err := strconv.Atoi(pathParts[5])
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid post ID")
+		return
+	}
+
+	// Delete the post
+	err = gh.groupPostRepo.DeleteGroupPost(postID, userID)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			utils.WriteErrorResponse(w, http.StatusNotFound, "Post not found")
+			return
+		}
+		if strings.Contains(err.Error(), "not authorized") {
+			utils.WriteErrorResponse(w, http.StatusForbidden, "You can only delete your own posts")
+			return
+		}
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	utils.WriteSuccessResponse(w, http.StatusOK, map[string]string{
+		"message": "Post deleted successfully",
 	})
 }
 

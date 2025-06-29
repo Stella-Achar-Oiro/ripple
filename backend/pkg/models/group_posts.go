@@ -164,6 +164,48 @@ func (gpr *GroupPostRepository) DeleteGroupPost(postID, userID int) error {
 	return nil
 }
 
+// UpdateGroupPost updates a group post
+func (gpr *GroupPostRepository) UpdateGroupPost(postID, userID int, content string) (*GroupPost, error) {
+	// First check if the post exists and belongs to the user
+	query := `
+	SELECT id, group_id, user_id, content, image_path, created_at, updated_at 
+	FROM group_posts 
+	WHERE id = ? AND user_id = ?`
+
+	var existingPost GroupPost
+	err := gpr.db.QueryRow(query, postID, userID).Scan(
+		&existingPost.ID, &existingPost.GroupID, &existingPost.UserID, &existingPost.Content, &existingPost.ImagePath, &existingPost.CreatedAt, &existingPost.UpdatedAt,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("group post not found or not authorized")
+		}
+		return nil, fmt.Errorf("failed to get group post: %w", err)
+	}
+
+	// Update the post
+	updateQuery := `UPDATE group_posts SET content = ?, updated_at = ? WHERE id = ? AND user_id = ?`
+
+	now := time.Now()
+	result, err := gpr.db.Exec(updateQuery, content, now, postID, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update group post: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return nil, fmt.Errorf("group post not found or not authorized")
+	}
+
+	// Get the updated post with author information
+	return gpr.GetGroupPost(postID)
+}
+
 // CreateGroupComment creates a comment on a group post
 func (gpr *GroupPostRepository) CreateGroupComment(postID, userID int, req *CreateGroupCommentRequest) (*GroupPostComment, error) {
 	// Validate content

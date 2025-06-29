@@ -1,14 +1,34 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import GroupComments from './GroupComments'
+import { useAuth } from '../../contexts/AuthContext'
 import styles from './GroupPost.module.css'
 
 export default function GroupPost({ post, onPostDeleted, isGroupMember }) {
+  const { user } = useAuth()
   const [showComments, setShowComments] = useState(false)
   const [commentCount, setCommentCount] = useState(post.comment_count || 0)
+  const [activeMenuPostId, setActiveMenuPostId] = useState(null)
+  const [editingPost, setEditingPost] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const menuRef = useRef(null)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+
+  // Handle clicking outside the dropdown menu
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setActiveMenuPostId(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   // Helper function to generate initials from author's first and last name
   const getAuthorInitials = (author) => {
@@ -41,6 +61,77 @@ export default function GroupPost({ post, onPostDeleted, isGroupMember }) {
     setCommentCount(prev => prev + 1)
   }
 
+  const handleDeletePost = async () => {
+    if (!window.confirm('Are you sure you want to delete this post?')) {
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      const response = await fetch(`${API_URL}/api/groups/posts/delete/${post.ID}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.message || 'Failed to delete post')
+      }
+
+      if (onPostDeleted) {
+        onPostDeleted(post.ID)
+      }
+      setActiveMenuPostId(null)
+    } catch (err) {
+      console.error('Error deleting post:', err)
+      alert(err.message || 'An error occurred while deleting the post')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleUpdatePost = async () => {
+    if (!editingPost) return
+
+    try {
+      setIsLoading(true)
+      const response = await fetch(`${API_URL}/api/groups/posts/update`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          post_id: editingPost.ID,
+          content: editingPost.Content,
+        }),
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.message || 'Failed to update post')
+      }
+
+      const updatedPost = await response.json()
+      
+      // Update the post in the parent component
+      if (onPostDeleted) {
+        // We'll use onPostDeleted as a callback to refresh the posts
+        onPostDeleted(null, updatedPost.data)
+      }
+      
+      setEditingPost(null)
+      setActiveMenuPostId(null)
+    } catch (err) {
+      console.error('Error updating post:', err)
+      alert(err.message || 'An error occurred while updating the post')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const isPostCreator = user && user.id === post.Author?.id
+
   return (
     <div className="card">
       <div className={styles.post}>
@@ -65,14 +156,51 @@ export default function GroupPost({ post, onPostDeleted, isGroupMember }) {
               </div>
             </div>
           </div>
-          <div className={styles.postMenu}>
-            <i className="fas fa-ellipsis-h"></i>
-          </div>
+          {isPostCreator && (
+            <div className={styles.postMenu}>
+              <button 
+                onClick={() => setActiveMenuPostId(activeMenuPostId === post.ID ? null : post.ID)} 
+                className={styles.menuButton}
+                disabled={isLoading}
+              >
+                <i className="fas fa-ellipsis-h"></i>
+              </button>
+              {activeMenuPostId === post.ID && (
+                <div className={styles.dropdownMenu} ref={menuRef}>
+                  <button onClick={() => setEditingPost({ ...post })} disabled={isLoading}>
+                    Edit
+                  </button>
+                  <button onClick={handleDeletePost} disabled={isLoading}>
+                    Delete
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        <div className={styles.postContent}>
-          {post.Content}
-        </div>
+        {editingPost && editingPost.ID === post.ID ? (
+          <div className={styles.editPost}>
+            <textarea
+              value={editingPost.Content}
+              onChange={(e) => setEditingPost({ ...editingPost, Content: e.target.value })}
+              className={styles.editTextArea}
+              disabled={isLoading}
+            />
+            <div className={styles.editActions}>
+              <button onClick={() => setEditingPost(null)} className={styles.cancelButton} disabled={isLoading}>
+                Cancel
+              </button>
+              <button onClick={handleUpdatePost} className={styles.saveButton} disabled={isLoading}>
+                {isLoading ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className={styles.postContent}>
+            {post.Content}
+          </div>
+        )}
 
         {post.ImagePath && (
           <div className={styles.postImage}>

@@ -44,6 +44,9 @@ func setupGroupRoutes(mux *http.ServeMux, h *handlers.GroupHandler, auth func(ht
 	mux.Handle("/api/groups/invite", auth(http.HandlerFunc(h.InviteToGroup)))
 	mux.Handle("/api/groups/join", auth(http.HandlerFunc(h.JoinGroup)))
 	mux.Handle("/api/groups/handle", auth(http.HandlerFunc(h.HandleMembershipRequest)))
+	mux.Handle("/api/groups/leave/", auth(http.HandlerFunc(h.LeaveGroup)))
+	mux.Handle("/api/groups/posts/update", auth(http.HandlerFunc(h.UpdateGroupPost)))
+	mux.Handle("/api/groups/posts/delete/", auth(http.HandlerFunc(h.DeleteGroupPost)))
 
 	mux.Handle("/api/groups/invitations", auth(http.HandlerFunc(h.GetPendingInvitations)))
 	// Handle group requests endpoint with proper routing

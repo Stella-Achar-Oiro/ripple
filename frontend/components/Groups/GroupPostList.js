@@ -50,9 +50,17 @@ export default function GroupPostList({ groupId, isGroupMember }) {
     fetchPosts()
   }
 
-  const handlePostDeleted = () => {
-    // Refresh posts when a post is deleted
-    fetchPosts()
+  const handlePostDeleted = (deletedPostId, updatedPost = null) => {
+    if (deletedPostId) {
+      // Post was deleted - remove it from the list
+      setPosts(posts.filter(post => post.ID !== deletedPostId))
+    } else if (updatedPost) {
+      // Post was updated - replace it in the list
+      setPosts(posts.map(post => post.ID === updatedPost.ID ? updatedPost : post))
+    } else {
+      // Fallback - refresh all posts
+      fetchPosts()
+    }
   }
 
   if (isLoading) {
