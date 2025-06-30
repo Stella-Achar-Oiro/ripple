@@ -267,7 +267,7 @@ export default function ChatSidebar({
         />
       </div>
 
-      <div className={styles.chatList}>
+      <div className={styles.chatList} style={{ overflowX: 'hidden' }}>
         {loading && renderLoadingState('Loading...')}
         {error && renderErrorState('Failed to load data', onRetry)}
 
