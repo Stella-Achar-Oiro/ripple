@@ -12,6 +12,8 @@ export default function GroupPost({ post, onPostDeleted, isGroupMember }) {
   const [activeMenuPostId, setActiveMenuPostId] = useState(null)
   const [editingPost, setEditingPost] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isLiked, setIsLiked] = useState(post.is_liked || false)
+  const [likeCount, setLikeCount] = useState(post.likes_count || 0)
   const menuRef = useRef(null)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
@@ -130,6 +132,34 @@ export default function GroupPost({ post, onPostDeleted, isGroupMember }) {
     }
   }
 
+  const handleLikeToggle = async () => {
+    if (isLoading) return
+    setIsLoading(true)
+    const prevLiked = isLiked
+    setIsLiked(!prevLiked)
+    setLikeCount(prev => prevLiked ? prev - 1 : prev + 1)
+    try {
+      const response = await fetch(`${API_URL}/api/groups/posts/like`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ post_id: post.ID }),
+        credentials: 'include',
+      })
+      if (!response.ok) {
+        throw new Error('Failed to update like')
+      }
+      const data = await response.json()
+      setIsLiked(data.data?.liked ?? !prevLiked)
+      setLikeCount(data.data?.like_count ?? (prevLiked ? likeCount - 1 : likeCount + 1))
+    } catch (err) {
+      setIsLiked(prevLiked)
+      setLikeCount(prev => prevLiked ? prev + 1 : prev - 1)
+      alert(err.message || 'Failed to update like')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const isPostCreator = user && user.id === post.Author?.id
 
   return (
@@ -212,10 +242,19 @@ export default function GroupPost({ post, onPostDeleted, isGroupMember }) {
         )}
 
         <div className={styles.postStats}>
-          <span>{commentCount} comment{commentCount !== 1 ? 's' : ''}</span>
+          <span>{likeCount} like{likeCount !== 1 ? 's' : ''} • {commentCount} comment{commentCount !== 1 ? 's' : ''}</span>
         </div>
 
         <div className={styles.postActionsRow}>
+          <div
+            className={`${styles.postAction} ${isLiked ? styles.liked : ''}`}
+            onClick={handleLikeToggle}
+            disabled={isLoading}
+            style={{ cursor: isLoading ? 'not-allowed' : 'pointer' }}
+          >
+            <i className={isLiked ? 'fas fa-heart' : 'far fa-heart'}></i>
+            Like
+          </div>
           <div
             className={styles.postAction}
             onClick={handleCommentToggle}

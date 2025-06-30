@@ -70,7 +70,7 @@ func setupGroupRoutes(mux *http.ServeMux, h *handlers.GroupHandler, auth func(ht
 	mux.Handle("/api/groups/posts/get/", auth(http.HandlerFunc(h.GetGroupPosts)))
 	mux.Handle("/api/groups/comments/", auth(http.HandlerFunc(h.CreateGroupComment)))
 	mux.Handle("/api/groups/comments/get/", auth(http.HandlerFunc(h.GetGroupComments)))
-
+	mux.Handle("/api/groups/posts/like", auth(http.HandlerFunc(h.ToggleGroupPostLike)))
 }
 
 func setupEventRoutes(mux *http.ServeMux, h *handlers.EventHandler, auth func(http.Handler) http.Handler) {

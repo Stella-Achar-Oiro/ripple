@@ -284,3 +284,36 @@ func (gpr *GroupPostRepository) GetGroupComments(postID int, limit, offset int) 
 
 	return comments, nil
 }
+
+// ToggleLike toggles like/unlike for a group post and returns the new like state and count
+func (gpr *GroupPostRepository) ToggleLike(postID, userID int) (bool, int, error) {
+	// Check if the user already liked the post
+	var exists bool
+	err := gpr.db.QueryRow("SELECT EXISTS(SELECT 1 FROM group_post_likes WHERE group_post_id = ? AND user_id = ?)", postID, userID).Scan(&exists)
+	if err != nil {
+		return false, 0, fmt.Errorf("failed to check like status: %w", err)
+	}
+
+	if exists {
+		// Unlike
+		_, err := gpr.db.Exec("DELETE FROM group_post_likes WHERE group_post_id = ? AND user_id = ?", postID, userID)
+		if err != nil {
+			return false, 0, fmt.Errorf("failed to unlike post: %w", err)
+		}
+	} else {
+		// Like
+		_, err := gpr.db.Exec("INSERT INTO group_post_likes (group_post_id, user_id, created_at) VALUES (?, ?, ?)", postID, userID, time.Now())
+		if err != nil {
+			return false, 0, fmt.Errorf("failed to like post: %w", err)
+		}
+	}
+
+	// Get the new like count
+	var likeCount int
+	err = gpr.db.QueryRow("SELECT COUNT(*) FROM group_post_likes WHERE group_post_id = ?", postID).Scan(&likeCount)
+	if err != nil {
+		return false, 0, fmt.Errorf("failed to get like count: %w", err)
+	}
+
+	return !exists, likeCount, nil
+}

@@ -1029,6 +1029,60 @@ func (gh *GroupHandler) DeleteGroupPost(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
+// ToggleGroupPostLike toggles like/unlike for a group post
+func (gh *GroupHandler) ToggleGroupPostLike(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	var req struct {
+		PostID int `json:"post_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid JSON format")
+		return
+	}
+	if req.PostID <= 0 {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Valid post ID required")
+		return
+	}
+
+	// Check if user is a member of the group for this post
+	groupPost, err := gh.groupPostRepo.GetGroupPost(req.PostID)
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusNotFound, "Group post not found")
+		return
+	}
+	isMember, err := gh.groupRepo.IsMember(groupPost.GroupID, userID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+	if !isMember {
+		utils.WriteErrorResponse(w, http.StatusForbidden, "Only group members can like posts")
+		return
+	}
+
+	// Toggle like
+	liked, likeCount, err := gh.groupPostRepo.ToggleLike(req.PostID, userID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
+		"liked":      liked,
+		"like_count": likeCount,
+	})
+}
+
 // Validation helper methods
 func (gh *GroupHandler) validateCreateGroupRequest(req *models.CreateGroupRequest) utils.ValidationErrors {
 	var errors utils.ValidationErrors
