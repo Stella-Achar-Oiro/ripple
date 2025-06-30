@@ -8,12 +8,12 @@ import styles from './GroupPost.module.css'
 export default function GroupPost({ post, onPostDeleted, isGroupMember }) {
   const { user } = useAuth()
   const [showComments, setShowComments] = useState(false)
-  const [commentCount, setCommentCount] = useState(post.comment_count || 0)
+  const [commentCount, setCommentCount] = useState(post.CommentCount || 0)
   const [activeMenuPostId, setActiveMenuPostId] = useState(null)
   const [editingPost, setEditingPost] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isLiked, setIsLiked] = useState(post.is_liked || false)
-  const [likeCount, setLikeCount] = useState(post.likes_count || 0)
+  const [likeCount, setLikeCount] = useState(post.LikesCount || 0)
   const menuRef = useRef(null)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'

@@ -25,6 +25,7 @@ export default function GroupPostList({ groupId, isGroupMember }) {
       }
 
       const data = await response.json()
+      console.log("posts data:", data)
       
       if (data.success && data.data && data.data.posts) {
         setPosts(data.data.posts)

@@ -22,6 +22,7 @@ type GroupPost struct {
 	UpdatedAt    time.Time
 	Author       *UserResponse
 	CommentCount int
+	LikesCount   int
 	CanComment   bool
 }
 
@@ -73,7 +74,8 @@ func (gpr *GroupPostRepository) GetGroupPosts(groupID int, limit, offset int) ([
 	query := `
 		SELECT gp.id, gp.group_id, gp.user_id, gp.content, gp.image_path, gp.created_at, gp.updated_at,
 		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.is_public, u.created_at,
-		       (SELECT COUNT(*) FROM group_post_comments WHERE group_post_id = gp.id) as comment_count
+		       (SELECT COUNT(*) FROM group_post_comments WHERE group_post_id = gp.id) as comment_count,
+		       (SELECT COUNT(*) FROM group_post_likes WHERE group_post_id = gp.id) as likes_count
 		FROM group_posts gp
 		JOIN users u ON gp.user_id = u.id
 		WHERE gp.group_id = ?
@@ -95,7 +97,7 @@ func (gpr *GroupPostRepository) GetGroupPosts(groupID int, limit, offset int) ([
 		err := rows.Scan(
 			&post.ID, &post.GroupID, &post.UserID, &post.Content, &post.ImagePath, &post.CreatedAt, &post.UpdatedAt,
 			&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.IsPublic, &author.CreatedAt,
-			&post.CommentCount,
+			&post.CommentCount, &post.LikesCount,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan group post: %w", err)
