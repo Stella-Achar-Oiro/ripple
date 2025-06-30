@@ -58,6 +58,7 @@ func (uh *UploadHandler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 
 	// Return file path
 	filePath := fmt.Sprintf("/uploads/avatars/%s", filename)
+	fmt.Println("Avatar uploaded successfully:", filePath) // debug log
 
 	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
 		"file_path": filePath,

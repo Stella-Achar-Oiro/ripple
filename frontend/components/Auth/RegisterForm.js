@@ -23,6 +23,7 @@ export default function RegisterForm() {
   const [submitError, setSubmitError] = useState('')
   const [isConflictError, setIsConflictError] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState(null)
+  const [touched, setTouched] = useState({})
   const fileInputRef = useRef(null)
 
   // Get API URL from environment variable
@@ -31,6 +32,9 @@ export default function RegisterForm() {
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+    
+    // Mark field as touched
+    setTouched(prev => ({ ...prev, [name]: true }))
     
     // Clear error when user starts typing
     if (errors[name]) {
@@ -42,18 +46,18 @@ export default function RegisterForm() {
     const file = e.target.files[0]
     if (!file) return
 
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+    if (file.size > 20 * 1024 * 1024) { // 20MB limit
       setErrors(prev => ({ 
         ...prev, 
-        avatar: 'Image size should be less than 5MB' 
+        avatar: 'Image size should be less than 20MB' 
       }))
       return
     }
 
-    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+    if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/svg+xml'].includes(file.type)) {
       setErrors(prev => ({ 
-        ...prev, 
-        avatar: 'Only JPEG, PNG and GIF images are allowed' 
+      ...prev, 
+      avatar: 'Only JPEG, PNG, GIF, WEBP, BMP, and SVG images are allowed' 
       }))
       return
     }
@@ -200,7 +204,8 @@ export default function RegisterForm() {
           console.error('Avatar upload failed, but registration was successful')
           // Continue with registration success even if avatar upload fails
         } else {
-          const avatarData = await avatarResponse.json()
+          const response = await avatarResponse.json()
+          const avatarData = response.data || response
           
           // Step 3: Update user profile with avatar path
           if (avatarData.file_path) {
@@ -234,12 +239,7 @@ export default function RegisterForm() {
   }
 
   const passwordStrength = getPasswordStrength()
-
-  // Removed step-based validation - now using complete form validation
-
-  // Removed progress bar - single step form
-
-  // Render all fields in single form
+  
   const renderAllFields = () => (
     <div className={styles.stepContent}>
       <h3 className={styles.stepTitle}>Create Your Account</h3>
@@ -388,7 +388,7 @@ export default function RegisterForm() {
             ref={fileInputRef}
             className={styles.fileInput}
             onChange={handleAvatarChange}
-            accept="image/jpeg,image/png,image/gif"
+            accept="image/jpeg,image/png,image/gif,image/webp,image/bmp,image/svg+xml"
           />
         </div>
         {errors.avatar && <div className={styles.errorText}>{errors.avatar}</div>}
@@ -431,7 +431,9 @@ export default function RegisterForm() {
         <div className={styles.charCounter}>
           {formData.about_me.length}/500 characters
         </div>
-        {errors.about_me && <div className={styles.errorText}>{errors.about_me}</div>}
+        {(touched.about_me || isSubmitting) && errors.about_me && (
+          <div className={styles.errorText}>{errors.about_me}</div>
+        )}
       </div>
     </div>
   )
