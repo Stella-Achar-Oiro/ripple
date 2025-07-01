@@ -222,7 +222,8 @@ func (uh *UploadHandler) UploadGroupAvatar(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	file, header, err := r.FormFile("group-avatar")
+	file, header, err := r.FormFile("avatar")
+	fmt.Println("Retrieving file for group avatar upload : ", err)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "No file uploaded or invalid file field")
 		return
@@ -267,7 +268,7 @@ func (uh *UploadHandler) UploadGroupCover(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	file, header, err := r.FormFile("group-cover")
+	file, header, err := r.FormFile("cover")
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "No file uploaded or invalid file field")
 		return
