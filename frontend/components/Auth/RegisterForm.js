@@ -4,10 +4,12 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useAuth } from '../../contexts/AuthContext'
 import styles from './RegisterForm.module.css'
 
 export default function RegisterForm() {
   const router = useRouter()
+  const { register: registerUser, checkAuth } = useAuth()
 
   const [formData, setFormData] = useState({
     email: '',
@@ -158,7 +160,7 @@ export default function RegisterForm() {
     setSubmitError('')
     
     try {
-      // Step 1: Register user with JSON data
+      // Step 1: Register user with JSON data using AuthContext
       const jsonData = {
         email: formData.email,
         password: formData.password,
@@ -166,64 +168,45 @@ export default function RegisterForm() {
         last_name: formData.last_name,
         date_of_birth: formData.date_of_birth,
       }
-      
-      // Add optional fields only if they have values
       if (formData.nickname) jsonData.nickname = formData.nickname
       if (formData.about_me) jsonData.about_me = formData.about_me
-      
-      const registerResponse = await fetch(`${API_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(jsonData),
-        credentials: 'include', // Important for cookies
-      })
-      
-      const registerData = await registerResponse.json()
-      
-      if (!registerResponse.ok) {
-        if (registerResponse.status === 409) {
+      const result = await registerUser(jsonData)
+      if (!result.success) {
+        if (result.error && result.error.includes('already exists')) {
           throw new Error('An account with this email already exists. Please try signing in instead.')
         }
-        throw new Error(registerData.error?.message || registerData.message || 'Registration failed')
+        throw new Error(result.error || 'Registration failed')
       }
       
       // Step 2: If we have an avatar, upload it
       if (fileInputRef.current && fileInputRef.current.files[0]) {
+        // Wait for session/cookie to be set
+        // await checkAuth()
+        
+        // Create a FormData object
         const avatarFormData = new FormData()
         avatarFormData.append('avatar', fileInputRef.current.files[0])
         
+        // Upload avatar
         const avatarResponse = await fetch(`${API_URL}/api/upload/avatar`, {
           method: 'POST',
           body: avatarFormData,
           credentials: 'include', // Important for cookies
         })
         
-        if (!avatarResponse.ok) {
-          console.error('Avatar upload failed, but registration was successful')
-          // Continue with registration success even if avatar upload fails
-        } else {
-          const response = await avatarResponse.json()
-          const avatarData = response.data || response
-          
-          // Step 3: Update user profile with avatar path
-          if (avatarData.file_path) {
-            const updateResponse = await fetch(`${API_URL}/api/auth/profile/update`, {
+        if (avatarResponse.ok) {
+          const avatarData = await avatarResponse.json()
+          const filePath = avatarData.file_path || (avatarData.data && avatarData.data.file_path)
+          if (filePath) {
+            await fetch(`${API_URL}/api/auth/profile/update`, {
               method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                avatar_path: avatarData.file_path
-              }),
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ avatar_path: filePath }),
               credentials: 'include',
             })
-            
-            if (!updateResponse.ok) {
-              console.error('Profile update with avatar failed, but registration was successful')
-            }
           }
+        } else {
+          console.error('Avatar upload failed, but registration was successful')
         }
       }
       
