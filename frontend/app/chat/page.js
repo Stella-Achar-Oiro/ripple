@@ -20,7 +20,7 @@ export default function ChatPage() {
   const [conversations, setConversations] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [allUsers, setAllUsers] = useState([])
+  const [followedUsers, setFollowedUsers] = useState([])
   const [usersLoading, setUsersLoading] = useState(false)
   const [usersError, setUsersError] = useState(null)
 
@@ -49,23 +49,23 @@ export default function ChatPage() {
     }
   }, [API_URL])
 
-  // Fetch all users for starting new chats
-  const fetchAllUsers = useCallback(async () => {
+  // Fetch followed users for starting new chats
+  const fetchFollowedUsers = useCallback(async () => {
     try {
       setUsersLoading(true)
       setUsersError(null)
-      const response = await fetch(`${API_URL}/api/chat/users`, {
+      const response = await fetch(`${API_URL}/api/chat/followed-users`, {
         credentials: 'include',
       })
-      if (!response.ok) throw new Error('Failed to fetch users')
+      if (!response.ok) throw new Error('Failed to fetch followed users')
       const data = await response.json()
       if (data.success && data.data?.users) {
-        setAllUsers(data.data.users)
+        setFollowedUsers(data.data.users)
       } else {
-        setAllUsers([])
+        setFollowedUsers([])
       }
     } catch (err) {
-      console.error('Error fetching all users:', err)
+      console.error('Error fetching followed users:', err)
       setUsersError(err.message)
     } finally {
       setUsersLoading(false)
@@ -82,9 +82,9 @@ export default function ChatPage() {
   useEffect(() => {
     if (user) {
       fetchConversations()
-      fetchAllUsers()
+      fetchFollowedUsers()
     }
-  }, [user, fetchConversations, fetchAllUsers])
+  }, [user, fetchConversations, fetchFollowedUsers])
 
   useEffect(() => {
     const userId = searchParams.get('user')
@@ -127,12 +127,12 @@ export default function ChatPage() {
               selectedChat={selectedConversation}
               onSelectChat={handleSelectChat}
               conversations={conversations}
-              allUsers={allUsers}
+              followedUsers={followedUsers}
               loading={loading || usersLoading}
               error={error || usersError}
               onRetry={() => {
                 fetchConversations()
-                fetchAllUsers()
+                fetchFollowedUsers()
               }}
             />
             

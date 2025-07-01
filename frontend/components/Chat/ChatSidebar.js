@@ -9,7 +9,7 @@ export default function ChatSidebar({
   selectedChat, 
   onSelectChat,
   conversations: initialConversations,
-  allUsers: initialAllUsers,
+  followedUsers: initialFollowedUsers,
   loading,
   error,
   onRetry
@@ -19,7 +19,7 @@ export default function ChatSidebar({
 
   const [searchQuery, setSearchQuery] = useState('')
   const [conversations, setConversations] = useState([])
-  const [allUsers, setAllUsers] = useState([])
+  const [followedUsers, setFollowedUsers] = useState([])
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -53,16 +53,16 @@ export default function ChatSidebar({
   }, [initialConversations, user?.id, getConversationId, isUserOnline, getUnreadCount])
 
   useEffect(() => {
-    if (initialAllUsers) {
-      const transformed = initialAllUsers.map(u => ({
+    if (initialFollowedUsers) {
+      const transformed = initialFollowedUsers.map(u => ({
         ...u,
         name: `${u.first_name} ${u.last_name}`,
         initials: `${u.first_name?.charAt(0) || ''}${u.last_name?.charAt(0) || ''}`.toUpperCase(),
         isOnline: isUserOnline(u.id),
       }))
-      setAllUsers(transformed)
+      setFollowedUsers(transformed)
     }
-  }, [initialAllUsers, isUserOnline])
+  }, [initialFollowedUsers, isUserOnline])
 
   // Update lists when online status or unread counts change
   useEffect(() => {
@@ -73,8 +73,8 @@ export default function ChatSidebar({
         unread: getUnreadCount(conv.conversationId),
       })))
     }
-    if (allUsers.length > 0) {
-      setAllUsers(prev => prev.map(u => ({
+    if (followedUsers.length > 0) {
+      setFollowedUsers(prev => prev.map(u => ({
         ...u,
         isOnline: isUserOnline(u.id),
       })))
@@ -112,19 +112,19 @@ export default function ChatSidebar({
       if (conv) {
         onSelectChat(conv)
       } else {
-        // If no conversation exists, find the user in the allUsers list
+        // If no conversation exists, find the user in the followedUsers list
         // and start a new chat with them.
-        const targetUser = allUsers.find(u => u.id === userId)
+        const targetUser = followedUsers.find(u => u.id === userId)
         if (targetUser) {
           handleStartNewChat(targetUser)
         } else {
-          console.warn(`User with ID ${userId} not found to start a new chat.`)
+          console.warn(`User with ID ${userId} not found in followed users.`)
         }
       }
     }
     window.addEventListener('select-chat-by-user', handleSelectChatByUser)
     return () => window.removeEventListener('select-chat-by-user', handleSelectChatByUser)
-  }, [conversations, allUsers, onSelectChat, handleStartNewChat])
+  }, [conversations, followedUsers, onSelectChat, handleStartNewChat])
 
   const formatTime = (timestamp) => {
     if (!timestamp) return ''
@@ -149,15 +149,15 @@ export default function ChatSidebar({
   const conversationUserIds = new Set(
     conversations.map(c => !c.isGroup && c.id).filter(Boolean)
   )
-  // Filter all users to get only those who are not in existing conversations
-  const otherUsers = allUsers.filter(u => !conversationUserIds.has(u.id))
+  // Filter followed users to get only those who are not in existing conversations
+  const availableFollowedUsers = followedUsers.filter(u => !conversationUserIds.has(u.id))
 
   const filteredConversations = conversations.filter(conv => {
     const name = conv.name || ''
     return name.toLowerCase().includes(searchQuery.toLowerCase())
   })
 
-  const filteredUsers = otherUsers.filter(u =>
+  const filteredUsers = availableFollowedUsers.filter(u =>
     `${u.first_name} ${u.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
     u.nickname?.toLowerCase().includes(searchQuery.toLowerCase())
   )
@@ -261,13 +261,13 @@ export default function ChatSidebar({
         <i className="fas fa-search"></i>
         <input
           type="text"
-          placeholder="Search or start a new chat..."
+          placeholder="Search conversations or followed users..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
 
-      <div className={styles.chatList}>
+      <div className={styles.chatList} style={{ overflowX: 'hidden' }}>
         {loading && renderLoadingState('Loading...')}
         {error && renderErrorState('Failed to load data', onRetry)}
 
@@ -276,19 +276,19 @@ export default function ChatSidebar({
             {/* Render conversations */}
             {sortedConversations.map(conv => renderUserItem(conv, true))}
 
-            {/* Render a header if there are other users to display and we are not searching */}
+            {/* Render a header if there are followed users to display and we are not searching */}
             {searchQuery === '' && filteredUsers.length > 0 && (
-              <h3 className={styles.listHeader}>Start a new chat</h3>
+              <h3 className={styles.listHeader}>Message your connections</h3>
             )}
 
-            {/* Render other users */}
+            {/* Render followed users */}
             {filteredUsers.map(u => renderUserItem(u, false))}
 
             {/* Handle empty states */}
             {sortedConversations.length === 0 && filteredUsers.length === 0 && (
               searchQuery ?
                 renderEmptyState('fa-search', 'No results found', 'Try a different name.') :
-                renderEmptyState('fa-comments', 'No conversations yet', 'Your conversations will appear here.')
+                renderEmptyState('fa-comments', 'No conversations yet', 'Follow users to start chatting with them.')
             )}
           </>
         )}

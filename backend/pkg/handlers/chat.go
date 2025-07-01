@@ -364,8 +364,8 @@ func (ch *ChatHandler) GetUnreadCounts(w http.ResponseWriter, r *http.Request) {
 	utils.WriteSuccessResponse(w, http.StatusOK, counts)
 }
 
-// GetAllUsers gets a list of all users in the database for starting new chats.
-func (ch *ChatHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
+// GetFollowedUsers gets a list of users that the current user follows for starting new chats.
+func (ch *ChatHandler) GetFollowedUsers(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
@@ -377,22 +377,16 @@ func (ch *ChatHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch all users from the repository, excluding the current user.
-	users, err := ch.userRepo.GetAll(userID)
+	// Get users that the current user follows
+	following, err := ch.followRepo.GetFollowing(userID)
 	if err != nil {
 		utils.WriteInternalErrorResponse(w, err)
 		return
 	}
 
-	// Convert users to the response format.
-	userResponses := make([]*models.UserResponse, len(users))
-	for i, user := range users {
-		userResponses[i] = user.ToResponse()
-	}
-
 	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
-		"users": userResponses,
-		"count": len(userResponses),
+		"users": following,
+		"count": len(following),
 	})
 }
 
