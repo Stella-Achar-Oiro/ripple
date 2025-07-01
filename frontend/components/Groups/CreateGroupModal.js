@@ -97,9 +97,9 @@ export default function CreateGroupModal({ isOpen, onClose, onGroupCreated }) {
     const formData = new FormData()
 
     if (type === 'avatar') {
-      formData.append('avatar', file)
+      formData.append('group-avatar', file)
     } else {
-      formData.append('cover', file)
+      formData.append('group-cover', file)
     }
 
     const endpoint = type === 'avatar' ? 'group-avatar' : 'group-cover'
