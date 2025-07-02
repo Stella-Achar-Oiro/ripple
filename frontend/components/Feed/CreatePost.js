@@ -93,7 +93,7 @@ export default function CreatePost({ onPostCreated }) {
       if (privacy === 'private' && selectedFollowers.length > 0) {
         postBody.allowed_users = selectedFollowers
       }
-      const responsePost = await fetch(`${API_URL}/api/posts/create`, {
+      const responsePost = await fetch(`${API_URL}/api/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
