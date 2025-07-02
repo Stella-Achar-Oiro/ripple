@@ -182,10 +182,7 @@ export default function CreatePost({ onPostCreated }) {
               <i className="fas fa-image"></i>
               Photo
             </label>
-            <div className={styles.postOption}>
-              <i className="fas fa-smile"></i>
-              Feeling
-            </div>
+
           </div>
           <div className={styles.postSubmitArea}>
             <div className={styles.privacySelector}>
