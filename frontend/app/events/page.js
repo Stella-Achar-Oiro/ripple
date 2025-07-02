@@ -121,9 +121,10 @@ export default function EventsPage() {
           <div className={styles.content}>
             {error ? (
               <div className={styles.errorState}>
-                <i className="fas fa-exclamation-triangle"></i>
-                <h3>Error Loading Events</h3>
-                <p>{error}</p>
+                {/* <i className="fas fa-exclamation-triangle"></i> */}
+                {/* <h3>Error Loading Events</h3>
+                <p>{error}</p> */}
+                <p>No events found</p>
                 <button className="btn-outline" onClick={fetchUserGroups}>
                   Try Again
                 </button>
