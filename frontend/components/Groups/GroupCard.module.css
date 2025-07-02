@@ -1,7 +1,8 @@
 .groupCard {
-  background-color: var(--white);
+  background-color: var(--purple-gradient);
   border-radius: 12px;
-  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }

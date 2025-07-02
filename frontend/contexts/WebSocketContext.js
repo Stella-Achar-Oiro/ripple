@@ -100,6 +100,7 @@ export const WebSocketProvider = ({ children }) => {
         break
 
       case 'group_message':
+        console.log('[WebSocket] Processing group message:', wsMessage) // Debug log
         if (data?.message) {
           const conversationId = createConversationId(null, null, group_id)
           const message = {
@@ -111,6 +112,8 @@ export const WebSocketProvider = ({ children }) => {
             isOwn: from === user.id,
             ...data.message
           }
+          
+          console.log('[WebSocket] Adding group message to conversation:', conversationId, message) // Debug log
           
           setMessages(prev => {
             const updated = new Map(prev)
@@ -127,6 +130,8 @@ export const WebSocketProvider = ({ children }) => {
               return updated
             })
           }
+        } else {
+          console.warn('[WebSocket] Group message missing data.message:', wsMessage) // Debug log
         }
         break
 
@@ -277,6 +282,7 @@ export const WebSocketProvider = ({ children }) => {
       ws.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data)
+          console.log('[WebSocket] Received:', message) // Debug log for all incoming messages
           if (processMessageRef.current) {
             processMessageRef.current(message)
           }
@@ -396,6 +402,14 @@ export const WebSocketProvider = ({ children }) => {
     return unreadCounts.get(conversationId) || 0
   }, [unreadCounts])
 
+  const getTotalUnreadCount = useCallback(() => {
+    let total = 0
+    unreadCounts.forEach((count) => {
+      total += count
+    })
+    return total
+  }, [unreadCounts])
+
   const markConversationAsRead = useCallback((conversationId) => {
     setUnreadCounts(prev => {
       const updated = new Map(prev)
@@ -474,6 +488,7 @@ export const WebSocketProvider = ({ children }) => {
     // Data accessors
     getConversationMessages,
     getUnreadCount,
+    getTotalUnreadCount,
     markConversationAsRead,
     getTypingUsers,
     isUserOnline,

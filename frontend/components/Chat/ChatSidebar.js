@@ -88,6 +88,41 @@ export default function ChatSidebar({ selectedChat, onSelectChat }) {
     }
   }, [conversations.length, isUserOnline, getUnreadCount])
 
+  // Listen for select-chat-by-user event
+  useEffect(() => {
+    function handleSelectChatByUser(e) {
+      const userId = e.detail.userId
+      // Try to find the conversation
+      const conv = conversations.find(c => !c.isGroup && c.id === userId)
+      if (conv) {
+        onSelectChat(conv)
+      } else {
+        // Try to get user info from window.__onlineFriends (set by OnlineFriends.js)
+        let friendInfo = null
+        if (typeof window !== 'undefined' && window.__onlineFriends) {
+          friendInfo = window.__onlineFriends.find(f => f.id === userId)
+        }
+        // If not found, fallback to minimal info
+        const tempConv = {
+          id: userId,
+          conversationId: `private_${user?.id}_${userId}`,
+          name: friendInfo ? friendInfo.name : 'New Conversation',
+          isGroup: false,
+          avatar_path: friendInfo ? friendInfo.avatar_path : null,
+          initials: friendInfo ? friendInfo.initials : '?',
+          lastMessage: '',
+          lastMessageTime: null,
+          isOnline: true,
+          unread: 0,
+          memberCount: null
+        }
+        onSelectChat(tempConv)
+      }
+    }
+    window.addEventListener('select-chat-by-user', handleSelectChatByUser)
+    return () => window.removeEventListener('select-chat-by-user', handleSelectChatByUser)
+  }, [conversations, onSelectChat, user?.id])
+
   const formatTime = (timestamp) => {
     if (!timestamp) return ''
     

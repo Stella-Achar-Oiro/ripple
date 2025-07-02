@@ -109,6 +109,65 @@ func (gh *GroupHandler) GetGroup(w http.ResponseWriter, r *http.Request) {
 	utils.WriteSuccessResponse(w, http.StatusOK, group)
 }
 
+// UpdateGroup updates an existing group
+func (gh *GroupHandler) UpdateGroup(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	// Get group ID from URL path
+	pathParts := strings.Split(r.URL.Path, "/")
+	if len(pathParts) < 4 {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Group ID required")
+		return
+	}
+
+	groupID, err := strconv.Atoi(pathParts[3])
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid group ID")
+		return
+	}
+
+	var req models.UpdateGroupRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid JSON format")
+		return
+	}
+
+	// Validate request
+	errors := gh.validateUpdateGroupRequest(&req)
+	if errors.HasErrors() {
+		utils.WriteValidationErrorResponse(w, errors)
+		return
+	}
+
+	group, err := gh.groupRepo.UpdateGroup(groupID, userID, &req)
+	if err != nil {
+		if strings.Contains(err.Error(), "title is required") {
+			utils.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		if strings.Contains(err.Error(), "only group creator") {
+			utils.WriteErrorResponse(w, http.StatusForbidden, err.Error())
+			return
+		}
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
+		"group":   group,
+		"message": "Group updated successfully",
+	})
+}
+
 // GetAllGroups gets all groups for browsing
 func (gh *GroupHandler) GetAllGroups(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -662,12 +721,12 @@ func (gh *GroupHandler) CreateGroupComment(w http.ResponseWriter, r *http.Reques
 
 	// Get post ID from URL path
 	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
+	if len(pathParts) < 5 {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Post ID required")
 		return
 	}
 
-	postID, err := strconv.Atoi(pathParts[3])
+	postID, err := strconv.Atoi(pathParts[4])
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid post ID")
 		return
@@ -739,12 +798,12 @@ func (gh *GroupHandler) GetGroupComments(w http.ResponseWriter, r *http.Request)
 
 	// Get post ID from URL path
 	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
+	if len(pathParts) < 6 {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Post ID required")
 		return
 	}
 
-	postID, err := strconv.Atoi(pathParts[3])
+	postID, err := strconv.Atoi(pathParts[5])
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid post ID")
 		return
@@ -862,6 +921,30 @@ func (gh *GroupHandler) validateCreateGroupCommentRequest(req *models.CreateGrou
 		errors = append(errors, utils.ValidationError{
 			Field:   "content",
 			Message: "Content must be less than 1000 characters",
+		})
+	}
+
+	return errors
+}
+
+func (gh *GroupHandler) validateUpdateGroupRequest(req *models.UpdateGroupRequest) utils.ValidationErrors {
+	var errors utils.ValidationErrors
+
+	if err := utils.ValidateRequired(req.Title, "title"); err != nil {
+		errors = append(errors, *err)
+	}
+
+	if len(strings.TrimSpace(req.Title)) > 100 {
+		errors = append(errors, utils.ValidationError{
+			Field:   "title",
+			Message: "Title must be less than 100 characters",
+		})
+	}
+
+	if len(strings.TrimSpace(req.Description)) > 1000 {
+		errors = append(errors, utils.ValidationError{
+			Field:   "description",
+			Message: "Description must be less than 1000 characters",
 		})
 	}
 

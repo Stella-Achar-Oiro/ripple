@@ -1,8 +1,11 @@
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import styles from './GroupCard.module.css'
+import GroupSettingsModal from './GroupSettingsModal'
 
-export default function GroupCard({ group }) {
+export default function GroupCard({ group, onGroupUpdated }) {
   const router = useRouter()
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false)
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
   // Generate a default icon based on group title
@@ -21,6 +24,21 @@ export default function GroupCard({ group }) {
 
   const handleViewGroup = () => {
     router.push(`/groups/${group.id}`)
+  }
+
+  const handleSettingsClick = () => {
+    setIsSettingsModalOpen(true)
+  }
+
+  const handleSettingsModalClose = () => {
+    setIsSettingsModalOpen(false)
+  }
+
+  const handleGroupUpdated = (updatedGroup) => {
+    if (onGroupUpdated) {
+      onGroupUpdated(updatedGroup)
+    }
+    setIsSettingsModalOpen(false)
   }
 
   return (
@@ -67,11 +85,16 @@ export default function GroupCard({ group }) {
           <button className="btn-primary" onClick={handleViewGroup}>
             View Group
           </button>
-          {group.is_creator && (
-            <button className="btn-outline">Settings</button>
-          )}
         </div>
       </div>
+
+      {/* Group Settings Modal */}
+      <GroupSettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={handleSettingsModalClose}
+        onGroupUpdated={handleGroupUpdated}
+        group={group}
+      />
     </div>
   )
 }

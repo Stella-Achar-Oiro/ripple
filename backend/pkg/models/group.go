@@ -91,6 +91,13 @@ type CreateGroupCommentRequest struct {
 	ImagePath *string `json:"image_path"`
 }
 
+type UpdateGroupRequest struct {
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	AvatarPath  *string `json:"avatar_path"`
+	CoverPath   *string `json:"cover_path"`
+}
+
 // CreateGroup creates a new group
 func (gr *GroupRepository) CreateGroup(creatorID int, req *CreateGroupRequest) (*Group, error) {
 	// Validate input
@@ -194,6 +201,47 @@ func (gr *GroupRepository) GetGroup(groupID, viewerID int) (*Group, error) {
 	group.IsMember = status == constants.GroupMemberStatusAccepted
 
 	return group, nil
+}
+
+// UpdateGroup updates an existing group
+func (gr *GroupRepository) UpdateGroup(groupID, userID int, req *UpdateGroupRequest) (*Group, error) {
+	// Validate input
+	if strings.TrimSpace(req.Title) == "" {
+		return nil, fmt.Errorf("group title is required")
+	}
+
+	// Check if user is the creator of the group
+	isCreator, err := gr.IsCreator(groupID, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check creator status: %w", err)
+	}
+	if !isCreator {
+		return nil, fmt.Errorf("only group creator can update group information")
+	}
+
+	// Update group
+	query := `
+		UPDATE groups
+		SET title = ?, description = ?, avatar_path = ?, cover_path = ?, updated_at = ?
+		WHERE id = ?
+	`
+
+	now := time.Now()
+	_, err = gr.db.Exec(query,
+		strings.TrimSpace(req.Title),
+		strings.TrimSpace(req.Description),
+		req.AvatarPath,
+		req.CoverPath,
+		now,
+		groupID,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to update group: %w", err)
+	}
+
+	// Return updated group
+	return gr.GetGroup(groupID, userID)
 }
 
 // GetAllGroups gets all groups (for browsing)

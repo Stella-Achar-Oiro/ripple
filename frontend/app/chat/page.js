@@ -1,17 +1,33 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useWebSocket } from '../../contexts/WebSocketContext'
 import RouteGuard from '../../components/Auth/RouteGuard'
 import MainLayout from '../../components/Layout/MainLayout'
 import ChatSidebar from '../../components/Chat/ChatSidebar'
 import ChatMain from '../../components/Chat/ChatMain'
 import styles from './page.module.css'
+import { useSearchParams } from 'next/navigation'
 
 export default function ChatPage() {
   const [selectedConversation, setSelectedConversation] = useState(null)
   const [selectedChatId, setSelectedChatId] = useState(null)
   const { isConnected, connectionError } = useWebSocket()
+  const searchParams = useSearchParams()
+
+  // Helper to select a conversation by user ID
+  const handleSelectByUserId = (userId) => {
+    // Try to find the conversation in the sidebar (by id)
+    // We'll use a custom event to communicate with ChatSidebar
+    window.dispatchEvent(new CustomEvent('select-chat-by-user', { detail: { userId: Number(userId) } }))
+  }
+
+  useEffect(() => {
+    const userId = searchParams.get('user')
+    if (userId) {
+      handleSelectByUserId(userId)
+    }
+  }, [searchParams])
 
   const handleSelectChat = (conversation) => {
     setSelectedConversation(conversation)

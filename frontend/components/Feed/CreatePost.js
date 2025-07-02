@@ -12,6 +12,8 @@ export default function CreatePost({ onPostCreated }) {
   const [error, setError] = useState('')
   const [mediaFile, setMediaFile] = useState(null)
   const [mediaPreview, setMediaPreview] = useState(null)
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
   const [followers, setFollowers] = useState([])
   const [selectedFollowers, setSelectedFollowers] = useState([])
 
@@ -19,7 +21,6 @@ export default function CreatePost({ onPostCreated }) {
     if (privacy === 'private' && user?.id) {
       const fetchFollowers = async () => {
         try {
-          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
           const response = await fetch(`${API_URL}/api/follow/followers/${user.id}`, { credentials: 'include' })
           if (!response.ok) throw new Error('Failed to fetch followers')
           const result = await response.json()
@@ -62,7 +63,6 @@ export default function CreatePost({ onPostCreated }) {
     setError('')
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
       let imagePath = null
 
       // If there's a media file, upload it first
@@ -133,9 +133,22 @@ export default function CreatePost({ onPostCreated }) {
     <div className="card">
       <div className={styles.createPost}>
         <div className={styles.createPostHeader}>
-          <textarea
+          <div className="user-avatar">
+            {user?.avatar_path ? (
+              <img 
+                src={`${API_URL}${user.avatar_path}`}
+                alt={`${user.first_name} ${user.last_name}`}
+                className={styles.avatarImage}
+              />
+            ) : (
+              <span className={styles.avatarText}>
+                {user?.first_name?.charAt(0)}{user?.last_name?.charAt(0)}
+              </span>
+            )}
+          </div>
+          <textarea 
             className={styles.postInput}
-            placeholder={`What's on your mind, ${user?.first_name || 'User'}?`}
+            placeholder={`What's on your mind, ${user?.first_name || 'there'}?`}
             value={postContent}
             onChange={(e) => setPostContent(e.target.value)}
             disabled={isLoading}
@@ -143,11 +156,7 @@ export default function CreatePost({ onPostCreated }) {
         </div>
         {mediaPreview && (
           <div className={styles.imagePreview}>
-            {mediaFile.type.startsWith('video/') ? (
-              <video src={mediaPreview} controls />
-            ) : (
-              <img src={mediaPreview} alt="Preview" />
-            )}
+            <img src={mediaPreview} alt="Preview" />
             <button 
               className={styles.removeImage}
               onClick={() => {
@@ -165,13 +174,13 @@ export default function CreatePost({ onPostCreated }) {
             <label className={styles.postOption}>
               <input
                 type="file"
-                accept="image/*,video/*"
+                accept="image/*"
                 onChange={handleFileChange}
                 style={{ display: 'none' }}
                 disabled={isLoading}
               />
-              <i className="fas fa-photo-video"></i>
-              Photo/Video
+              <i className="fas fa-image"></i>
+              Photo
             </label>
             <div className={styles.postOption}>
               <i className="fas fa-smile"></i>

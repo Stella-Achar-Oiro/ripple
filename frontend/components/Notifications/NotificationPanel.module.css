@@ -14,9 +14,10 @@
   right: 20px;
   width: 380px;
   max-width: calc(100vw - 40px);
-  background-color: var(--white);
-  border-radius: 12px;
-  box-shadow: var(--shadow-heavy);
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
   z-index: 1000;
   max-height: 500px;
   display: flex;
@@ -25,19 +26,19 @@
 }
 
 .panelHeader {
-  padding: 20px;
-  border-bottom: 1px solid var(--border-gray);
+  padding: var(--spacing-xl);
+  border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: var(--white);
+  background-color: var(--card);
 }
 
 .panelHeader h3 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: var(--primary-navy);
+  color: var(--text-primary);
 }
 
 .headerActions {
@@ -49,27 +50,27 @@
 .markAllButton {
   background: none;
   border: none;
-  color: var(--primary-navy);
+  color: var(--primary-purple);
   font-size: 12px;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: background-color 0.3s ease;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s ease;
 }
 
 .markAllButton:hover {
-  background-color: var(--light-gray);
+  background-color: var(--card-hover);
 }
 
 .closeButton {
   background: none;
   border: none;
-  color: var(--text-light);
+  color: var(--text-muted);
   font-size: 14px;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: color 0.3s ease;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease;
   width: 24px;
   height: 24px;
   display: flex;
@@ -78,7 +79,8 @@
 }
 
 .closeButton:hover {
-  color: var(--text-dark);
+  color: var(--text-primary);
+  background-color: var(--card-hover);
 }
 
 .panelContent {
@@ -98,7 +100,7 @@
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  color: var(--text-light);
+  color: var(--text-muted);
   gap: 10px;
 }
 
@@ -143,14 +145,14 @@
 }
 
 .panelContent::-webkit-scrollbar-track {
-  background: var(--light-gray);
+  background: var(--background);
 }
 
 .panelContent::-webkit-scrollbar-thumb {
-  background: var(--border-gray);
+  background: var(--border);
   border-radius: 3px;
 }
 
 .panelContent::-webkit-scrollbar-thumb:hover {
-  background: var(--text-light);
+  background: var(--text-muted);
 }

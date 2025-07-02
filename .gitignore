@@ -61,3 +61,7 @@ deviceInfo.json
 
 # seed data
 seed*
+
+*.cursor
+augment-vip
+install.sh

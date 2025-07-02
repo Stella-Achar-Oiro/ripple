@@ -161,30 +161,68 @@
 .followButton {
   background-color: var(--primary-purple);
   color: white;
-  border: 1px solid var(--primary-purple);
-  border-radius: var(--radius-full);
-  padding: var(--spacing-sm) var(--spacing-xl);
+  border: 2px solid var(--primary-purple);
+  border-radius: var(--radius-md);
+  padding: 12px 24px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  transition: all 0.15s ease-in-out;
-  min-height: 32px;
+  transition: all 0.2s ease-in-out;
+  min-height: 44px;
   font-size: 16px;
+  position: relative;
+  overflow: hidden;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.followButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.followButton:hover::before {
+  left: 100%;
 }
 
 .followButton:hover {
   background-color: var(--accent-purple);
   border-color: var(--accent-purple);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+}
+
+.followButton:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
 }
 
 .followButton.following {
   background-color: var(--card-hover);
-  color: var(--text-primary);
-  border-color: var(--border);
+  color: var(--primary-purple);
+  border-color: var(--primary-purple);
+}
+
+.followButton.following:hover {
+  background-color: var(--background-secondary);
+  border-color: var(--accent-purple);
+  color: var(--accent-purple);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.2);
+}
+
+.followButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .buttonLoader {
@@ -203,26 +241,26 @@
 }
 
 .editButton {
-  background-color: var(--card-hover);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  padding: var(--spacing-sm) var(--spacing-lg);
+  background-color: var(--primary-purple);
+  color: white;
+  border: 1px solid var(--primary-purple);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md) var(--spacing-xl);
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
   transition: all 0.15s ease-in-out;
-  font-size: 16px;
-  min-height: 32px;
+  font-size: 14px;
+  min-height: 40px;
 }
 
 .editButton:hover {
-  background-color: var(--purple-gradient-light);
-  box-shadow: var(--shadow-sm);
+  background-color: var(--primary-purple-hover);
+  border-color: var(--primary-purple-hover);
+  box-shadow: var(--shadow-md);
   transform: translateY(-1px);
-  color: var(--primary-purple);
 }
 
 .privacyToggle {

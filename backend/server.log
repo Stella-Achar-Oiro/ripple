@@ -1,0 +1,671 @@
+2025/06/22 08:40:51 Migrations completed successfully
+2025/06/22 08:40:51 Server starting on port 8080
+2025/06/22 08:44:01 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 08:44:01 AuthMiddleware: Found session cookie: 94b0e2edd65d35c7078ef29f537d83a750853c1d4e409331a24ea8213500c5e5
+2025/06/22 08:44:01 AuthMiddleware: Session validated successfully: UserID=1
+2025/06/22 08:44:01 GetProfile request for user ID: 1
+2025/06/22 08:44:01 GetProfile completed for user ID: 1
+2025/06/22 08:44:01 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 08:44:01 AuthMiddleware: Found session cookie: 94b0e2edd65d35c7078ef29f537d83a750853c1d4e409331a24ea8213500c5e5
+2025/06/22 08:44:01 AuthMiddleware: Session validated successfully: UserID=1
+2025/06/22 08:44:01 GetProfile request for user ID: 1
+2025/06/22 08:44:01 GetProfile completed for user ID: 1
+2025/06/22 08:44:02 WebSocket: Loaded 1 groups for user 1
+2025/06/22 08:44:02 WebSocket: User 1 connected
+2025/06/22 08:44:02 WebSocket: Message sent to user 1
+2025/06/22 08:44:02 AuthMiddleware: Processing request to /api/notifications
+2025/06/22 08:44:02 AuthMiddleware: Found session cookie: 94b0e2edd65d35c7078ef29f537d83a750853c1d4e409331a24ea8213500c5e5
+2025/06/22 08:44:02 AuthMiddleware: Session validated successfully: UserID=1
+2025/06/22 08:44:04 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 08:44:04 AuthMiddleware: Found session cookie: 94b0e2edd65d35c7078ef29f537d83a750853c1d4e409331a24ea8213500c5e5
+2025/06/22 08:44:04 AuthMiddleware: Session validated successfully: UserID=1
+2025/06/22 08:44:04 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 08:44:04 AuthMiddleware: Found session cookie: 94b0e2edd65d35c7078ef29f537d83a750853c1d4e409331a24ea8213500c5e5
+2025/06/22 08:44:04 AuthMiddleware: Session validated successfully: UserID=1
+2025/06/22 08:44:23 AuthMiddleware: Processing request to /api/posts/update
+2025/06/22 08:44:23 AuthMiddleware: Found session cookie: 94b0e2edd65d35c7078ef29f537d83a750853c1d4e409331a24ea8213500c5e5
+2025/06/22 08:44:23 AuthMiddleware: Session validated successfully: UserID=1
+2025/06/22 08:44:30 AuthMiddleware: Processing request to /api/posts/comments/24
+2025/06/22 08:44:30 AuthMiddleware: Found session cookie: 94b0e2edd65d35c7078ef29f537d83a750853c1d4e409331a24ea8213500c5e5
+2025/06/22 08:44:30 AuthMiddleware: Session validated successfully: UserID=1
+2025/06/22 08:44:30 AuthMiddleware: Processing request to /api/posts/comments/24
+2025/06/22 08:44:30 AuthMiddleware: Found session cookie: 94b0e2edd65d35c7078ef29f537d83a750853c1d4e409331a24ea8213500c5e5
+2025/06/22 08:44:30 AuthMiddleware: Session validated successfully: UserID=1
+2025/06/22 08:44:32 WebSocket: Message sent to user 1
+2025/06/22 08:44:34 AuthMiddleware: Processing request to /api/posts/comment
+2025/06/22 08:44:34 AuthMiddleware: Found session cookie: 94b0e2edd65d35c7078ef29f537d83a750853c1d4e409331a24ea8213500c5e5
+2025/06/22 08:44:34 AuthMiddleware: Session validated successfully: UserID=1
+2025/06/22 08:44:34 AuthMiddleware: Processing request to /api/posts/comments/24
+2025/06/22 08:44:34 AuthMiddleware: Found session cookie: 94b0e2edd65d35c7078ef29f537d83a750853c1d4e409331a24ea8213500c5e5
+2025/06/22 08:44:34 AuthMiddleware: Session validated successfully: UserID=1
+2025/06/22 08:44:51 AuthMiddleware: Processing request to /api/posts/delete/23
+2025/06/22 08:44:51 AuthMiddleware: Found session cookie: 94b0e2edd65d35c7078ef29f537d83a750853c1d4e409331a24ea8213500c5e5
+2025/06/22 08:44:51 AuthMiddleware: Session validated successfully: UserID=1
+2025/06/22 08:45:01 AuthMiddleware: Processing request to /api/posts/delete/22
+2025/06/22 08:45:01 AuthMiddleware: Found session cookie: 94b0e2edd65d35c7078ef29f537d83a750853c1d4e409331a24ea8213500c5e5
+2025/06/22 08:45:01 AuthMiddleware: Session validated successfully: UserID=1
+2025/06/22 08:45:02 WebSocket: Message sent to user 1
+2025/06/22 08:45:14 AuthMiddleware: Processing request to /api/chat/conversations
+2025/06/22 08:45:14 AuthMiddleware: Found session cookie: 94b0e2edd65d35c7078ef29f537d83a750853c1d4e409331a24ea8213500c5e5
+2025/06/22 08:45:14 AuthMiddleware: Session validated successfully: UserID=1
+2025/06/22 08:45:14 AuthMiddleware: Processing request to /api/chat/conversations
+2025/06/22 08:45:14 AuthMiddleware: Found session cookie: 94b0e2edd65d35c7078ef29f537d83a750853c1d4e409331a24ea8213500c5e5
+2025/06/22 08:45:14 AuthMiddleware: Session validated successfully: UserID=1
+2025/06/22 08:45:24 Logout attempt for session: 94b0e2edd65d35c7078ef29f537d83a750853c1d4e409331a24ea8213500c5e5
+2025/06/22 08:45:25 Session cookie cleared
+2025/06/22 08:45:25 Logout completed for session: 94b0e2edd65d35c7078ef29f537d83a750853c1d4e409331a24ea8213500c5e5
+2025/06/22 08:45:25 WebSocket error: websocket: close 1000 (normal): User disconnected
+2025/06/22 08:45:25 WebSocket: User 1 disconnected
+2025/06/22 08:46:01 Registration attempt for email: stellaoiro11@gmail.com
+2025/06/22 08:46:02 User created successfully: ID=6, Email=stellaoiro11@gmail.com
+2025/06/22 08:46:02 Session created successfully: ID=363c922b96eed9d17692dc00a6726cc1293f1665dabadedef86fd13aad6a95b0, UserID=6, Expires=2025-07-22 08:46:02.285711156 +0300 EAT m=+2592311.198706763
+2025/06/22 08:46:02 Session cookie set: Name=session_id, Value=363c922b96eed9d17692dc00a6726cc1293f1665dabadedef86fd13aad6a95b0, Expires=2025-07-22 08:46:02.285711156 +0300 EAT m=+2592311.198706763
+2025/06/22 08:46:02 Session cookie set for user ID 6
+2025/06/22 08:46:02 Registration completed successfully for user ID 6
+2025/06/22 08:46:33 Registration attempt for email: stellaoiro11@gmail.com
+2025/06/22 08:46:33 Registration failed - email already exists: stellaoiro11@gmail.com
+2025/06/22 08:47:04 Registration attempt for email: test@jest.com
+2025/06/22 08:47:04 Registration validation failed for test@jest.com: last_name: must be at least 2 characters long
+2025/06/22 08:47:30 Registration attempt for email: test@jest.com
+2025/06/22 08:47:30 Registration validation failed for test@jest.com: last_name: must be at least 2 characters long
+2025/06/22 08:48:43 Registration attempt for email: test@jest.com
+2025/06/22 08:48:43 User created successfully: ID=7, Email=test@jest.com
+2025/06/22 08:48:43 Session created successfully: ID=de2a098cf28888c3d8a66bd747435b5cf29b3f0e3877ab3337b552bce59171b3, UserID=7, Expires=2025-07-22 08:48:43.977299297 +0300 EAT m=+2592472.890294923
+2025/06/22 08:48:43 Session cookie set: Name=session_id, Value=de2a098cf28888c3d8a66bd747435b5cf29b3f0e3877ab3337b552bce59171b3, Expires=2025-07-22 08:48:43.977299297 +0300 EAT m=+2592472.890294923
+2025/06/22 08:48:43 Session cookie set for user ID 7
+2025/06/22 08:48:43 Registration completed successfully for user ID 7
+2025/06/22 08:49:03 Login attempt for email: test@jest.com
+2025/06/22 08:49:04 Login session created: ID=ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f, UserID=7
+2025/06/22 08:49:04 Session cookie set: Name=session_id, Value=ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f, Expires=2025-07-22 08:49:04.297107478 +0300 EAT m=+2592493.210103055
+2025/06/22 08:49:04 Login completed successfully for user ID 7
+2025/06/22 08:49:04 WebSocket: Loaded 0 groups for user 7
+2025/06/22 08:49:04 WebSocket: User 7 connected
+2025/06/22 08:49:04 WebSocket: Message sent to user 7
+2025/06/22 08:49:04 AuthMiddleware: Processing request to /api/notifications
+2025/06/22 08:49:04 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:49:04 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:49:04 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 08:49:04 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:49:04 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:49:04 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 08:49:04 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:49:04 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:49:21 AuthMiddleware: Processing request to /api/auth/search
+2025/06/22 08:49:21 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:49:21 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:49:21 AuthMiddleware: Processing request to /api/auth/search
+2025/06/22 08:49:21 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:49:21 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:49:21 AuthMiddleware: Processing request to /api/groups/search
+2025/06/22 08:49:21 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:49:21 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:49:21 AuthMiddleware: Processing request to /api/groups/search
+2025/06/22 08:49:21 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:49:21 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:49:21 WebSocket error: websocket: close 1000 (normal): User disconnected
+2025/06/22 08:49:21 WebSocket: User 7 disconnected
+2025/06/22 08:49:52 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 08:49:52 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:49:52 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:49:52 GetProfile request for user ID: 7
+2025/06/22 08:49:52 GetProfile completed for user ID: 7
+2025/06/22 08:49:52 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 08:49:52 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:49:52 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:49:52 GetProfile request for user ID: 7
+2025/06/22 08:49:52 GetProfile completed for user ID: 7
+2025/06/22 08:49:52 WebSocket: Loaded 0 groups for user 7
+2025/06/22 08:49:52 WebSocket: User 7 connected
+2025/06/22 08:49:52 WebSocket: Message sent to user 7
+2025/06/22 08:49:52 AuthMiddleware: Processing request to /api/notifications
+2025/06/22 08:49:52 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:49:52 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:49:53 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 08:49:53 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:49:53 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:49:53 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 08:49:53 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:49:53 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:50:22 WebSocket: Message sent to user 7
+2025/06/22 08:50:31 AuthMiddleware: Processing request to /api/upload/post
+2025/06/22 08:50:31 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:50:31 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:50:31 AuthMiddleware: Processing request to /api/posts
+2025/06/22 08:50:31 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:50:31 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:50:52 WebSocket: Message sent to user 7
+2025/06/22 08:51:22 WebSocket: Message sent to user 7
+2025/06/22 08:51:52 WebSocket: Message sent to user 7
+2025/06/22 08:51:57 AuthMiddleware: Processing request to /api/groups/invitations
+2025/06/22 08:51:57 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:51:57 AuthMiddleware: Processing request to /api/groups/user
+2025/06/22 08:51:57 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:51:57 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:51:57 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:51:57 AuthMiddleware: Processing request to /api/groups/invitations
+2025/06/22 08:51:57 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:51:57 AuthMiddleware: Processing request to /api/groups/user
+2025/06/22 08:51:57 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:51:57 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:51:57 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:07 AuthMiddleware: Processing request to /api/groups/all
+2025/06/22 08:52:07 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:07 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:07 AuthMiddleware: Processing request to /api/groups/all
+2025/06/22 08:52:07 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:07 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:16 AuthMiddleware: Processing request to /api/groups/user
+2025/06/22 08:52:16 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:16 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:16 AuthMiddleware: Processing request to /api/groups/user
+2025/06/22 08:52:16 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:16 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:21 WebSocket: User 7 disconnected
+2025/06/22 08:52:24 AuthMiddleware: Processing request to /api/groups/user
+2025/06/22 08:52:24 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:24 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:24 AuthMiddleware: Processing request to /api/groups/user
+2025/06/22 08:52:24 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:24 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 08:52:24 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:24 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:24 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:24 GetProfile request for user ID: 7
+2025/06/22 08:52:24 GetProfile completed for user ID: 7
+2025/06/22 08:52:25 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 08:52:25 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:25 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:25 GetProfile request for user ID: 7
+2025/06/22 08:52:25 GetProfile completed for user ID: 7
+2025/06/22 08:52:25 AuthMiddleware: Processing request to /api/groups/invitations
+2025/06/22 08:52:25 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:25 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:25 AuthMiddleware: Processing request to /api/notifications
+2025/06/22 08:52:25 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:25 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:25 AuthMiddleware: Processing request to /api/groups/invitations
+2025/06/22 08:52:25 WebSocket: Loaded 0 groups for user 7
+2025/06/22 08:52:25 WebSocket: User 7 connected
+2025/06/22 08:52:25 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:25 WebSocket: Message sent to user 7
+2025/06/22 08:52:25 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:25 AuthMiddleware: Processing request to /api/notifications
+2025/06/22 08:52:25 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:25 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:27 AuthMiddleware: Processing request to /api/groups/all
+2025/06/22 08:52:27 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:27 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:27 AuthMiddleware: Processing request to /api/groups/all
+2025/06/22 08:52:27 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:27 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:29 AuthMiddleware: Processing request to /api/groups/join
+2025/06/22 08:52:29 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:29 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:29 AuthMiddleware: Processing request to /api/groups/all
+2025/06/22 08:52:29 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:29 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:34 AuthMiddleware: Processing request to /api/groups/1/members
+2025/06/22 08:52:34 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:34 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:34 AuthMiddleware: Processing request to /api/groups/1
+2025/06/22 08:52:34 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:34 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:34 AuthMiddleware: Processing request to /api/groups/1
+2025/06/22 08:52:34 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:34 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:34 AuthMiddleware: Processing request to /api/groups/1/members
+2025/06/22 08:52:34 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:34 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:39 AuthMiddleware: Processing request to /api/groups/posts/get/1
+2025/06/22 08:52:39 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:39 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:39 AuthMiddleware: Processing request to /api/groups/posts/get/1
+2025/06/22 08:52:39 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:39 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:41 AuthMiddleware: Processing request to /api/groups/posts/get/1
+2025/06/22 08:52:41 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:41 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:43 AuthMiddleware: Processing request to /api/groups/1/events
+2025/06/22 08:52:43 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:43 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:43 AuthMiddleware: Processing request to /api/groups/1/events
+2025/06/22 08:52:43 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:43 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:48 AuthMiddleware: Processing request to /api/groups/invitations
+2025/06/22 08:52:48 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:48 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:48 AuthMiddleware: Processing request to /api/groups/user
+2025/06/22 08:52:48 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:48 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:48 AuthMiddleware: Processing request to /api/groups/invitations
+2025/06/22 08:52:48 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:48 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:48 AuthMiddleware: Processing request to /api/groups/user
+2025/06/22 08:52:48 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:48 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:50 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 08:52:50 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:50 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:50 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 08:52:50 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 08:52:50 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 08:52:55 WebSocket: Message sent to user 7
+2025/06/22 08:53:25 WebSocket: Message sent to user 7
+2025/06/22 08:53:55 WebSocket: Message sent to user 7
+2025/06/22 08:54:25 WebSocket: Message sent to user 7
+2025/06/22 08:54:55 WebSocket: Message sent to user 7
+2025/06/22 08:55:25 WebSocket: Message sent to user 7
+2025/06/22 08:55:55 WebSocket: Message sent to user 7
+2025/06/22 08:56:54 WebSocket: Message sent to user 7
+2025/06/22 08:57:54 WebSocket: Message sent to user 7
+2025/06/22 08:58:54 WebSocket: Message sent to user 7
+2025/06/22 08:59:54 WebSocket: Message sent to user 7
+2025/06/22 09:00:54 WebSocket: Message sent to user 7
+2025/06/22 09:01:54 WebSocket: Message sent to user 7
+2025/06/22 09:02:54 WebSocket: Message sent to user 7
+2025/06/22 09:03:54 WebSocket: Message sent to user 7
+2025/06/22 09:04:25 WebSocket: Message sent to user 7
+2025/06/22 09:04:55 WebSocket: Message sent to user 7
+2025/06/22 09:05:54 WebSocket: Message sent to user 7
+2025/06/22 09:06:54 WebSocket: Message sent to user 7
+2025/06/22 09:07:54 WebSocket: Message sent to user 7
+2025/06/22 09:08:54 WebSocket: Message sent to user 7
+2025/06/22 09:09:54 WebSocket: Message sent to user 7
+2025/06/22 09:10:54 WebSocket: Message sent to user 7
+2025/06/22 09:11:54 WebSocket: Message sent to user 7
+2025/06/22 09:12:54 WebSocket: Message sent to user 7
+2025/06/22 09:13:54 WebSocket: Message sent to user 7
+2025/06/22 09:14:54 WebSocket: Message sent to user 7
+2025/06/22 09:15:54 WebSocket: Message sent to user 7
+2025/06/22 09:16:54 WebSocket: Message sent to user 7
+2025/06/22 09:17:41 WebSocket: Message sent to user 7
+2025/06/22 09:17:55 WebSocket: Message sent to user 7
+2025/06/22 09:17:58 WebSocket: User 7 disconnected
+2025/06/22 09:18:02 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 09:18:02 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 09:18:02 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 09:18:02 GetProfile request for user ID: 7
+2025/06/22 09:18:02 GetProfile completed for user ID: 7
+2025/06/22 09:18:02 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 09:18:02 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 09:18:02 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 09:18:02 GetProfile request for user ID: 7
+2025/06/22 09:18:02 GetProfile completed for user ID: 7
+2025/06/22 09:18:02 WebSocket: Loaded 0 groups for user 7
+2025/06/22 09:18:02 WebSocket: User 7 connected
+2025/06/22 09:18:02 WebSocket: Message sent to user 7
+2025/06/22 09:18:02 AuthMiddleware: Processing request to /api/notifications
+2025/06/22 09:18:02 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 09:18:02 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 09:18:32 WebSocket: Message sent to user 7
+2025/06/22 09:19:02 WebSocket: Message sent to user 7
+2025/06/22 09:19:32 WebSocket: Message sent to user 7
+2025/06/22 09:20:02 WebSocket: Message sent to user 7
+2025/06/22 09:20:32 WebSocket: Message sent to user 7
+2025/06/22 09:21:02 WebSocket: Message sent to user 7
+2025/06/22 09:21:32 WebSocket: Message sent to user 7
+2025/06/22 09:21:33 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 09:21:33 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 09:21:33 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 09:21:33 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 09:21:33 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 09:21:33 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 09:22:02 WebSocket: Message sent to user 7
+2025/06/22 09:22:32 WebSocket: Message sent to user 7
+2025/06/22 09:23:02 WebSocket: Message sent to user 7
+2025/06/22 09:23:32 WebSocket: Message sent to user 7
+2025/06/22 09:24:02 WebSocket: Message sent to user 7
+2025/06/22 09:24:30 WebSocket: User 7 disconnected
+2025/06/22 09:24:34 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 09:24:34 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 09:24:34 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 09:24:34 GetProfile request for user ID: 7
+2025/06/22 09:24:34 GetProfile completed for user ID: 7
+2025/06/22 09:24:34 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 09:24:34 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 09:24:34 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 09:24:34 GetProfile request for user ID: 7
+2025/06/22 09:24:34 GetProfile completed for user ID: 7
+2025/06/22 09:24:34 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 09:24:34 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 09:24:34 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 09:24:34 WebSocket: Loaded 0 groups for user 7
+2025/06/22 09:24:34 WebSocket: User 7 connected
+2025/06/22 09:24:34 WebSocket: Message sent to user 7
+2025/06/22 09:24:34 AuthMiddleware: Processing request to /api/notifications
+2025/06/22 09:24:34 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 09:24:34 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 09:24:34 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 09:24:34 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 09:24:34 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 09:25:04 WebSocket: Message sent to user 7
+2025/06/22 09:25:34 WebSocket: Message sent to user 7
+2025/06/22 09:25:37 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 09:25:37 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 09:25:37 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 09:25:37 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 09:25:37 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 09:25:37 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 09:25:37 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 09:25:37 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 09:25:37 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 09:25:38 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 09:25:38 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 09:25:38 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 09:25:39 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 09:25:39 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 09:25:39 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 09:25:39 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 09:25:39 AuthMiddleware: Found session cookie: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 09:25:39 AuthMiddleware: Session validated successfully: UserID=7
+2025/06/22 09:26:04 WebSocket: Message sent to user 7
+2025/06/22 09:26:04 Logout attempt for session: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 09:26:05 Session cookie cleared
+2025/06/22 09:26:05 Logout completed for session: ca99200b7f78b76741b998434b783f34f8342d451d1b7235e75d895c25ff692f
+2025/06/22 09:26:05 WebSocket error: websocket: close 1000 (normal): User disconnected
+2025/06/22 09:26:05 WebSocket: User 7 disconnected
+2025/06/22 09:26:17 Login attempt for email: stellaacharoiro@gmail.com
+2025/06/22 09:26:17 Login session created: ID=94065d4767a74c52bfcc24f0910655292f26d11234a0280d1ce345290f23e5a1, UserID=4
+2025/06/22 09:26:17 Session cookie set: Name=session_id, Value=94065d4767a74c52bfcc24f0910655292f26d11234a0280d1ce345290f23e5a1, Expires=2025-07-22 09:26:17.598674707 +0300 EAT m=+2594726.511670257
+2025/06/22 09:26:17 Login completed successfully for user ID 4
+2025/06/22 09:26:17 AuthMiddleware: Processing request to /api/notifications
+2025/06/22 09:26:17 AuthMiddleware: Found session cookie: 94065d4767a74c52bfcc24f0910655292f26d11234a0280d1ce345290f23e5a1
+2025/06/22 09:26:17 AuthMiddleware: Session validated successfully: UserID=4
+2025/06/22 09:26:17 WebSocket: Loaded 0 groups for user 4
+2025/06/22 09:26:17 WebSocket: User 4 connected
+2025/06/22 09:26:17 WebSocket: Message sent to user 4
+2025/06/22 09:26:17 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 09:26:17 AuthMiddleware: Found session cookie: 94065d4767a74c52bfcc24f0910655292f26d11234a0280d1ce345290f23e5a1
+2025/06/22 09:26:17 AuthMiddleware: Session validated successfully: UserID=4
+2025/06/22 09:26:17 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 09:26:17 AuthMiddleware: Found session cookie: 94065d4767a74c52bfcc24f0910655292f26d11234a0280d1ce345290f23e5a1
+2025/06/22 09:26:17 AuthMiddleware: Session validated successfully: UserID=4
+2025/06/22 09:26:37 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 09:26:37 AuthMiddleware: Found session cookie: 94065d4767a74c52bfcc24f0910655292f26d11234a0280d1ce345290f23e5a1
+2025/06/22 09:26:37 AuthMiddleware: Session validated successfully: UserID=4
+2025/06/22 09:26:37 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 09:26:37 AuthMiddleware: Found session cookie: 94065d4767a74c52bfcc24f0910655292f26d11234a0280d1ce345290f23e5a1
+2025/06/22 09:26:37 AuthMiddleware: Session validated successfully: UserID=4
+2025/06/22 09:26:47 WebSocket: Message sent to user 4
+2025/06/22 09:27:17 WebSocket: Message sent to user 4
+2025/06/22 09:27:47 WebSocket: Message sent to user 4
+2025/06/22 09:28:17 WebSocket: Message sent to user 4
+2025/06/22 09:28:47 WebSocket: Message sent to user 4
+2025/06/22 09:29:17 WebSocket: Message sent to user 4
+2025/06/22 09:29:47 WebSocket: Message sent to user 4
+2025/06/22 09:30:17 WebSocket: Message sent to user 4
+2025/06/22 09:30:47 WebSocket: Message sent to user 4
+2025/06/22 09:30:49 AuthMiddleware: Processing request to /api/auth/profile/update
+2025/06/22 09:30:49 AuthMiddleware: Found session cookie: 94065d4767a74c52bfcc24f0910655292f26d11234a0280d1ce345290f23e5a1
+2025/06/22 09:30:49 AuthMiddleware: Session validated successfully: UserID=4
+2025/06/22 09:30:49 UpdateProfile request for user ID: 4
+2025/06/22 09:30:49 UpdateProfile valid updates for user ID 4: map[is_public:false]
+2025/06/22 09:30:49 UpdateProfile completed for user ID: 4
+2025/06/22 09:30:50 AuthMiddleware: Processing request to /api/auth/profile/update
+2025/06/22 09:30:50 AuthMiddleware: Found session cookie: 94065d4767a74c52bfcc24f0910655292f26d11234a0280d1ce345290f23e5a1
+2025/06/22 09:30:50 AuthMiddleware: Session validated successfully: UserID=4
+2025/06/22 09:30:50 UpdateProfile request for user ID: 4
+2025/06/22 09:30:50 UpdateProfile valid updates for user ID 4: map[is_public:true]
+2025/06/22 09:30:50 UpdateProfile completed for user ID: 4
+2025/06/22 09:30:55 AuthMiddleware: Processing request to /api/chat/conversations
+2025/06/22 09:30:55 AuthMiddleware: Found session cookie: 94065d4767a74c52bfcc24f0910655292f26d11234a0280d1ce345290f23e5a1
+2025/06/22 09:30:55 AuthMiddleware: Session validated successfully: UserID=4
+2025/06/22 09:30:55 AuthMiddleware: Processing request to /api/chat/conversations
+2025/06/22 09:30:55 AuthMiddleware: Found session cookie: 94065d4767a74c52bfcc24f0910655292f26d11234a0280d1ce345290f23e5a1
+2025/06/22 09:30:55 AuthMiddleware: Session validated successfully: UserID=4
+2025/06/22 09:31:03 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 09:31:03 AuthMiddleware: Found session cookie: 94065d4767a74c52bfcc24f0910655292f26d11234a0280d1ce345290f23e5a1
+2025/06/22 09:31:03 AuthMiddleware: Session validated successfully: UserID=4
+2025/06/22 09:31:03 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 09:31:03 AuthMiddleware: Found session cookie: 94065d4767a74c52bfcc24f0910655292f26d11234a0280d1ce345290f23e5a1
+2025/06/22 09:31:03 AuthMiddleware: Session validated successfully: UserID=4
+2025/06/22 09:31:17 WebSocket: Message sent to user 4
+2025/06/22 09:31:21 AuthMiddleware: Processing request to /api/posts/comments/25
+2025/06/22 09:31:21 AuthMiddleware: Found session cookie: 94065d4767a74c52bfcc24f0910655292f26d11234a0280d1ce345290f23e5a1
+2025/06/22 09:31:21 AuthMiddleware: Session validated successfully: UserID=4
+2025/06/22 09:31:21 AuthMiddleware: Processing request to /api/posts/comments/25
+2025/06/22 09:31:21 AuthMiddleware: Found session cookie: 94065d4767a74c52bfcc24f0910655292f26d11234a0280d1ce345290f23e5a1
+2025/06/22 09:31:21 AuthMiddleware: Session validated successfully: UserID=4
+2025/06/22 09:31:35 Logout attempt for session: 94065d4767a74c52bfcc24f0910655292f26d11234a0280d1ce345290f23e5a1
+2025/06/22 09:31:35 Session cookie cleared
+2025/06/22 09:31:35 Logout completed for session: 94065d4767a74c52bfcc24f0910655292f26d11234a0280d1ce345290f23e5a1
+2025/06/22 09:31:35 WebSocket error: websocket: close 1000 (normal): User disconnected
+2025/06/22 09:31:35 WebSocket: User 4 disconnected
+2025/06/22 09:32:14 Registration attempt for email: betty@gmail.com
+2025/06/22 09:32:15 User created successfully: ID=8, Email=betty@gmail.com
+2025/06/22 09:32:15 Session created successfully: ID=6626fc21cc7ac511d03b4551338cd2befe852cfb7d28959581c05eeb5b6d2936, UserID=8, Expires=2025-07-22 09:32:15.255941906 +0300 EAT m=+2595084.168937534
+2025/06/22 09:32:15 Session cookie set: Name=session_id, Value=6626fc21cc7ac511d03b4551338cd2befe852cfb7d28959581c05eeb5b6d2936, Expires=2025-07-22 09:32:15.255941906 +0300 EAT m=+2595084.168937534
+2025/06/22 09:32:15 Session cookie set for user ID 8
+2025/06/22 09:32:15 Registration completed successfully for user ID 8
+2025/06/22 09:37:14 Registration attempt for email: gg@gmail.com
+2025/06/22 09:37:15 User created successfully: ID=9, Email=gg@gmail.com
+2025/06/22 09:37:15 Session created successfully: ID=2b2b0528c1d406698c4c867a78859d338035ab1c8446e82a577ff7028a28f772, UserID=9, Expires=2025-07-22 09:37:15.07742415 +0300 EAT m=+2595383.990419707
+2025/06/22 09:37:15 Session cookie set: Name=session_id, Value=2b2b0528c1d406698c4c867a78859d338035ab1c8446e82a577ff7028a28f772, Expires=2025-07-22 09:37:15.07742415 +0300 EAT m=+2595383.990419707
+2025/06/22 09:37:15 Session cookie set for user ID 9
+2025/06/22 09:37:15 Registration completed successfully for user ID 9
+2025/06/22 09:40:07 Registration attempt for email: g@gmail.com
+2025/06/22 09:40:07 User created successfully: ID=10, Email=g@gmail.com
+2025/06/22 09:40:07 Session created successfully: ID=8962beec3b6420aa616ebe9cfd21a90ea4edcf20d617884af4eb87db8623049b, UserID=10, Expires=2025-07-22 09:40:07.774175822 +0300 EAT m=+2595556.687171459
+2025/06/22 09:40:07 Session cookie set: Name=session_id, Value=8962beec3b6420aa616ebe9cfd21a90ea4edcf20d617884af4eb87db8623049b, Expires=2025-07-22 09:40:07.774175822 +0300 EAT m=+2595556.687171459
+2025/06/22 09:40:07 Session cookie set for user ID 10
+2025/06/22 09:40:07 Registration completed successfully for user ID 10
+2025/06/22 09:40:22 Login attempt for email: g@gmail
+2025/06/22 09:40:22 Login validation failed for g@gmail: email: invalid email format
+2025/06/22 09:43:49 Registration attempt for email: g@gmail.com
+2025/06/22 09:43:49 Registration failed - email already exists: g@gmail.com
+2025/06/22 09:44:14 Registration attempt for email: goerge@gmail.com
+2025/06/22 09:44:15 User created successfully: ID=11, Email=goerge@gmail.com
+2025/06/22 09:44:15 Session created successfully: ID=41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9, UserID=11, Expires=2025-07-22 09:44:15.479878961 +0300 EAT m=+2595804.392874547
+2025/06/22 09:44:15 Session cookie set: Name=session_id, Value=41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9, Expires=2025-07-22 09:44:15.479878961 +0300 EAT m=+2595804.392874547
+2025/06/22 09:44:15 Session cookie set for user ID 11
+2025/06/22 09:44:15 Registration completed successfully for user ID 11
+2025/06/22 09:56:14 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 09:56:14 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 09:56:14 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 09:56:14 GetProfile request for user ID: 11
+2025/06/22 09:56:14 GetProfile completed for user ID: 11
+2025/06/22 09:56:14 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 09:56:14 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 09:56:14 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 09:56:14 GetProfile request for user ID: 11
+2025/06/22 09:56:14 GetProfile completed for user ID: 11
+2025/06/22 09:56:14 AuthMiddleware: Processing request to /api/notifications
+2025/06/22 09:56:14 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 09:56:14 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 09:56:14 WebSocket: Loaded 0 groups for user 11
+2025/06/22 09:56:14 WebSocket: User 11 connected
+2025/06/22 09:56:14 WebSocket: Message sent to user 11
+2025/06/22 09:56:14 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 09:56:14 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 09:56:14 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 09:56:14 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 09:56:14 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 09:56:14 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 09:56:44 WebSocket: Message sent to user 11
+2025/06/22 09:57:14 WebSocket: Message sent to user 11
+2025/06/22 09:57:44 WebSocket: Message sent to user 11
+2025/06/22 09:58:14 WebSocket: Message sent to user 11
+2025/06/22 09:58:44 WebSocket: Message sent to user 11
+2025/06/22 09:59:14 WebSocket: Message sent to user 11
+2025/06/22 09:59:44 WebSocket: Message sent to user 11
+2025/06/22 10:00:14 WebSocket: Message sent to user 11
+2025/06/22 10:00:37 Logout attempt for session: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:00:37 Failed to delete session 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9: failed to delete session: attempt to write a readonly database
+2025/06/22 10:00:37 WebSocket error: websocket: close 1000 (normal): User disconnected
+2025/06/22 10:00:37 WebSocket: User 11 disconnected
+2025/06/22 10:00:37 WebSocket: Error updating user presence: attempt to write a readonly database
+2025/06/22 10:02:34 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 10:02:34 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:02:34 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:02:34 GetProfile request for user ID: 11
+2025/06/22 10:02:34 GetProfile completed for user ID: 11
+2025/06/22 10:02:34 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 10:02:34 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:02:34 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:02:34 GetProfile request for user ID: 11
+2025/06/22 10:02:34 GetProfile completed for user ID: 11
+2025/06/22 10:02:34 WebSocket: Loaded 0 groups for user 11
+2025/06/22 10:02:34 WebSocket: User 11 connected
+2025/06/22 10:02:34 WebSocket: Message sent to user 11
+2025/06/22 10:02:34 WebSocket: Error updating user presence: attempt to write a readonly database
+2025/06/22 10:02:34 AuthMiddleware: Processing request to /api/notifications
+2025/06/22 10:02:34 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:02:34 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:02:34 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 10:02:34 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:02:34 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:02:34 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 10:02:34 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:02:34 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:02:49 Logout attempt for session: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:02:49 Failed to delete session 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9: failed to delete session: attempt to write a readonly database
+2025/06/22 10:02:49 WebSocket error: websocket: close 1000 (normal): User disconnected
+2025/06/22 10:02:49 WebSocket: User 11 disconnected
+2025/06/22 10:02:49 WebSocket: Error updating user presence: attempt to write a readonly database
+2025/06/22 10:04:33 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 10:04:33 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:04:33 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:04:33 GetProfile request for user ID: 11
+2025/06/22 10:04:33 GetProfile completed for user ID: 11
+2025/06/22 10:04:33 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 10:04:33 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:04:33 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:04:33 GetProfile request for user ID: 11
+2025/06/22 10:04:33 GetProfile completed for user ID: 11
+2025/06/22 10:04:33 AuthMiddleware: Processing request to /api/notifications
+2025/06/22 10:04:33 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:04:33 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:04:33 WebSocket: Loaded 0 groups for user 11
+2025/06/22 10:04:33 WebSocket: User 11 connected
+2025/06/22 10:04:33 WebSocket: Message sent to user 11
+2025/06/22 10:04:33 WebSocket: Error updating user presence: attempt to write a readonly database
+2025/06/22 10:04:33 AuthMiddleware: Processing request to /api/notifications
+2025/06/22 10:04:33 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:04:33 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:04:33 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 10:04:33 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:04:33 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:04:33 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 10:04:33 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:04:33 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:04:46 Logout attempt for session: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:04:46 Failed to delete session 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9: failed to delete session: attempt to write a readonly database
+2025/06/22 10:04:46 WebSocket error: websocket: close 1000 (normal): User disconnected
+2025/06/22 10:04:46 WebSocket: User 11 disconnected
+2025/06/22 10:04:46 WebSocket: Error updating user presence: attempt to write a readonly database
+2025/06/22 10:04:52 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 10:04:52 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:04:52 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:04:52 GetProfile request for user ID: 11
+2025/06/22 10:04:52 GetProfile completed for user ID: 11
+2025/06/22 10:04:52 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 10:04:52 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:04:52 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:04:52 GetProfile request for user ID: 11
+2025/06/22 10:04:52 GetProfile completed for user ID: 11
+2025/06/22 10:04:52 AuthMiddleware: Processing request to /api/notifications
+2025/06/22 10:04:52 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:04:52 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:04:52 WebSocket: Loaded 0 groups for user 11
+2025/06/22 10:04:52 WebSocket: User 11 connected
+2025/06/22 10:04:52 WebSocket: Message sent to user 11
+2025/06/22 10:04:52 WebSocket: Error updating user presence: attempt to write a readonly database
+2025/06/22 10:04:52 AuthMiddleware: Processing request to /api/notifications
+2025/06/22 10:04:52 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:04:52 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:04:53 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 10:04:53 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:04:53 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:04:53 AuthMiddleware: Processing request to /api/posts/feed
+2025/06/22 10:04:53 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:04:53 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:05:22 WebSocket: Message sent to user 11
+2025/06/22 10:05:33 AuthMiddleware: Processing request to /api/groups/user
+2025/06/22 10:05:33 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:05:33 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:05:33 AuthMiddleware: Processing request to /api/groups/user
+2025/06/22 10:05:33 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:05:33 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:05:38 AuthMiddleware: Processing request to /api/groups/invitations
+2025/06/22 10:05:38 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:05:38 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:05:38 AuthMiddleware: Processing request to /api/groups/user
+2025/06/22 10:05:38 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:05:38 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:05:38 AuthMiddleware: Processing request to /api/groups/invitations
+2025/06/22 10:05:38 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:05:38 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:05:38 AuthMiddleware: Processing request to /api/groups/user
+2025/06/22 10:05:38 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:05:38 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:05:43 AuthMiddleware: Processing request to /api/groups/user
+2025/06/22 10:05:43 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:05:43 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:05:44 AuthMiddleware: Processing request to /api/groups/user
+2025/06/22 10:05:44 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:05:44 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:05:50 WebSocket: User 11 disconnected
+2025/06/22 10:05:50 WebSocket: Error updating user presence: attempt to write a readonly database
+2025/06/22 10:05:51 AuthMiddleware: Processing request to /api/groups/user
+2025/06/22 10:05:51 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:05:51 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:05:51 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 10:05:51 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:05:51 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:05:51 GetProfile request for user ID: 11
+2025/06/22 10:05:51 GetProfile completed for user ID: 11
+2025/06/22 10:05:51 AuthMiddleware: Processing request to /api/groups/user
+2025/06/22 10:05:51 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:05:51 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:05:51 AuthMiddleware: Processing request to /api/auth/profile
+2025/06/22 10:05:51 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:05:51 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:05:51 GetProfile request for user ID: 11
+2025/06/22 10:05:51 GetProfile completed for user ID: 11
+2025/06/22 10:05:51 AuthMiddleware: Processing request to /api/groups/invitations
+2025/06/22 10:05:51 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:05:51 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:05:51 AuthMiddleware: Processing request to /api/notifications
+2025/06/22 10:05:51 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:05:51 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:05:51 WebSocket: Loaded 0 groups for user 11
+2025/06/22 10:05:51 WebSocket: User 11 connected
+2025/06/22 10:05:51 WebSocket: Message sent to user 11
+2025/06/22 10:05:51 WebSocket: Error updating user presence: attempt to write a readonly database
+2025/06/22 10:05:51 AuthMiddleware: Processing request to /api/groups/invitations
+2025/06/22 10:05:51 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:05:51 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:06:21 WebSocket: Message sent to user 11
+2025/06/22 10:06:51 WebSocket: Message sent to user 11
+2025/06/22 10:07:21 WebSocket: Message sent to user 11
+2025/06/22 10:07:51 WebSocket: Message sent to user 11
+2025/06/22 10:08:21 WebSocket: Message sent to user 11
+2025/06/22 10:08:51 WebSocket: Message sent to user 11
+2025/06/22 10:09:21 WebSocket: Message sent to user 11
+2025/06/22 10:09:51 WebSocket: Message sent to user 11
+2025/06/22 10:10:21 WebSocket: Message sent to user 11
+2025/06/22 10:10:51 WebSocket: Message sent to user 11
+2025/06/22 10:11:21 WebSocket: Message sent to user 11
+2025/06/22 10:11:51 WebSocket: Message sent to user 11
+2025/06/22 10:12:21 WebSocket: Message sent to user 11
+2025/06/22 10:12:51 WebSocket: Message sent to user 11
+2025/06/22 10:13:21 WebSocket: Message sent to user 11
+2025/06/22 10:13:51 WebSocket: Message sent to user 11
+2025/06/22 10:14:11 AuthMiddleware: Processing request to /api/groups/all
+2025/06/22 10:14:11 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:14:11 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:14:11 AuthMiddleware: Processing request to /api/groups/all
+2025/06/22 10:14:11 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:14:11 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:14:14 AuthMiddleware: Processing request to /api/groups/join
+2025/06/22 10:14:14 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:14:14 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:14:18 AuthMiddleware: Processing request to /api/groups/join
+2025/06/22 10:14:18 AuthMiddleware: Found session cookie: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:14:18 AuthMiddleware: Session validated successfully: UserID=11
+2025/06/22 10:14:21 WebSocket: Message sent to user 11
+2025/06/22 10:14:36 Logout attempt for session: 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9
+2025/06/22 10:14:36 Failed to delete session 41c0b84b6c1723de39c22255972f1dbce92c236b86a7ddd92a346d36e467a6a9: failed to delete session: attempt to write a readonly database
+2025/06/22 10:14:36 WebSocket error: websocket: close 1000 (normal): User disconnected
+2025/06/22 10:14:36 WebSocket: User 11 disconnected
+2025/06/22 10:14:36 WebSocket: Error updating user presence: attempt to write a readonly database

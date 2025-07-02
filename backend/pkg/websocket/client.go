@@ -2,6 +2,7 @@
 package websocket
 
 import (
+	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -455,6 +456,54 @@ func (c *Client) sendError(errorMsg string) {
 func (h *Hub) SendPrivateMessage(senderID, recipientID int, content string, messageID int) {
 	h.mu.RLock()
 	if client, exists := h.userClients[recipientID]; exists {
+		// Get the full message data from database
+		var messageData map[string]interface{}
+		query := `
+			SELECT m.id, m.sender_id, m.receiver_id, m.content, m.created_at,
+			       u.first_name, u.last_name, u.nickname
+			FROM messages m
+			JOIN users u ON m.sender_id = u.id
+			WHERE m.id = ?
+		`
+		var msgID, msgSenderID, msgReceiverID int
+		var msgContent string
+		var msgCreatedAt time.Time
+		var firstName, lastName, nickname sql.NullString
+		
+		err := h.db.QueryRow(query, messageID).Scan(&msgID, &msgSenderID, &msgReceiverID, &msgContent, &msgCreatedAt, &firstName, &lastName, &nickname)
+		if err == nil {
+			// Convert NullString to regular string, using empty string if NULL
+			firstNameStr := ""
+			if firstName.Valid {
+				firstNameStr = firstName.String
+			}
+			
+			lastNameStr := ""
+			if lastName.Valid {
+				lastNameStr = lastName.String
+			}
+			
+			nicknameStr := ""
+			if nickname.Valid {
+				nicknameStr = nickname.String
+			}
+			
+			messageData = map[string]interface{}{
+				"message": map[string]interface{}{
+					"id":         msgID,
+					"sender_id":  msgSenderID,
+					"receiver_id": msgReceiverID,
+					"content":    msgContent,
+					"created_at": msgCreatedAt,
+					"sender": map[string]interface{}{
+						"first_name": firstNameStr,
+						"last_name":  lastNameStr,
+						"nickname":   nicknameStr,
+					},
+				},
+			}
+		}
+
 		msg := WSMessage{
 			Type:      MessageTypePrivate,
 			Content:   content,
@@ -462,6 +511,7 @@ func (h *Hub) SendPrivateMessage(senderID, recipientID int, content string, mess
 			To:        recipientID,
 			MessageID: messageID,
 			Timestamp: time.Now(),
+			Data:      messageData,
 		}
 		messageBytes, _ := json.Marshal(msg)
 		client.send <- messageBytes
@@ -473,6 +523,54 @@ func (h *Hub) SendPrivateMessage(senderID, recipientID int, content string, mess
 func (h *Hub) SendGroupMessage(groupID, senderID int, content string, messageID int) {
 	h.mu.RLock()
 	if clients, exists := h.groupClients[groupID]; exists {
+		// Get the full message data from database
+		var messageData map[string]interface{}
+		query := `
+			SELECT gm.id, gm.group_id, gm.sender_id, gm.content, gm.created_at,
+			       u.first_name, u.last_name, u.nickname
+			FROM group_messages gm
+			JOIN users u ON gm.sender_id = u.id
+			WHERE gm.id = ?
+		`
+		var msgID, msgGroupID, msgSenderID int
+		var msgContent string
+		var msgCreatedAt time.Time
+		var firstName, lastName, nickname sql.NullString
+
+		err := h.db.QueryRow(query, messageID).Scan(&msgID, &msgGroupID, &msgSenderID, &msgContent, &msgCreatedAt, &firstName, &lastName, &nickname)
+		if err == nil {
+			// Convert NullString to regular string, using empty string if NULL
+			firstNameStr := ""
+			if firstName.Valid {
+				firstNameStr = firstName.String
+			}
+
+			lastNameStr := ""
+			if lastName.Valid {
+				lastNameStr = lastName.String
+			}
+
+			nicknameStr := ""
+			if nickname.Valid {
+				nicknameStr = nickname.String
+			}
+
+			messageData = map[string]interface{}{
+				"message": map[string]interface{}{
+					"id":         msgID,
+					"group_id":   msgGroupID,
+					"sender_id":  msgSenderID,
+					"content":    msgContent,
+					"created_at": msgCreatedAt,
+					"sender": map[string]interface{}{
+						"first_name": firstNameStr,
+						"last_name":  lastNameStr,
+						"nickname":   nicknameStr,
+					},
+				},
+			}
+		}
+
 		msg := WSMessage{
 			Type:      MessageTypeGroup,
 			Content:   content,
@@ -480,6 +578,7 @@ func (h *Hub) SendGroupMessage(groupID, senderID int, content string, messageID 
 			GroupID:   groupID,
 			MessageID: messageID,
 			Timestamp: time.Now(),
+			Data:      messageData,
 		}
 		messageBytes, _ := json.Marshal(msg)
 		for client := range clients {

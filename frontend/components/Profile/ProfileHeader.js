@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import ProfileEditModal from './ProfileEditModal'
+import Avatar from '../shared/Avatar'
 import styles from './ProfileHeader.module.css'
 
 export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle, onProfileUpdate }) {
@@ -70,16 +71,7 @@ export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle,
           </div>
         )}
         <div className={styles.profileAvatar}>
-          {profile.avatar_path ? (
-            <img
-              src={`${API_URL}${profile.avatar_path}`}
-              alt={`${profile.first_name} ${profile.last_name}`}
-            />
-          ) : (
-            <div className={styles.avatarPlaceholder}>
-              {profile.first_name.charAt(0)}{profile.last_name.charAt(0)}
-            </div>
-          )}
+          <Avatar user={profile} size="xlarge" />
           {isCurrentUser && (
             <button
               className={styles.avatarEditButton}
@@ -128,11 +120,20 @@ export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle,
               disabled={isLoading}
             >
               {isLoading ? (
-                <span className={styles.buttonLoader}></span>
+                <>
+                  <span className={styles.buttonLoader}></span>
+                  Loading...
+                </>
               ) : isFollowing ? (
-                <>Following <i className="fas fa-check"></i></>
+                <>
+                  <i className="fas fa-check"></i>
+                  Following
+                </>
               ) : (
-                <>Follow <i className="fas fa-plus"></i></>
+                <>
+                  <i className="fas fa-user-plus"></i>
+                  Follow
+                </>
               )}
             </button>
           )}

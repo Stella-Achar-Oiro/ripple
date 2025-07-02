@@ -3,20 +3,23 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '../../contexts/AuthContext'
 import { useNotifications } from '../../contexts/NotificationContext'
 import { useWebSocket } from '../../contexts/WebSocketContext'
 import NotificationPanel from '../Notifications/NotificationPanel'
+import Avatar from '../shared/Avatar'
 import styles from './Navbar.module.css'
 
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showNotifications, setShowNotifications] = useState(false)
   const router = useRouter()
+  const { user } = useAuth()
   const { unreadCount } = useNotifications()
-  const { isConnected } = useWebSocket()
+  const { isConnected, getTotalUnreadCount } = useWebSocket()
 
   // Calculate total unread message count
-  const messageUnreadCount = 0 // This would need to be calculated from all conversations
+  const messageUnreadCount = getTotalUnreadCount ? getTotalUnreadCount() : 0
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -72,9 +75,13 @@ export default function Navbar() {
               <span className="notification-badge">{unreadCount}</span>
             )}
           </div>
-          <div className={styles.profileAvatar} onClick={handleLogout}>
-            <i className="fas fa-user"></i>
-          </div>
+          <Link 
+            href={user ? `/profile/${user.id}` : '/profile'} 
+            className={styles.profileAvatar}
+            title="My Profile"
+          >
+            <Avatar user={user} size="medium" showFallback={false} />
+          </Link>
         </div>
       </div>
       

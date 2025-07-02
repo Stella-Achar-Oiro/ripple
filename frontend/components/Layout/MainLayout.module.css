@@ -7,17 +7,26 @@
   min-height: calc(100vh - 52px);
   display: flex;
   background-color: var(--background);
+  max-width: 1128px;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
 }
 
 .mainContent {
-  margin-left: calc(50% - 314px);
+  margin-left: 250px;
   padding: var(--spacing-xl);
   flex: 1;
-  max-width: calc(50% + 314px);
+  max-width: calc(1128px - 250px);
   background-color: var(--background);
 }
 
 @media (max-width: 1200px) {
+  .mainContainer {
+    max-width: 100vw;
+    margin: 52px 0 0 0;
+  }
+  
   .mainContent {
     margin-left: 250px;
     max-width: calc(100vw - 250px);
@@ -25,6 +34,10 @@
 }
 
 @media (max-width: 768px) {
+  .mainContainer {
+    max-width: 100vw;
+  }
+  
   .mainContent {
     margin-left: 0;
     max-width: 100vw;

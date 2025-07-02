@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react'
+import Link from 'next/link'
 import styles from './PostList.module.css'
 import Comments from './Comments'
+import Avatar from '../shared/Avatar'
 import { useAuth } from '../../contexts/AuthContext'
 
-export default function PostList({ refreshTrigger }) {
+const PostList = forwardRef(function PostList(_, ref) {
   const { user } = useAuth()
   const [posts, setPosts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -13,14 +15,25 @@ export default function PostList({ refreshTrigger }) {
   const [visibleCommentsPostId, setVisibleCommentsPostId] = useState(null)
   const [activeMenuPostId, setActiveMenuPostId] = useState(null)
   const [editingPost, setEditingPost] = useState(null)
+  const [likingPosts, setLikingPosts] = useState(new Set())
+  const likeOperationsRef = useRef(new Set())
+  const [toastMessage, setToastMessage] = useState('')
+  const [toastType, setToastType] = useState('success') // 'success' or 'error'
   const [expandedPosts, setExpandedPosts] = useState({})
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
   const MAX_PREVIEW_LENGTH = 350
 
   const fetchPosts = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/posts/feed`, {
+      setIsLoading(true)
+      let url
+      if (typeof _.userId !== 'undefined' && _.userId !== null) {
+        url = `${API_URL}/api/posts/user/${_.userId}`
+      } else {
+        url = `${API_URL}/api/posts/feed`
+      }
+      const response = await fetch(url, {
         credentials: 'include',
       })
 
@@ -44,13 +57,154 @@ export default function PostList({ refreshTrigger }) {
     }
   }
 
+  // Expose refresh function to parent
+  useImperativeHandle(ref, () => ({
+    refreshPosts: fetchPosts
+  }))
+
+  const handleLikeToggle = async (postId, isLiked) => {
+    // Prevent double-clicking/concurrent operations
+    if (likeOperationsRef.current.has(postId)) {
+      return
+    }
+
+    const post = posts.find(p => p.id === postId)
+    if (!post) return
+
+    // Mark operation as in progress
+    likeOperationsRef.current.add(postId)
+    setLikingPosts(new Set([...likingPosts, postId]))
+
+    // Optimistically update UI immediately
+    setPosts(prevPosts => prevPosts.map(p => {
+      if (p.id === postId) {
+        return {
+          ...p,
+          is_liked: !isLiked,
+          likes_count: !isLiked ? (p.likes_count || 0) + 1 : Math.max(0, (p.likes_count || 1) - 1)
+        }
+      }
+      return p
+    }))
+
+    try {
+      // Use the single toggle endpoint from main branch
+      const response = await fetch(`${API_URL}/api/posts/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ post_id: postId }),
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        // Revert optimistic update on failure
+        setPosts(prevPosts => prevPosts.map(p => {
+          if (p.id === postId) {
+            return {
+              ...p,
+              is_liked: isLiked,
+              likes_count: isLiked ? (p.likes_count || 0) + 1 : Math.max(0, (p.likes_count || 1) - 1)
+            }
+          }
+          return p
+        }))
+        
+        // Show error message to user
+        setToastType('error')
+        setToastMessage('Failed to update like. Please try again.')
+        setTimeout(() => setToastMessage(''), 3000)
+        
+        // If conflict, refresh to get current state
+        if (response.status === 409) {
+          fetchPosts()
+        }
+      } else {
+        // Update with actual server response for consistency
+        const data = await response.json()
+        if (data.success && data.data) {
+          setPosts(prevPosts => prevPosts.map(p => {
+            if (p.id === postId) {
+              return {
+                ...p,
+                is_liked: data.data.liked,
+                likes_count: data.data.like_count
+              }
+            }
+            return p
+          }))
+        }
+      }
+      
+    } catch (err) {
+      console.error('Error toggling like:', err)
+      // Revert optimistic update on error
+      setPosts(prevPosts => prevPosts.map(p => {
+        if (p.id === postId) {
+          return {
+            ...p,
+            is_liked: isLiked,
+            likes_count: isLiked ? (p.likes_count || 0) + 1 : Math.max(0, (p.likes_count || 1) - 1)
+          }
+        }
+        return p
+      }))
+      
+      // Show error message to user
+      setToastType('error')
+      setToastMessage('Network error. Please check your connection.')
+      setTimeout(() => setToastMessage(''), 3000)
+    } finally {
+      // Always remove from ongoing operations
+      likeOperationsRef.current.delete(postId)
+      setLikingPosts(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(postId)
+        return newSet
+      })
+    }
+  }
+
+  const handleShare = async (postId) => {
+    try {
+      // For now, implement basic sharing (copy link)
+      const postUrl = `${window.location.origin}/posts/${postId}`
+      
+      if (navigator.share) {
+        // Use native sharing if available
+        await navigator.share({
+          title: 'Check out this post',
+          url: postUrl,
+        })
+      } else if (navigator.clipboard) {
+        // Fallback to copying link
+        await navigator.clipboard.writeText(postUrl)
+        setToastType('success')
+        setToastMessage('Link copied to clipboard!')
+        // Clear the message after 3 seconds
+        setTimeout(() => setToastMessage(''), 3000)
+      } else {
+        // Final fallback
+        setToastType('error')
+        setToastMessage('Sharing not supported on this device')
+        setTimeout(() => setToastMessage(''), 3000)
+      }
+    } catch (err) {
+      console.error('Error sharing post:', err)
+      setToastType('error')
+      setToastMessage('Failed to share post')
+      setTimeout(() => setToastMessage(''), 3000)
+    }
+  }
+
   const handleDeletePost = async (postId) => {
     if (!window.confirm('Are you sure you want to delete this post?')) {
       return
     }
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
       const response = await fetch(`${API_URL}/api/posts/delete/${postId}`, {
         method: 'DELETE',
         credentials: 'include',
@@ -73,7 +227,7 @@ export default function PostList({ refreshTrigger }) {
     if (!editingPost) return
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
       const response = await fetch(`${API_URL}/api/posts/update`, {
         method: 'PUT',
         headers: {
@@ -102,6 +256,10 @@ export default function PostList({ refreshTrigger }) {
     }
   }
 
+  // Helper to get privacy icon class
+  const getPrivacyIcon = (privacy) => {
+    return privacy === 'Public' || privacy === 'public' ? 'fas fa-globe' : 'fas fa-users'
+  }
   const handleLike = async (postId) => {
     try {
       const response = await fetch(`${API_URL}/api/posts/like`, {
@@ -141,18 +299,18 @@ export default function PostList({ refreshTrigger }) {
 
   useEffect(() => {
     fetchPosts()
-  }, [refreshTrigger])
+  }, [])
 
   if (isLoading) {
     return <div className={styles.loading}>Loading posts...</div>
   }
 
-  if (error) {
-    return <div className={styles.error}>{error}</div>
+  if (posts.length === 0) {
+    return <div className={styles.noPosts}>No posts yet.</div>
   }
 
-  if (posts.length === 0) {
-    return <div className={styles.noPosts}>No posts yet. Be the first to post!</div>
+  if (error) {
+    return <div className={styles.error}>{typeof error === 'string' ? error : JSON.stringify(error)}</div>
   }
 
   return (
@@ -255,4 +413,6 @@ export default function PostList({ refreshTrigger }) {
       })}
     </div>
   )
-} 
+})
+
+export default PostList
