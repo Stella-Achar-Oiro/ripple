@@ -12,16 +12,21 @@ export default function Avatar({
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
   
   const getInitials = (user) => {
+    console.log("User object:", user) // debugging line
     if (!user) return 'U'
     const firstName = user.first_name || ''
     const lastName = user.last_name || ''
     const nickname = user.nickname || ''
+    const initials = user.initials || ''
     
     if (firstName && lastName) {
       return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
     }
     if (nickname) {
       return nickname.charAt(0).toUpperCase()
+    }
+    if (initials) {
+      return initials.toUpperCase()
     }
     return 'U'
   }

@@ -46,12 +46,12 @@ func (ch *ChatHandler) GetPrivateMessages(w http.ResponseWriter, r *http.Request
 
 	// Get other user ID from URL path
 	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 5 {
+	if len(pathParts) < 6 {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Other user ID required")
 		return
 	}
 
-	otherUserID, err := strconv.Atoi(pathParts[4])
+	otherUserID, err := strconv.Atoi(pathParts[5])
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid user ID")
 		return
@@ -362,6 +362,32 @@ func (ch *ChatHandler) GetUnreadCounts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteSuccessResponse(w, http.StatusOK, counts)
+}
+
+// GetFollowedUsers gets a list of users that the current user follows for starting new chats.
+func (ch *ChatHandler) GetFollowedUsers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	// Get users that the current user follows
+	following, err := ch.followRepo.GetFollowing(userID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
+		"users": following,
+		"count": len(following),
+	})
 }
 
 // CreatePrivateMessage creates a new private message

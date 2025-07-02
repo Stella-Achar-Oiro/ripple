@@ -3,6 +3,9 @@
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
+  /* Ensure the sidebar fills the grid cell and can contain a scrolling child */
+  height: 100%;
+  min-height: 0;
 }
 
 .chatSearch {
