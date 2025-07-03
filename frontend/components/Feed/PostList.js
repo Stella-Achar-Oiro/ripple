@@ -43,8 +43,12 @@ const PostList = forwardRef(function PostList(_, ref) {
       }
 
       const data = await response.json()
-      if (data.success && data.data && data.data.posts) {
-        setPosts(data.data.posts)
+      if (data.success) {
+        if (!data.data.posts) {
+          setPosts([])
+        } else {
+          setPosts(data.data.posts)
+        }
       } else {
         console.error('Invalid response format or empty data:', data);
         throw new Error('Invalid response format or no posts received');
