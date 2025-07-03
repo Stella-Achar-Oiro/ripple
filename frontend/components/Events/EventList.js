@@ -23,8 +23,8 @@ export default function EventList({ groupId, showGroupInfo = false, title = "Eve
         setLoadingMore(true)
       }
 
-      const url = groupId 
-        ? `${API_URL}/api/groups/${groupId}/events?limit=${EVENTS_PER_PAGE}&offset=${offset}`
+      const url = groupId
+        ? `${API_URL}/api/events/group/${groupId}?limit=${EVENTS_PER_PAGE}&offset=${offset}`
         : `${API_URL}/api/events?limit=${EVENTS_PER_PAGE}&offset=${offset}`
 
       const response = await fetch(url, {
@@ -36,7 +36,9 @@ export default function EventList({ groupId, showGroupInfo = false, title = "Eve
       }
 
       const data = await response.json()
-      const newEvents = Array.isArray(data.data) ? data.data : []
+      const newEvents = groupId
+        ? (Array.isArray(data.data?.events) ? data.data.events : [])
+        : (Array.isArray(data.data) ? data.data : [])
 
       if (isLoadMore) {
         setEvents(prev => {
