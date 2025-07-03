@@ -109,9 +109,7 @@ export default function EventList({ groupId, showGroupInfo = false, title = "Eve
   // }, [])
 
   useEffect(() => {
-    if (groupId) {
-      fetchEvents()
-    }
+    fetchEvents()
   }, [groupId, fetchEvents])
 
   // Separate events into upcoming and past
