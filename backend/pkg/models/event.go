@@ -153,12 +153,13 @@ func (er *EventRepository) GetEvent(eventID, viewerID int) (*Event, error) {
 }
 
 // GetGroupEvents gets events for a group
-func (er *EventRepository) GetGroupEvents(groupID int, limit, offset int) ([]*Event, error) {
+func (er *EventRepository) GetGroupEvents(groupID int, userID int, limit, offset int) ([]*Event, error) {
 	query := `
 		SELECT e.id, e.group_id, e.creator_id, e.title, e.description, e.event_date, e.created_at, e.updated_at,
 		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.is_public, u.created_at,
 		       (SELECT COUNT(*) FROM event_responses WHERE event_id = e.id AND response = ?) as going_count,
-		       (SELECT COUNT(*) FROM event_responses WHERE event_id = e.id AND response = ?) as not_going_count
+		       (SELECT COUNT(*) FROM event_responses WHERE event_id = e.id AND response = ?) as not_going_count,
+		       (SELECT response FROM event_responses WHERE event_id = e.id AND user_id = ?) as user_response
 		FROM events e
 		JOIN users u ON e.creator_id = u.id
 		WHERE e.group_id = ?
@@ -166,7 +167,7 @@ func (er *EventRepository) GetGroupEvents(groupID int, limit, offset int) ([]*Ev
 		LIMIT ? OFFSET ?
 	`
 
-	rows, err := er.db.Query(query, constants.EventResponseGoing, constants.EventResponseNotGoing, groupID, limit, offset)
+	rows, err := er.db.Query(query, constants.EventResponseGoing, constants.EventResponseNotGoing, userID, groupID, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get group events: %w", err)
 	}
@@ -176,18 +177,26 @@ func (er *EventRepository) GetGroupEvents(groupID int, limit, offset int) ([]*Ev
 	for rows.Next() {
 		event := &Event{}
 		creator := &User{}
+		var userResponse sql.NullString
 
 		err := rows.Scan(
 			&event.ID, &event.GroupID, &event.CreatorID, &event.Title, &event.Description, &event.EventDate, &event.CreatedAt, &event.UpdatedAt,
 			&creator.ID, &creator.Email, &creator.FirstName, &creator.LastName, &creator.DateOfBirth, &creator.Nickname, &creator.AboutMe, &creator.AvatarPath, &creator.IsPublic, &creator.CreatedAt,
 			&event.GoingCount,
 			&event.NotGoingCount,
+			&userResponse,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan event: %w", err)
 		}
 
 		event.Creator = creator.ToResponse()
+		if userResponse.Valid {
+			resp := userResponse.String
+			event.UserResponse = &resp
+		} else {
+			event.UserResponse = nil
+		}
 		events = append(events, event)
 	}
 
