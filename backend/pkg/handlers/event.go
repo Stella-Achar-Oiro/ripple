@@ -199,7 +199,7 @@ func (eh *EventHandler) GetGroupEvents(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	events, err := eh.eventRepo.GetGroupEvents(groupID, limit, offset)
+	events, err := eh.eventRepo.GetGroupEvents(groupID, userID, limit, offset)
 	if err != nil {
 		utils.WriteInternalErrorResponse(w, err)
 		return
