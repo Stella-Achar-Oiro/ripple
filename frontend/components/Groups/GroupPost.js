@@ -9,6 +9,7 @@ export default function GroupPost({ post, onPostDeleted, isGroupMember }) {
   const { user } = useAuth()
   const [showComments, setShowComments] = useState(false)
   const [commentCount, setCommentCount] = useState(post.CommentCount || 0)
+  const [expanded, setExpanded] = useState(false)
   const [activeMenuPostId, setActiveMenuPostId] = useState(null)
   const [editingPost, setEditingPost] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -17,6 +18,11 @@ export default function GroupPost({ post, onPostDeleted, isGroupMember }) {
   const menuRef = useRef(null)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+
+  const MAX_PREVIEW_LENGTH = 350
+  const content = post.Content || post.content // fallback for different post object shapes
+  const isLong = content && content.length > MAX_PREVIEW_LENGTH
+  const previewContent = isLong ? content.slice(0, MAX_PREVIEW_LENGTH) + '...' : content
 
   // Handle clicking outside the dropdown menu
   useEffect(() => {

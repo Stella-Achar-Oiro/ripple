@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import styles from './CreatePost.module.css'
 
@@ -14,6 +14,24 @@ export default function CreatePost({ onPostCreated }) {
   const [mediaPreview, setMediaPreview] = useState(null)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+  const [followers, setFollowers] = useState([])
+  const [selectedFollowers, setSelectedFollowers] = useState([])
+
+  useEffect(() => {
+    if (privacy === 'private' && user?.id) {
+      const fetchFollowers = async () => {
+        try {
+          const response = await fetch(`${API_URL}/api/follow/followers/${user.id}`, { credentials: 'include' })
+          if (!response.ok) throw new Error('Failed to fetch followers')
+          const result = await response.json()
+          setFollowers(result.data?.followers || [])
+        } catch (err) {
+          setFollowers([])
+        }
+      }
+      fetchFollowers()
+    }
+  }, [privacy, user])
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
@@ -29,6 +47,12 @@ export default function CreatePost({ onPostCreated }) {
 
   const handlePrivacyChange = (newPrivacy) => {
     setPrivacy(newPrivacy)
+    if (newPrivacy !== 'private') setSelectedFollowers([])
+  }
+
+  const handleFollowerSelect = (e) => {
+    const options = Array.from(e.target.selectedOptions)
+    setSelectedFollowers(options.map(opt => parseInt(opt.value)))
   }
 
   const handleSubmit = async (e) => {
@@ -61,16 +85,20 @@ export default function CreatePost({ onPostCreated }) {
       }
 
       // Create the post
+      const postBody = {
+        content: postContent.trim(),
+        privacy_level: privacy.toLowerCase(),
+        image_path: imagePath,
+      }
+      if (privacy === 'private' && selectedFollowers.length > 0) {
+        postBody.allowed_users = selectedFollowers
+      }
       const responsePost = await fetch(`${API_URL}/api/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          content: postContent.trim(),
-          privacy_level: privacy.toLowerCase(),
-          image_path: imagePath,
-        }),
+        body: JSON.stringify(postBody),
         credentials: 'include',
       })
 
@@ -84,11 +112,8 @@ export default function CreatePost({ onPostCreated }) {
       setPostContent('')
       setMediaFile(null)
       setMediaPreview(null)
-      
-      // Trigger refresh of posts list
-      if (onPostCreated) {
-        onPostCreated()
-      }
+      setSelectedFollowers([])
+      if (onPostCreated) onPostCreated()
     } catch (err) {
       setError(err.message || 'An error occurred while creating the post')
       console.error('Post creation error:', err)
@@ -157,10 +182,7 @@ export default function CreatePost({ onPostCreated }) {
               <i className="fas fa-image"></i>
               Photo
             </label>
-            <div className={styles.postOption}>
-              <i className="fas fa-smile"></i>
-              Feeling
-            </div>
+
           </div>
           <div className={styles.postSubmitArea}>
             <div className={styles.privacySelector}>
@@ -174,6 +196,28 @@ export default function CreatePost({ onPostCreated }) {
                 <option value="private">Private</option>
               </select>
             </div>
+            {privacy === 'private' && (
+              <div style={{ marginTop: 12, minWidth: 200 }}>
+                <label style={{ fontWeight: 500, marginBottom: 4, display: 'block' }}>Select followers who can see this post:</label>
+                <select
+                  multiple
+                  value={selectedFollowers.map(String)}
+                  onChange={handleFollowerSelect}
+                  style={{ width: '100%', minHeight: 80, borderRadius: 8, border: '1px solid #ccc', padding: 6 }}
+                  disabled={isLoading || followers.length === 0}
+                >
+                  {followers.length === 0 ? (
+                    <option disabled>No followers found</option>
+                  ) : (
+                    followers.map(f => (
+                      <option key={f.id} value={f.id}>
+                        {f.first_name} {f.last_name} {f.nickname ? `(${f.nickname})` : ''}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+            )}
             <button 
               className="btn-primary"
               onClick={handleSubmit}
