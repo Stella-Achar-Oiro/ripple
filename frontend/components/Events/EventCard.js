@@ -46,7 +46,7 @@ export default function EventCard({ event, onRespond, showGroupInfo = false }) {
 
     setIsLoading(true)
     try {
-      const apiResponse = await fetch(`${API_URL}/api/events/${event.id}/respond`, {
+      const apiResponse = await fetch(`${API_URL}/api/events/respond/${event.id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
