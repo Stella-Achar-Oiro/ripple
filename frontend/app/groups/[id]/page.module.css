@@ -164,9 +164,12 @@
 }
 
 .groupActions {
-  display: flex;
+  /* display exactly two buttons per line */
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  flex-wrap: wrap;
+  margin-top: 16px;
+  padding: 12px 0;
 }
 
 .groupActions button {
@@ -350,7 +353,7 @@
   }
   
   .groupInfo {
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     text-align: center;
     gap: 16px;
@@ -368,7 +371,7 @@
   
   .groupActions {
     justify-content: center;
-    width: 100%;
+    width: 50%;
   }
   
   .groupActions button {
