@@ -57,18 +57,42 @@
   border-radius: var(--radius-lg);
   margin-bottom: var(--spacing-md);
   background-color: var(--background);
-  height: 200px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+  max-height: 500px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-muted);
-  overflow: hidden;
-  transition: all 0.15s ease-in-out;
 }
 
 .postImage:hover {
-  transform: scale(1.02);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
+}
+
+.postImage img {
+  width: auto;
+  height: auto;
+  display: block;
+  max-width: 100%;
+  max-height: 500px;
+  object-fit: contain;
+  background: var(--white);
+  transition: transform 0.2s ease;
+  border-radius: 6px;
+}
+
+/* Ensure images don't get too small on very wide screens */
+@media (min-width: 1200px) {
+  .postImage img {
+    min-width: 300px;
+  }
+}
+
+.postImage:hover img {
+  transform: scale(1.02);
 }
 
 .postStats {
@@ -113,4 +137,46 @@
 .postAction.liked {
   color: var(--primary-purple);
   background-color: var(--purple-gradient-light);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .postImage {
+    max-height: 400px;
+  }
+
+  .postImage img {
+    max-height: 400px;
+    max-width: 100%;
+  }
+
+  .postAction {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .postImage {
+    max-height: 300px;
+  }
+
+  .postImage img {
+    max-height: 300px;
+    max-width: 100%;
+  }
+
+  .postAction {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 320px) {
+  .postImage {
+    max-height: 250px;
+  }
+
+  .postImage img {
+    max-height: 250px;
+  }
 }

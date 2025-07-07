@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import GroupComments from './GroupComments'
 import { useAuth } from '../../contexts/AuthContext'
+import ImageModal from '../shared/ImageModal'
 import styles from './GroupPost.module.css'
 
 export default function GroupPost({ post, onPostDeleted, isGroupMember }) {
@@ -15,6 +16,7 @@ export default function GroupPost({ post, onPostDeleted, isGroupMember }) {
   const [isLoading, setIsLoading] = useState(false)
   const [isLiked, setIsLiked] = useState(post.is_liked || false)
   const [likeCount, setLikeCount] = useState(post.LikesCount || 0)
+  const [showImageModal, setShowImageModal] = useState(false)
   const menuRef = useRef(null)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
@@ -239,10 +241,18 @@ export default function GroupPost({ post, onPostDeleted, isGroupMember }) {
         )}
 
         {post.ImagePath && (
-          <div className={styles.postImage}>
+          <div className={styles.postImage} onClick={() => setShowImageModal(true)}>
             <img
               src={`${API_URL}${post.ImagePath}`}
               alt="Post attachment"
+              loading="lazy"
+              onLoad={() => {
+                console.log('Image loaded successfully:', `${API_URL}${post.ImagePath}`)
+              }}
+              onError={(e) => {
+                console.error('Image failed to load:', e.target.src)
+                e.target.style.display = 'none'
+              }}
             />
           </div>
         )}
@@ -272,13 +282,23 @@ export default function GroupPost({ post, onPostDeleted, isGroupMember }) {
 
         {/* Comments Section */}
         {showComments && (
-          <GroupComments 
+          <GroupComments
             postId={post.ID}
             isGroupMember={isGroupMember}
             onCommentAdded={handleCommentAdded}
           />
         )}
       </div>
+
+      {/* Image Modal */}
+      {post.ImagePath && (
+        <ImageModal
+          src={`${API_URL}${post.ImagePath}`}
+          alt="Post attachment"
+          isOpen={showImageModal}
+          onClose={() => setShowImageModal(false)}
+        />
+      )}
     </div>
   )
 }

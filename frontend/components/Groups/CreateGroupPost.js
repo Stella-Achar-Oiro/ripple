@@ -9,16 +9,45 @@ export default function CreateGroupPost({ groupId, onPostCreated }) {
   const [error, setError] = useState('')
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
+  const [imageInfo, setImageInfo] = useState(null)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+
+  // Helper function to format file size
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
 
   const handleImageChange = (e) => {
     const file = e.target.files[0]
     if (file) {
       setImageFile(file)
+
+      // Store file info
+      setImageInfo({
+        name: file.name,
+        size: file.size,
+        type: file.type
+      })
+
       const reader = new FileReader()
       reader.onloadend = () => {
         setImagePreview(reader.result)
+
+        // Get image dimensions
+        const img = new Image()
+        img.onload = () => {
+          setImageInfo(prev => ({
+            ...prev,
+            width: img.width,
+            height: img.height
+          }))
+        }
+        img.src = reader.result
       }
       reader.readAsDataURL(file)
     }
@@ -76,6 +105,7 @@ export default function CreateGroupPost({ groupId, onPostCreated }) {
       setPostContent('')
       setImageFile(null)
       setImagePreview(null)
+      setImageInfo(null)
       
       // Notify parent component
       if (onPostCreated) {
@@ -109,11 +139,23 @@ export default function CreateGroupPost({ groupId, onPostCreated }) {
         {imagePreview && (
           <div className={styles.imagePreview}>
             <img src={imagePreview} alt="Preview" />
-            <button 
+            {imageInfo && (
+              <div className={styles.imageInfo}>
+                <span className={styles.imageName}>{imageInfo.name}</span>
+                <span className={styles.imageDetails}>
+                  {imageInfo.width && imageInfo.height &&
+                    `${imageInfo.width} × ${imageInfo.height} • `
+                  }
+                  {formatFileSize(imageInfo.size)}
+                </span>
+              </div>
+            )}
+            <button
               className={styles.removeImage}
               onClick={() => {
                 setImageFile(null)
                 setImagePreview(null)
+                setImageInfo(null)
               }}
             >
               <i className="fas fa-times"></i>
