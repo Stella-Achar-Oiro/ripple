@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useWebSocket } from '../../contexts/WebSocketContext'
 import GroupChatMessage from './GroupChatMessage'
+import EmojiPicker from '../shared/EmojiPicker'
 import styles from './GroupChat.module.css'
 
 export default function GroupChat({ groupId, groupTitle }) {
@@ -22,8 +23,10 @@ export default function GroupChat({ groupId, groupTitle }) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const messagesEndRef = useRef(null)
   const typingTimeoutRef = useRef(null)
+  const messageInputRef = useRef(null)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -97,6 +100,21 @@ export default function GroupChat({ groupId, groupTitle }) {
     }
   }
 
+  // Handle emoji selection
+  const handleEmojiSelect = (emoji) => {
+    setNewMessage(prev => prev + emoji)
+    setShowEmojiPicker(false)
+    // Focus back to input after emoji selection
+    setTimeout(() => {
+      messageInputRef.current?.focus()
+    }, 100)
+  }
+
+  // Handle emoji button click
+  const handleEmojiButtonClick = () => {
+    setShowEmojiPicker(!showEmojiPicker)
+  }
+
   // Handle sending message
   const handleSendMessage = async (e) => {
     e.preventDefault()
@@ -104,7 +122,7 @@ export default function GroupChat({ groupId, groupTitle }) {
 
     const messageContent = newMessage.trim()
     setNewMessage('')
-    
+
     // Stop typing indicator
     handleTyping(false)
     if (typingTimeoutRef.current) {
@@ -244,6 +262,7 @@ export default function GroupChat({ groupId, groupTitle }) {
       <form className={styles.messageForm} onSubmit={handleSendMessage}>
         <div className={styles.messageInputContainer}>
           <input
+            ref={messageInputRef}
             type="text"
             className={styles.messageInput}
             placeholder={`Message ${groupTitle}...`}
@@ -251,6 +270,14 @@ export default function GroupChat({ groupId, groupTitle }) {
             onChange={handleMessageChange}
             maxLength={2000}
           />
+          <button
+            type="button"
+            className={styles.emojiButton}
+            onClick={handleEmojiButtonClick}
+            title="Add emoji"
+          >
+            <i className="fas fa-smile"></i>
+          </button>
           <button
             type="submit"
             className={styles.sendButton}
@@ -260,6 +287,13 @@ export default function GroupChat({ groupId, groupTitle }) {
           </button>
         </div>
       </form>
+
+      {/* Emoji Picker */}
+      <EmojiPicker
+        isOpen={showEmojiPicker}
+        onEmojiSelect={handleEmojiSelect}
+        onClose={() => setShowEmojiPicker(false)}
+      />
     </div>
   )
 }
