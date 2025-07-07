@@ -74,3 +74,36 @@
 .emptyState span {
   font-size: 12px;
 }
+
+@media (max-width: 768px) {
+  .widget {
+    margin: 0 0 16px 0;
+  }
+  
+  .widgetHeader {
+    padding: 12px 16px;
+  }
+  
+  .widgetContent {
+    padding: 12px 16px;
+  }
+  
+  .friendName {
+    font-size: 12px;
+  }
+  
+  .loadingState,  
+  .emptyState {
+    padding: 16px 12px;
+  }
+  
+  .loadingState i,
+  .emptyState i {
+    font-size: 20px;
+  }
+  
+  .loadingState span,
+  .emptyState span {
+    font-size: 10px;
+  }
+} 

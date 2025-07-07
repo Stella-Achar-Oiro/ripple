@@ -33,3 +33,31 @@
     order: -1;
   }
 }
+
+@media (max-width: 768px) {
+  .feedLayout {
+    grid-template-columns: 1fr;
+  }
+  
+  .feedMain {
+    max-width: 100%;
+  }
+
+  .feedSidebar {
+    order: -1;
+  }
+}
+
+@media (max-width: 340px) {
+  .feedLayout {
+    grid-template-columns: 1fr;
+  }
+  
+  .feedMain {
+    max-width: 100%;
+  }
+
+  .feedSidebar {
+    order: -1;
+  }
+}
