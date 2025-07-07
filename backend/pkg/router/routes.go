@@ -108,4 +108,9 @@ func setupChatRoutes(mux *http.ServeMux, h *handlers.ChatHandler, auth func(http
 	mux.Handle("/api/chat/online", auth(http.HandlerFunc(h.GetOnlineUsers)))
 	mux.Handle("/api/chat/typing", auth(http.HandlerFunc(h.TypingIndicator)))
 	mux.Handle("/api/chat/unread", auth(http.HandlerFunc(h.GetUnreadCounts)))
+
+	// New messaging system endpoints
+	mux.Handle("/api/chat/messageable-users", auth(http.HandlerFunc(h.GetMessageableUsers)))
+	mux.Handle("/api/chat/social-connections", auth(http.HandlerFunc(h.GetSocialConnections)))
+	mux.Handle("/api/chat/can-message/", auth(http.HandlerFunc(h.CheckCanMessage)))
 }

@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useWebSocket } from '../../contexts/WebSocketContext'
 import GroupChatInfo from './GroupChatInfo'
+import MessageBubble from './MessageBubble'
+import TypingIndicator from './TypingIndicator'
 import styles from './ChatMain.module.css'
 import Avatar from '../shared/Avatar'
 
@@ -301,45 +303,30 @@ export default function ChatMain({ conversation }) {
             <p>No messages yet. Start the conversation!</p>
           </div>
         ) : (
-          messages.map(message => (
-            <div 
-              key={message.id} 
-              className={`${styles.message} ${message.isOwn ? styles.own : ''}`}
-            >
-              {!message.isOwn && conversation.isGroup && (
-                <div className={styles.messageSender}>
-                  {message.sender?.first_name || `User ${message.from}`}
-                </div>
-              )}
-              <div className={styles.messageBubble}>
-                {message.image_path && (
-                  <div className={styles.messageImage}>
-                    <img 
-                      src={`${API_URL}${message.image_path}`} 
-                      alt="Shared image" 
-                      loading="lazy"
-                    />
-                  </div>
-                )}
-                {message.content && message.content !== '[Image]' && (
-                  <div className={styles.messageContent}>
-                {message.content}
-                {message.isPending && (
-                  <span className={styles.pendingIndicator}>
-                    <i className="fas fa-clock"></i>
-                  </span>
-                )}
-              </div>
-                )}
-                <div className={styles.messageTime}>
-                  {formatTime(message.timestamp)}
-                  {message.isOwn && !conversation.isGroup && (
-                    <i className={`fas ${message.read_at ? 'fa-check-double' : 'fa-check'} ${styles.readStatus}`}></i>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))
+          messages.map((message, index) => {
+            const isOwnMessage = message.from === user?.id || message.sender_id === user?.id
+            const prevMessage = index > 0 ? messages[index - 1] : null
+            const nextMessage = index < messages.length - 1 ? messages[index + 1] : null
+
+            // Show avatar if it's the first message from this sender or different sender than previous
+            const showAvatar = !prevMessage ||
+              (prevMessage.from !== message.from && prevMessage.sender_id !== message.sender_id)
+
+            // Check if this is the last message from this sender
+            const isLastMessage = !nextMessage ||
+              (nextMessage.from !== message.from && nextMessage.sender_id !== message.sender_id)
+
+            return (
+              <MessageBubble
+                key={message.id}
+                message={message}
+                isOwnMessage={isOwnMessage}
+                showAvatar={showAvatar}
+                isLastMessage={isLastMessage}
+                isGroup={conversation.isGroup}
+              />
+            )
+          })
         )}
         
         {typingUsers.length > 0 && (

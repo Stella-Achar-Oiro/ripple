@@ -29,6 +29,12 @@ type FollowRequest struct {
 	FollowingUser *UserResponse `json:"following_user,omitempty"`
 }
 
+type SocialConnectionsResponse struct {
+	Following         []*UserResponse `json:"following"`
+	Followers         []*UserResponse `json:"followers"`
+	MutualConnections []*UserResponse `json:"mutual_connections"`
+}
+
 type FollowStats struct {
 	FollowersCount int `json:"followers_count"`
 	FollowingCount int `json:"following_count"`
@@ -359,9 +365,16 @@ func (fr *FollowRepository) GetFollowRelationshipStatus(followerID, followingID 
 
 // CanSendMessage checks if user can send message to another user
 func (fr *FollowRepository) CanSendMessage(senderID, receiverID int) (bool, error) {
-	// Users can message each other if:
-	// 1. At least one follows the other, OR
-	// 2. The receiver has a public profile
+	// Users can message each other if they have a social connection:
+	// 1. Sender follows receiver (unidirectional), OR
+	// 2. Receiver follows sender (unidirectional), OR
+	// 3. They follow each other (bidirectional), OR
+	// 4. The receiver has a public profile (allows messages from anyone)
+
+	// Don't allow messaging yourself
+	if senderID == receiverID {
+		return false, nil
+	}
 
 	// Check if receiver has public profile
 	var isPublic bool
@@ -374,11 +387,11 @@ func (fr *FollowRepository) CanSendMessage(senderID, receiverID int) (bool, erro
 		return true, nil
 	}
 
-	// Check if either user follows the other
+	// Check if either user follows the other (social connection exists)
 	var count int
 	err = fr.db.QueryRow(`
-		SELECT COUNT(*) FROM follows 
-		WHERE ((follower_id = ? AND following_id = ?) OR (follower_id = ? AND following_id = ?)) 
+		SELECT COUNT(*) FROM follows
+		WHERE ((follower_id = ? AND following_id = ?) OR (follower_id = ? AND following_id = ?))
 		AND status = ?
 	`, senderID, receiverID, receiverID, senderID, constants.FollowStatusAccepted).Scan(&count)
 
@@ -387,4 +400,113 @@ func (fr *FollowRepository) CanSendMessage(senderID, receiverID int) (bool, erro
 	}
 
 	return count > 0, nil
+}
+
+// GetMessageableUsers gets all users that the current user can send messages to
+func (fr *FollowRepository) GetMessageableUsers(userID int) ([]*UserResponse, error) {
+	query := `
+		SELECT DISTINCT u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.cover_path, u.is_public, u.created_at
+		FROM users u
+		WHERE u.id != ? AND (
+			-- Users with public profiles
+			u.is_public = 1 OR
+			-- Users we follow
+			u.id IN (
+				SELECT following_id FROM follows
+				WHERE follower_id = ? AND status = ?
+			) OR
+			-- Users who follow us
+			u.id IN (
+				SELECT follower_id FROM follows
+				WHERE following_id = ? AND status = ?
+			)
+		)
+		ORDER BY u.first_name, u.last_name
+	`
+
+	rows, err := fr.db.Query(query, userID, userID, constants.FollowStatusAccepted, userID, constants.FollowStatusAccepted)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get messageable users: %w", err)
+	}
+	defer rows.Close()
+
+	var users []*UserResponse
+	for rows.Next() {
+		user := &UserResponse{}
+		err := rows.Scan(
+			&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.DateOfBirth,
+			&user.Nickname, &user.AboutMe, &user.AvatarPath, &user.CoverPath, &user.IsPublic, &user.CreatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan user: %w", err)
+		}
+		users = append(users, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed to iterate users: %w", err)
+	}
+
+	return users, nil
+}
+
+// GetSocialConnections gets users with social connections (following/followers) for messaging
+func (fr *FollowRepository) GetSocialConnections(userID int) (*SocialConnectionsResponse, error) {
+	// Get users we follow
+	following, err := fr.GetFollowing(userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get following: %w", err)
+	}
+
+	// Get users who follow us
+	followers, err := fr.GetFollowers(userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get followers: %w", err)
+	}
+
+	// Get mutual connections (bidirectional follows)
+	mutualQuery := `
+		SELECT DISTINCT u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.cover_path, u.is_public, u.created_at
+		FROM users u
+		WHERE u.id IN (
+			SELECT f1.following_id FROM follows f1
+			WHERE f1.follower_id = ? AND f1.status = ?
+			AND EXISTS (
+				SELECT 1 FROM follows f2
+				WHERE f2.follower_id = f1.following_id
+				AND f2.following_id = ?
+				AND f2.status = ?
+			)
+		)
+		ORDER BY u.first_name, u.last_name
+	`
+
+	rows, err := fr.db.Query(mutualQuery, userID, constants.FollowStatusAccepted, userID, constants.FollowStatusAccepted)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get mutual connections: %w", err)
+	}
+	defer rows.Close()
+
+	var mutualConnections []*UserResponse
+	for rows.Next() {
+		user := &UserResponse{}
+		err := rows.Scan(
+			&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.DateOfBirth,
+			&user.Nickname, &user.AboutMe, &user.AvatarPath, &user.CoverPath, &user.IsPublic, &user.CreatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan mutual connection: %w", err)
+		}
+		mutualConnections = append(mutualConnections, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed to iterate mutual connections: %w", err)
+	}
+
+	return &SocialConnectionsResponse{
+		Following:         following,
+		Followers:         followers,
+		MutualConnections: mutualConnections,
+	}, nil
 }

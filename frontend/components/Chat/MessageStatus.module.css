@@ -1,0 +1,40 @@
+.messageStatus {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.messageStatus i {
+  font-size: 0.8rem;
+}
+
+.sending {
+  color: #999;
+  animation: pulse 1.5s infinite;
+}
+
+.delivered {
+  color: #666;
+}
+
+.read {
+  color: #007bff;
+}
+
+.statusText {
+  font-size: 0.7rem;
+  color: #999;
+  margin-left: 2px;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

@@ -501,3 +501,88 @@ func (ch *ChatHandler) CreateGroupMessage(w http.ResponseWriter, r *http.Request
 		"message": message,
 	})
 }
+
+// GetMessageableUsers gets all users that the current user can send messages to
+func (ch *ChatHandler) GetMessageableUsers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	users, err := ch.followRepo.GetMessageableUsers(userID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
+		"users": users,
+	})
+}
+
+// GetSocialConnections gets users with social connections for messaging
+func (ch *ChatHandler) GetSocialConnections(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	connections, err := ch.followRepo.GetSocialConnections(userID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
+		"connections": connections,
+	})
+}
+
+// CheckCanMessage checks if current user can send message to another user
+func (ch *ChatHandler) CheckCanMessage(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	// Get target user ID from URL path
+	pathParts := strings.Split(r.URL.Path, "/")
+	if len(pathParts) < 5 {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Target user ID required")
+		return
+	}
+
+	targetUserID, err := strconv.Atoi(pathParts[4])
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid user ID")
+		return
+	}
+
+	canMessage, err := ch.followRepo.CanSendMessage(userID, targetUserID)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
+		"can_message": canMessage,
+	})
+}

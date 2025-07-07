@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useWebSocket } from '../../contexts/WebSocketContext'
+import NewMessageModal from './NewMessageModal'
+import ContactList from './ContactList'
 import styles from './ChatSidebar.module.css'
 
 export default function ChatSidebar({ selectedChat, onSelectChat }) {
@@ -13,6 +15,8 @@ export default function ChatSidebar({ selectedChat, onSelectChat }) {
   const [conversations, setConversations] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [showNewMessageModal, setShowNewMessageModal] = useState(false)
+  const [activeTab, setActiveTab] = useState('conversations') // 'conversations' or 'contacts'
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -198,19 +202,69 @@ export default function ChatSidebar({ selectedChat, onSelectChat }) {
     )
   }
 
+  const handleNewMessage = (selectedUser) => {
+    // Create a new conversation with the selected user
+    const newConversation = {
+      id: selectedUser.id,
+      name: selectedUser.name,
+      first_name: selectedUser.first_name,
+      last_name: selectedUser.last_name,
+      nickname: selectedUser.nickname,
+      avatar_path: selectedUser.avatar_path,
+      is_public: selectedUser.is_public,
+      isGroup: false,
+      lastMessage: '',
+      lastMessageTime: new Date(),
+      unread: 0
+    }
+    onSelectChat(newConversation)
+  }
+
   return (
     <div className={styles.chatSidebar}>
-      <div className={styles.chatSearch}>
-        <i className="fas fa-search"></i>
-        <input 
-          type="text" 
-          placeholder="Search conversations..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+      <div className={styles.sidebarHeader}>
+        <div className={styles.headerTitle}>
+          <h2>Messages</h2>
+        </div>
+        <button
+          className={styles.newMessageBtn}
+          onClick={() => setShowNewMessageModal(true)}
+          title="New Message"
+        >
+          <i className="fas fa-edit"></i>
+        </button>
       </div>
-      
-      <div className={styles.chatList}>
+
+      <div className={styles.tabSection}>
+        <button
+          className={`${styles.tab} ${activeTab === 'conversations' ? styles.active : ''}`}
+          onClick={() => setActiveTab('conversations')}
+        >
+          <i className="fas fa-comments"></i>
+          Chats
+        </button>
+        <button
+          className={`${styles.tab} ${activeTab === 'contacts' ? styles.active : ''}`}
+          onClick={() => setActiveTab('contacts')}
+        >
+          <i className="fas fa-address-book"></i>
+          Contacts
+        </button>
+      </div>
+
+      {activeTab === 'conversations' && (
+        <>
+          <div className={styles.chatSearch}>
+            <i className="fas fa-search"></i>
+            <input
+              type="text"
+              placeholder="Search conversations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.chatList}>
         {sortedConversations.length === 0 ? (
           <div className={styles.emptyState}>
             {searchQuery ? (
@@ -278,7 +332,22 @@ export default function ChatSidebar({ selectedChat, onSelectChat }) {
             </div>
           ))
         )}
-      </div>
+          </div>
+        </>
+      )}
+
+      {activeTab === 'contacts' && (
+        <ContactList
+          onSelectContact={handleNewMessage}
+          selectedContactId={selectedChat}
+        />
+      )}
+
+      <NewMessageModal
+        isOpen={showNewMessageModal}
+        onClose={() => setShowNewMessageModal(false)}
+        onSelectUser={handleNewMessage}
+      />
     </div>
   )
 }
