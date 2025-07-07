@@ -41,6 +41,7 @@ func setupGroupRoutes(mux *http.ServeMux, h *handlers.GroupHandler, auth func(ht
 	mux.Handle("/api/groups", auth(http.HandlerFunc(h.CreateGroup)))
 	mux.Handle("/api/groups/all", auth(http.HandlerFunc(h.GetAllGroups)))
 	mux.Handle("/api/groups/user", auth(http.HandlerFunc(h.GetUserGroups)))
+	mux.Handle("/api/groups/recommendations", auth(http.HandlerFunc(h.GetRecommendedGroups)))
 	mux.Handle("/api/groups/invite", auth(http.HandlerFunc(h.InviteToGroup)))
 	mux.Handle("/api/groups/join", auth(http.HandlerFunc(h.JoinGroup)))
 	mux.Handle("/api/groups/handle", auth(http.HandlerFunc(h.HandleMembershipRequest)))

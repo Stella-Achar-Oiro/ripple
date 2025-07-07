@@ -1265,3 +1265,36 @@ func (gh *GroupHandler) InviteUsers(w http.ResponseWriter, r *http.Request) {
 		"invited_count": len(req.UserIDs),
 	})
 }
+
+// GetRecommendedGroups gets intelligent group recommendations for the current user
+func (gh *GroupHandler) GetRecommendedGroups(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	// Parse limit parameter (default to 3)
+	limit := 3
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 && parsedLimit <= 10 {
+			limit = parsedLimit
+		}
+	}
+
+	recommendations, err := gh.groupRepo.GetRecommendedGroups(userID, limit)
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to get group recommendations")
+		return
+	}
+
+	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
+		"recommendations": recommendations,
+		"count":           len(recommendations),
+	})
+}
