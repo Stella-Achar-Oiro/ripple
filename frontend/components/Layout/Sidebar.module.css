@@ -1,11 +1,11 @@
 .sidebar {
-  width: 250px;
+  width: 12vw;
   background-color: var(--card);
   border-right: 1px solid var(--border);
   padding: var(--spacing-xl) 0;
   height: calc(100vh - 52px);
   position: fixed;
-  left: calc(50% - 564px);
+  left: calc(50% - 39%);
   overflow-y: auto;
   top: 52px;
   backdrop-filter: blur(10px);
