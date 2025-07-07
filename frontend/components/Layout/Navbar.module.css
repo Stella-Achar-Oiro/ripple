@@ -38,6 +38,7 @@
   max-width: 350px;
   margin: 0 30px;
   position: relative;
+  z-index: 100;
 }
 
 .navSearch input {
@@ -189,11 +190,44 @@
 }
 
 @media (max-width: 768px) {
+  .navContainer {
+    padding: 0 var(--spacing-lg);
+  }
+
   .navSearch {
-    display: none;
+    max-width: 200px;
+    margin: 0 15px;
+  }
+
+  .navSearch input {
+    font-size: 13px;
+    padding: var(--spacing-xs) var(--spacing-lg) var(--spacing-xs) var(--spacing-md);
   }
 
   .navActions {
-    gap: 10px;
+    gap: 8px;
+  }
+
+  .navIcon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navSearch {
+    max-width: 150px;
+    margin: 0 10px;
+  }
+
+  .navSearch input {
+    font-size: 12px;
+    padding: 6px 30px 6px 10px;
+  }
+
+  .navSearch i {
+    right: 8px;
+    font-size: 12px;
   }
 }
