@@ -34,8 +34,8 @@
   }
 
   .mainContent {
-    margin-left: 250px;
-    max-width: calc(100vw - 250px);
+    margin-left: 21vw;
+    max-width: calc(100vw - 20vw);
   }
 }
 
