@@ -125,6 +125,30 @@ export default function GroupDetailPage() {
     setIsSettingsModalOpen(false)
   }
 
+  const handleLeaveGroup = async () => {
+    if (!confirm('Are you sure you want to leave this group? You will no longer have access to group posts, events, and chat.')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/groups/leave/${groupId}`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to leave group')
+      }
+
+      // Redirect to groups page after successfully leaving
+      router.push('/groups')
+    } catch (error) {
+      console.error('Error leaving group:', error)
+      alert(error.message || 'Failed to leave group')
+    }
+  }
+
   if (isLoading) {
     return (
       <RouteGuard requireAuth={true}>
@@ -245,6 +269,12 @@ export default function GroupDetailPage() {
                     <button className="btn-outline" onClick={handleSettings}>
                       <i className="fas fa-cog"></i>
                       Settings
+                    </button>
+                  )}
+                  {group.is_member && (
+                    <button className="btn-outline" onClick={handleLeaveGroup}>
+                      <i className="fas fa-sign-out-alt"></i>
+                      Leave Group
                     </button>
                   )}
                 </div>

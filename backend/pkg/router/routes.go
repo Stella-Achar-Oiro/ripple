@@ -41,9 +41,13 @@ func setupGroupRoutes(mux *http.ServeMux, h *handlers.GroupHandler, auth func(ht
 	mux.Handle("/api/groups", auth(http.HandlerFunc(h.CreateGroup)))
 	mux.Handle("/api/groups/all", auth(http.HandlerFunc(h.GetAllGroups)))
 	mux.Handle("/api/groups/user", auth(http.HandlerFunc(h.GetUserGroups)))
+	mux.Handle("/api/groups/recommendations", auth(http.HandlerFunc(h.GetRecommendedGroups)))
 	mux.Handle("/api/groups/invite", auth(http.HandlerFunc(h.InviteToGroup)))
 	mux.Handle("/api/groups/join", auth(http.HandlerFunc(h.JoinGroup)))
 	mux.Handle("/api/groups/handle", auth(http.HandlerFunc(h.HandleMembershipRequest)))
+	mux.Handle("/api/groups/leave/", auth(http.HandlerFunc(h.LeaveGroup)))
+	mux.Handle("/api/groups/posts/update", auth(http.HandlerFunc(h.UpdateGroupPost)))
+	mux.Handle("/api/groups/posts/delete/", auth(http.HandlerFunc(h.DeleteGroupPost)))
 
 	mux.Handle("/api/groups/invitations", auth(http.HandlerFunc(h.GetPendingInvitations)))
 	// Handle group requests endpoint with proper routing
@@ -67,7 +71,7 @@ func setupGroupRoutes(mux *http.ServeMux, h *handlers.GroupHandler, auth func(ht
 	mux.Handle("/api/groups/posts/get/", auth(http.HandlerFunc(h.GetGroupPosts)))
 	mux.Handle("/api/groups/comments/", auth(http.HandlerFunc(h.CreateGroupComment)))
 	mux.Handle("/api/groups/comments/get/", auth(http.HandlerFunc(h.GetGroupComments)))
-
+	mux.Handle("/api/groups/posts/like", auth(http.HandlerFunc(h.ToggleGroupPostLike)))
 }
 
 func setupEventRoutes(mux *http.ServeMux, h *handlers.EventHandler, auth func(http.Handler) http.Handler) {

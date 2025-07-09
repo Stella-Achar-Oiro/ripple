@@ -164,9 +164,12 @@
 }
 
 .groupActions {
-  display: flex;
+  /* display exactly two buttons per line */
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  flex-wrap: wrap;
+  margin-top: 16px;
+  padding: 12px 0;
 }
 
 .groupActions button {
@@ -181,13 +184,15 @@
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
 }
 
 .tabList {
   display: flex;
   border-bottom: 1px solid #e5e7eb;
   background-color: #f9fafb;
+  position: sticky;
+  top: 53px;
+  z-index: 10;
 }
 
 .tab {
@@ -350,7 +355,7 @@
   }
   
   .groupInfo {
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     text-align: center;
     gap: 16px;
@@ -368,7 +373,7 @@
   
   .groupActions {
     justify-content: center;
-    width: 100%;
+    width: 50%;
   }
   
   .groupActions button {
@@ -391,5 +396,63 @@
   
   .tabContent {
     padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .groupInfo {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    gap: 12px;
+    padding: 30px 20px 20px;
+  }
+
+  .groupCover {
+    min-height: 350px;
+  }
+  
+  .groupAvatar {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .groupTitle {
+    font-size: 1. 25rem;
+  }
+  
+  .groupDescription {
+    font-size: 0.8125rem;
+  }
+  
+  .groupMeta {
+    flex-wrap: wrap;
+  }
+  
+  .memberCount {
+    margin-top: 8px;
+  }
+  
+  .groupActions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .groupActions button {
+    flex: none;
+    width: 100%;
+  }
+  
+  .tabList {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  
+  .tab {
+    padding: 10px 16px;
+  }
+  
+  .tabContent {
+    padding: 12px;
   }
 }

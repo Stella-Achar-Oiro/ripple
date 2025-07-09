@@ -1,11 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import ImageModal from '../shared/ImageModal'
 import styles from './Post.module.css'
 
 export default function Post({ post }) {
   const [isLiked, setIsLiked] = useState(post.isLiked)
   const [likeCount, setLikeCount] = useState(post.likes_count)
+  const [showImageModal, setShowImageModal] = useState(false)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -49,17 +51,16 @@ export default function Post({ post }) {
         </div>
 
         {post.image_path ? (
-          <div className={styles.postImage}>
+          <div className={styles.postImage} onClick={() => setShowImageModal(true)}>
             <img
               src={`${API_URL}${post.image_path}`}
               alt="Post attachment"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                borderRadius: '8px'
+              loading="lazy"
+              onLoad={() => {
+                console.log('Image loaded successfully:', `${API_URL}${post.image_path}`)
               }}
               onError={(e) => {
+                console.error('Image failed to load:', e.target.src)
                 e.target.style.display = 'none'
               }}
             />
@@ -89,6 +90,16 @@ export default function Post({ post }) {
           </div>
         </div>
       </div>
+
+      {/* Image Modal */}
+      {post.image_path && (
+        <ImageModal
+          src={`${API_URL}${post.image_path}`}
+          alt="Post attachment"
+          isOpen={showImageModal}
+          onClose={() => setShowImageModal(false)}
+        />
+      )}
     </div>
   )
 }

@@ -51,3 +51,9 @@ type Notification struct {
 	RelatedType *string `json:"related_type" db:"related_type"`
 	IsRead      bool    `json:"is_read" db:"is_read"`
 }
+
+type GroupRecommendation struct {
+	Group                *Group `json:"group"`
+	FollowedMembersCount int    `json:"followed_members_count"`
+	RecommendationType   string `json:"recommendation_type"`
+}

@@ -58,6 +58,7 @@ func (uh *UploadHandler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 
 	// Return file path
 	filePath := fmt.Sprintf("/uploads/avatars/%s", filename)
+	fmt.Println("Avatar uploaded successfully:", filePath) // debug log
 
 	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
 		"file_path": filePath,
@@ -222,6 +223,7 @@ func (uh *UploadHandler) UploadGroupAvatar(w http.ResponseWriter, r *http.Reques
 	}
 
 	file, header, err := r.FormFile("group-avatar")
+	fmt.Println("Retrieving file for group avatar upload : ", err)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "No file uploaded or invalid file field")
 		return
