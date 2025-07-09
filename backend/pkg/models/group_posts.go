@@ -22,6 +22,7 @@ type GroupPost struct {
 	UpdatedAt    time.Time
 	Author       *UserResponse
 	CommentCount int
+	LikesCount   int
 	CanComment   bool
 }
 
@@ -73,7 +74,8 @@ func (gpr *GroupPostRepository) GetGroupPosts(groupID int, limit, offset int) ([
 	query := `
 		SELECT gp.id, gp.group_id, gp.user_id, gp.content, gp.image_path, gp.created_at, gp.updated_at,
 		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.is_public, u.created_at,
-		       (SELECT COUNT(*) FROM group_post_comments WHERE group_post_id = gp.id) as comment_count
+		       (SELECT COUNT(*) FROM group_post_comments WHERE group_post_id = gp.id) as comment_count,
+		       (SELECT COUNT(*) FROM group_post_likes WHERE group_post_id = gp.id) as likes_count
 		FROM group_posts gp
 		JOIN users u ON gp.user_id = u.id
 		WHERE gp.group_id = ?
@@ -95,7 +97,7 @@ func (gpr *GroupPostRepository) GetGroupPosts(groupID int, limit, offset int) ([
 		err := rows.Scan(
 			&post.ID, &post.GroupID, &post.UserID, &post.Content, &post.ImagePath, &post.CreatedAt, &post.UpdatedAt,
 			&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.IsPublic, &author.CreatedAt,
-			&post.CommentCount,
+			&post.CommentCount, &post.LikesCount,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan group post: %w", err)
@@ -162,6 +164,48 @@ func (gpr *GroupPostRepository) DeleteGroupPost(postID, userID int) error {
 	}
 
 	return nil
+}
+
+// UpdateGroupPost updates a group post
+func (gpr *GroupPostRepository) UpdateGroupPost(postID, userID int, content string) (*GroupPost, error) {
+	// First check if the post exists and belongs to the user
+	query := `
+	SELECT id, group_id, user_id, content, image_path, created_at, updated_at 
+	FROM group_posts 
+	WHERE id = ? AND user_id = ?`
+
+	var existingPost GroupPost
+	err := gpr.db.QueryRow(query, postID, userID).Scan(
+		&existingPost.ID, &existingPost.GroupID, &existingPost.UserID, &existingPost.Content, &existingPost.ImagePath, &existingPost.CreatedAt, &existingPost.UpdatedAt,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("group post not found or not authorized")
+		}
+		return nil, fmt.Errorf("failed to get group post: %w", err)
+	}
+
+	// Update the post
+	updateQuery := `UPDATE group_posts SET content = ?, updated_at = ? WHERE id = ? AND user_id = ?`
+
+	now := time.Now()
+	result, err := gpr.db.Exec(updateQuery, content, now, postID, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update group post: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return nil, fmt.Errorf("group post not found or not authorized")
+	}
+
+	// Get the updated post with author information
+	return gpr.GetGroupPost(postID)
 }
 
 // CreateGroupComment creates a comment on a group post
@@ -241,4 +285,37 @@ func (gpr *GroupPostRepository) GetGroupComments(postID int, limit, offset int) 
 	}
 
 	return comments, nil
+}
+
+// ToggleLike toggles like/unlike for a group post and returns the new like state and count
+func (gpr *GroupPostRepository) ToggleLike(postID, userID int) (bool, int, error) {
+	// Check if the user already liked the post
+	var exists bool
+	err := gpr.db.QueryRow("SELECT EXISTS(SELECT 1 FROM group_post_likes WHERE group_post_id = ? AND user_id = ?)", postID, userID).Scan(&exists)
+	if err != nil {
+		return false, 0, fmt.Errorf("failed to check like status: %w", err)
+	}
+
+	if exists {
+		// Unlike
+		_, err := gpr.db.Exec("DELETE FROM group_post_likes WHERE group_post_id = ? AND user_id = ?", postID, userID)
+		if err != nil {
+			return false, 0, fmt.Errorf("failed to unlike post: %w", err)
+		}
+	} else {
+		// Like
+		_, err := gpr.db.Exec("INSERT INTO group_post_likes (group_post_id, user_id, created_at) VALUES (?, ?, ?)", postID, userID, time.Now())
+		if err != nil {
+			return false, 0, fmt.Errorf("failed to like post: %w", err)
+		}
+	}
+
+	// Get the new like count
+	var likeCount int
+	err = gpr.db.QueryRow("SELECT COUNT(*) FROM group_post_likes WHERE group_post_id = ?", postID).Scan(&likeCount)
+	if err != nil {
+		return false, 0, fmt.Errorf("failed to get like count: %w", err)
+	}
+
+	return !exists, likeCount, nil
 }

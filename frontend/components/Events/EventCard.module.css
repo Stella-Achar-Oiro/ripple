@@ -3,14 +3,19 @@
   border-radius: 12px;
   box-shadow: var(--shadow);
   padding: 20px;
-  margin-bottom: 16px;
+  margin-bottom: 28px;
   position: relative;
   transition: transform 0.2s, box-shadow 0.2s;
+  border: 1.5px solid var(--border-gray, #e0e0e0);
 }
 
 .eventCard:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-heavy);
+}
+
+.eventCard:not(:last-child) {
+  box-shadow: var(--shadow), 0 2px 0 0 var(--border-gray, #e0e0e0);
 }
 
 .pastEvent {

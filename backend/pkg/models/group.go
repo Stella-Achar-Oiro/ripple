@@ -641,3 +641,161 @@ func (gr *GroupRepository) GetMembershipStatus(groupID, userID int) (string, err
 
 	return status, nil
 }
+
+// RemoveMemberFromGroup removes a user from a group
+func (gr *GroupRepository) RemoveMemberFromGroup(groupID, userID int) error {
+	// Check if user is the group creator
+	isCreator, err := gr.IsCreator(groupID, userID)
+	if err != nil {
+		return fmt.Errorf("failed to check creator status: %w", err)
+	}
+	if isCreator {
+		return fmt.Errorf("group creator cannot be removed from the group")
+	}
+
+	// Delete the membership record
+	query := `
+		DELETE FROM group_members 
+		WHERE group_id = ? AND user_id = ?
+	`
+
+	result, err := gr.db.Exec(query, groupID, userID)
+	if err != nil {
+		return fmt.Errorf("failed to remove member from group: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("user is not a member of this group")
+	}
+
+	return nil
+}
+
+// GetRecommendedGroups gets intelligent group recommendations for a user
+func (gr *GroupRepository) GetRecommendedGroups(userID int, limit int) ([]*GroupRecommendation, error) {
+	// First, get groups where users that the current user follows are members
+	followedUsersGroupsQuery := `
+		SELECT
+			g.id, g.creator_id, g.title, g.description, g.avatar_path, g.cover_path, g.created_at, g.updated_at,
+			u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.is_public, u.created_at,
+			(SELECT COUNT(*) FROM group_members WHERE group_id = g.id AND status = ?) as member_count,
+			COUNT(DISTINCT gm.user_id) as followed_members_count
+		FROM groups g
+		JOIN users u ON g.creator_id = u.id
+		JOIN group_members gm ON g.id = gm.group_id AND gm.status = ?
+		JOIN follows f ON gm.user_id = f.following_id AND f.follower_id = ? AND f.status = ?
+		WHERE g.id NOT IN (
+			SELECT group_id FROM group_members WHERE user_id = ? AND status IN (?, ?)
+		)
+		GROUP BY g.id, g.creator_id, g.title, g.description, g.avatar_path, g.cover_path, g.created_at, g.updated_at,
+				 u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.is_public, u.created_at
+		ORDER BY followed_members_count DESC, member_count DESC
+		LIMIT ?
+	`
+
+	rows, err := gr.db.Query(followedUsersGroupsQuery,
+		constants.GroupMemberStatusAccepted,
+		constants.GroupMemberStatusAccepted,
+		userID,
+		constants.FollowStatusAccepted,
+		userID,
+		constants.GroupMemberStatusAccepted,
+		constants.GroupMemberStatusPending,
+		limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get recommended groups from followed users: %w", err)
+	}
+	defer rows.Close()
+
+	var recommendations []*GroupRecommendation
+	for rows.Next() {
+		group := &Group{}
+		creator := &UserResponse{}
+		var followedMembersCount int
+
+		err := rows.Scan(
+			&group.ID, &group.CreatorID, &group.Title, &group.Description, &group.AvatarPath, &group.CoverPath, &group.CreatedAt, &group.UpdatedAt,
+			&creator.ID, &creator.Email, &creator.FirstName, &creator.LastName, &creator.DateOfBirth, &creator.Nickname, &creator.AboutMe, &creator.AvatarPath, &creator.IsPublic, &creator.CreatedAt,
+			&group.MemberCount, &followedMembersCount,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan recommended group: %w", err)
+		}
+
+		group.Creator = creator
+		recommendations = append(recommendations, &GroupRecommendation{
+			Group:                group,
+			FollowedMembersCount: followedMembersCount,
+			RecommendationType:   "followed_users",
+		})
+	}
+
+	// If we don't have enough recommendations, fill with popular groups
+	if len(recommendations) < limit {
+		remaining := limit - len(recommendations)
+
+		// Get group IDs we already have
+		excludeIDs := []string{}
+		for _, rec := range recommendations {
+			excludeIDs = append(excludeIDs, fmt.Sprintf("%d", rec.Group.ID))
+		}
+
+		excludeClause := ""
+		if len(excludeIDs) > 0 {
+			excludeClause = fmt.Sprintf("AND g.id NOT IN (%s)", strings.Join(excludeIDs, ","))
+		}
+
+		popularGroupsQuery := fmt.Sprintf(`
+			SELECT
+				g.id, g.creator_id, g.title, g.description, g.avatar_path, g.cover_path, g.created_at, g.updated_at,
+				u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.is_public, u.created_at,
+				(SELECT COUNT(*) FROM group_members WHERE group_id = g.id AND status = ?) as member_count
+			FROM groups g
+			JOIN users u ON g.creator_id = u.id
+			WHERE g.id NOT IN (
+				SELECT group_id FROM group_members WHERE user_id = ? AND status IN (?, ?)
+			) %s
+			ORDER BY member_count DESC, g.created_at DESC
+			LIMIT ?
+		`, excludeClause)
+
+		rows, err := gr.db.Query(popularGroupsQuery,
+			constants.GroupMemberStatusAccepted,
+			userID,
+			constants.GroupMemberStatusAccepted,
+			constants.GroupMemberStatusPending,
+			remaining)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get popular groups: %w", err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			group := &Group{}
+			creator := &UserResponse{}
+
+			err := rows.Scan(
+				&group.ID, &group.CreatorID, &group.Title, &group.Description, &group.AvatarPath, &group.CoverPath, &group.CreatedAt, &group.UpdatedAt,
+				&creator.ID, &creator.Email, &creator.FirstName, &creator.LastName, &creator.DateOfBirth, &creator.Nickname, &creator.AboutMe, &creator.AvatarPath, &creator.IsPublic, &creator.CreatedAt,
+				&group.MemberCount,
+			)
+			if err != nil {
+				return nil, fmt.Errorf("failed to scan popular group: %w", err)
+			}
+
+			group.Creator = creator
+			recommendations = append(recommendations, &GroupRecommendation{
+				Group:                group,
+				FollowedMembersCount: 0,
+				RecommendationType:   "popular",
+			})
+		}
+	}
+
+	return recommendations, nil
+}

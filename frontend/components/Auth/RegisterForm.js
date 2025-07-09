@@ -4,10 +4,12 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useAuth } from '../../contexts/AuthContext'
 import styles from './RegisterForm.module.css'
 
 export default function RegisterForm() {
   const router = useRouter()
+  const { register: registerUser, checkAuth } = useAuth()
 
   const [formData, setFormData] = useState({
     email: '',
@@ -23,6 +25,7 @@ export default function RegisterForm() {
   const [submitError, setSubmitError] = useState('')
   const [isConflictError, setIsConflictError] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState(null)
+  const [touched, setTouched] = useState({})
   const fileInputRef = useRef(null)
 
   // Get API URL from environment variable
@@ -31,6 +34,9 @@ export default function RegisterForm() {
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+    
+    // Mark field as touched
+    setTouched(prev => ({ ...prev, [name]: true }))
     
     // Clear error when user starts typing
     if (errors[name]) {
@@ -42,18 +48,18 @@ export default function RegisterForm() {
     const file = e.target.files[0]
     if (!file) return
 
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+    if (file.size > 20 * 1024 * 1024) { // 20MB limit
       setErrors(prev => ({ 
         ...prev, 
-        avatar: 'Image size should be less than 5MB' 
+        avatar: 'Image size should be less than 20MB' 
       }))
       return
     }
 
-    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+    if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/svg+xml'].includes(file.type)) {
       setErrors(prev => ({ 
-        ...prev, 
-        avatar: 'Only JPEG, PNG and GIF images are allowed' 
+      ...prev, 
+      avatar: 'Only JPEG, PNG, GIF, WEBP, BMP, and SVG images are allowed' 
       }))
       return
     }
@@ -154,7 +160,7 @@ export default function RegisterForm() {
     setSubmitError('')
     
     try {
-      // Step 1: Register user with JSON data
+      // Step 1: Register user with JSON data using AuthContext
       const jsonData = {
         email: formData.email,
         password: formData.password,
@@ -162,63 +168,45 @@ export default function RegisterForm() {
         last_name: formData.last_name,
         date_of_birth: formData.date_of_birth,
       }
-      
-      // Add optional fields only if they have values
       if (formData.nickname) jsonData.nickname = formData.nickname
       if (formData.about_me) jsonData.about_me = formData.about_me
-      
-      const registerResponse = await fetch(`${API_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(jsonData),
-        credentials: 'include', // Important for cookies
-      })
-      
-      const registerData = await registerResponse.json()
-      
-      if (!registerResponse.ok) {
-        if (registerResponse.status === 409) {
+      const result = await registerUser(jsonData)
+      if (!result.success) {
+        if (result.error && result.error.includes('already exists')) {
           throw new Error('An account with this email already exists. Please try signing in instead.')
         }
-        throw new Error(registerData.error?.message || registerData.message || 'Registration failed')
+        throw new Error(result.error || 'Registration failed')
       }
       
       // Step 2: If we have an avatar, upload it
       if (fileInputRef.current && fileInputRef.current.files[0]) {
+        // Wait for session/cookie to be set
+        // await checkAuth()
+        
+        // Create a FormData object
         const avatarFormData = new FormData()
         avatarFormData.append('avatar', fileInputRef.current.files[0])
         
+        // Upload avatar
         const avatarResponse = await fetch(`${API_URL}/api/upload/avatar`, {
           method: 'POST',
           body: avatarFormData,
           credentials: 'include', // Important for cookies
         })
         
-        if (!avatarResponse.ok) {
-          console.error('Avatar upload failed, but registration was successful')
-          // Continue with registration success even if avatar upload fails
-        } else {
+        if (avatarResponse.ok) {
           const avatarData = await avatarResponse.json()
-          
-          // Step 3: Update user profile with avatar path
-          if (avatarData.file_path) {
-            const updateResponse = await fetch(`${API_URL}/api/auth/profile/update`, {
+          const filePath = avatarData.file_path || (avatarData.data && avatarData.data.file_path)
+          if (filePath) {
+            await fetch(`${API_URL}/api/auth/profile/update`, {
               method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                avatar_path: avatarData.file_path
-              }),
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ avatar_path: filePath }),
               credentials: 'include',
             })
-            
-            if (!updateResponse.ok) {
-              console.error('Profile update with avatar failed, but registration was successful')
-            }
           }
+        } else {
+          console.error('Avatar upload failed, but registration was successful')
         }
       }
       
@@ -234,12 +222,7 @@ export default function RegisterForm() {
   }
 
   const passwordStrength = getPasswordStrength()
-
-  // Removed step-based validation - now using complete form validation
-
-  // Removed progress bar - single step form
-
-  // Render all fields in single form
+  
   const renderAllFields = () => (
     <div className={styles.stepContent}>
       <h3 className={styles.stepTitle}>Create Your Account</h3>
@@ -388,7 +371,7 @@ export default function RegisterForm() {
             ref={fileInputRef}
             className={styles.fileInput}
             onChange={handleAvatarChange}
-            accept="image/jpeg,image/png,image/gif"
+            accept="image/jpeg,image/png,image/gif,image/webp,image/bmp,image/svg+xml"
           />
         </div>
         {errors.avatar && <div className={styles.errorText}>{errors.avatar}</div>}
@@ -431,7 +414,9 @@ export default function RegisterForm() {
         <div className={styles.charCounter}>
           {formData.about_me.length}/500 characters
         </div>
-        {errors.about_me && <div className={styles.errorText}>{errors.about_me}</div>}
+        {(touched.about_me || isSubmitting) && errors.about_me && (
+          <div className={styles.errorText}>{errors.about_me}</div>
+        )}
       </div>
     </div>
   )

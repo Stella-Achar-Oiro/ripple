@@ -2,12 +2,12 @@
   background-color: var(--white);
   border-radius: 12px;
   box-shadow: var(--shadow);
-  margin-bottom: 20px;
+  margin-bottom: 5px;
   overflow: hidden;
 }
 
 .header {
-  padding: 20px;
+  padding: 10px;
   border-bottom: 1px solid var(--border-gray);
   display: flex;
   justify-content: space-between;
@@ -39,7 +39,7 @@
 }
 
 .content {
-  padding: 20px;
+  padding: 10px;
 }
 
 .loadingState,
@@ -187,7 +187,7 @@
 /* Responsive design */
 @media (max-width: 768px) {
   .header {
-    padding: 15px;
+    padding: 10px;
   }
   
   .header h3 {
@@ -195,7 +195,7 @@
   }
   
   .content {
-    padding: 15px;
+    padding: 8px;
   }
   
   .requestItem {
