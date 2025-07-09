@@ -6,6 +6,7 @@ import { useWebSocket } from '../../contexts/WebSocketContext'
 import GroupChatInfo from './GroupChatInfo'
 import styles from './ChatMain.module.css'
 import Avatar from '../shared/Avatar'
+import EmojiPicker from '../shared/EmojiPicker'
 
 export default function ChatMain({ conversation, onConversationStarted }) {
   const { user } = useAuth()
@@ -26,12 +27,14 @@ export default function ChatMain({ conversation, onConversationStarted }) {
   const [selectedImage, setSelectedImage] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
   const [showGroupInfo, setShowGroupInfo] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [chatMessages, setChatMessages] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const messagesEndRef = useRef(null)
   const typingTimeoutRef = useRef(null)
   const fileInputRef = useRef(null)
+  const messageInputRef = useRef(null)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -162,6 +165,18 @@ export default function ChatMain({ conversation, onConversationStarted }) {
     typingTimeoutRef.current = setTimeout(() => {
       handleTyping(false)
     }, 3000)
+  }
+
+  const handleEmojiSelect = (emoji) => {
+    setNewMessage(prev => prev + emoji)
+    setShowEmojiPicker(false)
+    setTimeout(() => {
+      messageInputRef.current?.focus()
+    }, 100)
+  }
+
+  const handleEmojiButtonClick = () => {
+    setShowEmojiPicker(!showEmojiPicker)
   }
 
   const handleImageSelect = (e) => {
@@ -451,6 +466,7 @@ export default function ChatMain({ conversation, onConversationStarted }) {
         <form onSubmit={handleSendMessage} className={styles.chatInput}>
           <div className={styles.inputWrapper}>
             <input
+              ref={messageInputRef}
               type="text"
               value={newMessage}
               onChange={handleInputChange}
@@ -464,6 +480,13 @@ export default function ChatMain({ conversation, onConversationStarted }) {
               accept="image/*"
               style={{ display: 'none' }}
             />
+            <button
+              type="button"
+              className={styles.attachmentBtn}
+              onClick={handleEmojiButtonClick}
+            >
+              <i className="fas fa-smile"></i>
+            </button>
             <button 
               type="button"
               className={styles.attachmentBtn}
@@ -481,6 +504,14 @@ export default function ChatMain({ conversation, onConversationStarted }) {
             </button>
           </div>
         </form>
+
+        {showEmojiPicker && (
+          <EmojiPicker
+            isOpen={showEmojiPicker}
+            onClose={() => setShowEmojiPicker(false)}
+            onEmojiSelect={handleEmojiSelect}
+          />
+        )}
 
         {showGroupInfo && conversation.isGroup && (
           <div className={styles.groupInfoOverlay}>
