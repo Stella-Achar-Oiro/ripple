@@ -13,13 +13,14 @@
 }
 
 .modalContent {
-  background-color: var(--white);
+  background-color: #fff !important;
   border-radius: 12px;
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: var(--shadow-heavy);
+  box-shadow: var(--shadow-heavy, 0 8px 32px rgba(60, 60, 100, 0.18));
+  border: 1px solid var(--border-gray, #e0e0e0);
 }
 
 .modalHeader {
@@ -72,35 +73,42 @@
 }
 
 .eventForm {
+  background: #fff !important;
+  border-radius: 8px;
   padding: 20px;
 }
 
 .formGroup {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .formGroup label {
   display: block;
-  margin-bottom: 6px;
-  font-weight: 500;
-  color: var(--primary-navy);
-  font-size: 14px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #7b3ff2;
+  letter-spacing: 0.02em;
 }
 
 .formGroup input,
 .formGroup textarea {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid var(--border-gray);
+  border: 1.5px solid #c3c8d4;
   border-radius: 8px;
   font-size: 14px;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #f7f8fa !important;
+  color: #222;
+  box-shadow: none;
 }
 
 .formGroup input:focus,
 .formGroup textarea:focus {
   outline: none;
-  border-color: var(--primary-navy);
+  border-color: #7b3ff2;
+  box-shadow: 0 0 0 2px #e5d8fd;
+  background: #fff !important;
 }
 
 .formGroup input.error,

@@ -160,12 +160,12 @@ func (eh *EventHandler) GetGroupEvents(w http.ResponseWriter, r *http.Request) {
 
 	// Get group ID from URL path
 	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
+	if len(pathParts) < 5 {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Group ID required")
 		return
 	}
 
-	groupID, err := strconv.Atoi(pathParts[3])
+	groupID, err := strconv.Atoi(pathParts[4])
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid group ID")
 		return
@@ -199,7 +199,7 @@ func (eh *EventHandler) GetGroupEvents(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	events, err := eh.eventRepo.GetGroupEvents(groupID, limit, offset)
+	events, err := eh.eventRepo.GetGroupEvents(groupID, userID, limit, offset)
 	if err != nil {
 		utils.WriteInternalErrorResponse(w, err)
 		return
@@ -228,12 +228,12 @@ func (eh *EventHandler) RespondToEvent(w http.ResponseWriter, r *http.Request) {
 
 	// Get event ID from URL path
 	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 4 {
+	if len(pathParts) < 5 {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Event ID required")
 		return
 	}
 
-	eventID, err := strconv.Atoi(pathParts[3])
+	eventID, err := strconv.Atoi(pathParts[4])
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid event ID")
 		return

@@ -5,7 +5,7 @@
 }
 
 .header {
-  background: linear-gradient(135deg, var(--primary-navy) 0%, var(--accent-blue) 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border-radius: 12px;
   padding: 30px;

@@ -4,9 +4,9 @@ package models
 import (
 	"database/sql"
 	"fmt"
+	"ripple/pkg/constants"
 	"strings"
 	"time"
-	"ripple/pkg/constants"
 )
 
 type EventRepository struct {
@@ -26,14 +26,14 @@ type Event struct {
 	Title       string    `json:"title" db:"title"`
 	Description string    `json:"description" db:"description"`
 	EventDate   time.Time `json:"event_date" db:"event_date"`
-	
+
 	// Joined fields
-	Creator     *UserResponse `json:"creator,omitempty"`
-	GroupTitle  string        `json:"group_title,omitempty"`
-	IsCreator   bool          `json:"is_creator"`
-	UserResponse *string      `json:"user_response,omitempty"` // "going", "not_going", null
-	GoingCount   int          `json:"going_count"`
-	NotGoingCount int         `json:"not_going_count"`
+	Creator       *UserResponse `json:"creator,omitempty"`
+	GroupTitle    string        `json:"group_title,omitempty"`
+	IsCreator     bool          `json:"is_creator"`
+	UserResponse  *string       `json:"user_response,omitempty"` // "going", "not_going", null
+	GoingCount    int           `json:"going_count"`
+	NotGoingCount int           `json:"not_going_count"`
 }
 
 type EventResponse struct {
@@ -41,15 +41,15 @@ type EventResponse struct {
 	EventID  int    `json:"event_id" db:"event_id"`
 	UserID   int    `json:"user_id" db:"user_id"`
 	Response string `json:"response" db:"response"`
-	
+
 	// Joined fields
 	User *UserResponse `json:"user,omitempty"`
 }
 
 type CreateEventRequest struct {
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	EventDate   string    `json:"event_date"` // ISO format: "2025-06-15T19:00:00Z"
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	EventDate   string `json:"event_date"` // ISO format: "2025-06-15T19:00:00Z"
 }
 
 type EventResponseRequest struct {
@@ -153,12 +153,13 @@ func (er *EventRepository) GetEvent(eventID, viewerID int) (*Event, error) {
 }
 
 // GetGroupEvents gets events for a group
-func (er *EventRepository) GetGroupEvents(groupID int, limit, offset int) ([]*Event, error) {
+func (er *EventRepository) GetGroupEvents(groupID int, userID int, limit, offset int) ([]*Event, error) {
 	query := `
 		SELECT e.id, e.group_id, e.creator_id, e.title, e.description, e.event_date, e.created_at, e.updated_at,
 		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.is_public, u.created_at,
 		       (SELECT COUNT(*) FROM event_responses WHERE event_id = e.id AND response = ?) as going_count,
-		       (SELECT COUNT(*) FROM event_responses WHERE event_id = e.id AND response = ?) as not_going_count
+		       (SELECT COUNT(*) FROM event_responses WHERE event_id = e.id AND response = ?) as not_going_count,
+		       (SELECT response FROM event_responses WHERE event_id = e.id AND user_id = ?) as user_response
 		FROM events e
 		JOIN users u ON e.creator_id = u.id
 		WHERE e.group_id = ?
@@ -166,7 +167,7 @@ func (er *EventRepository) GetGroupEvents(groupID int, limit, offset int) ([]*Ev
 		LIMIT ? OFFSET ?
 	`
 
-	rows, err := er.db.Query(query, constants.EventResponseGoing, constants.EventResponseNotGoing, groupID, limit, offset)
+	rows, err := er.db.Query(query, constants.EventResponseGoing, constants.EventResponseNotGoing, userID, groupID, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get group events: %w", err)
 	}
@@ -176,18 +177,26 @@ func (er *EventRepository) GetGroupEvents(groupID int, limit, offset int) ([]*Ev
 	for rows.Next() {
 		event := &Event{}
 		creator := &User{}
+		var userResponse sql.NullString
 
 		err := rows.Scan(
 			&event.ID, &event.GroupID, &event.CreatorID, &event.Title, &event.Description, &event.EventDate, &event.CreatedAt, &event.UpdatedAt,
 			&creator.ID, &creator.Email, &creator.FirstName, &creator.LastName, &creator.DateOfBirth, &creator.Nickname, &creator.AboutMe, &creator.AvatarPath, &creator.IsPublic, &creator.CreatedAt,
 			&event.GoingCount,
 			&event.NotGoingCount,
+			&userResponse,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan event: %w", err)
 		}
 
 		event.Creator = creator.ToResponse()
+		if userResponse.Valid {
+			resp := userResponse.String
+			event.UserResponse = &resp
+		} else {
+			event.UserResponse = nil
+		}
 		events = append(events, event)
 	}
 
@@ -214,7 +223,7 @@ func (er *EventRepository) RespondToEvent(eventID, userID int, response string) 
 			INSERT INTO event_responses (event_id, user_id, response, created_at, updated_at)
 			VALUES (?, ?, ?, ?, ?)
 		`
-		
+
 		now := time.Now()
 		_, err = er.db.Exec(query, eventID, userID, response, now, now)
 		if err != nil {
@@ -229,7 +238,7 @@ func (er *EventRepository) RespondToEvent(eventID, userID int, response string) 
 			SET response = ?, updated_at = ?
 			WHERE id = ?
 		`
-		
+
 		_, err = er.db.Exec(query, response, time.Now(), existingID)
 		if err != nil {
 			return fmt.Errorf("failed to update event response: %w", err)
@@ -283,21 +292,21 @@ func (er *EventRepository) GetUserEventResponse(eventID, userID int) (string, er
 		SELECT response FROM event_responses 
 		WHERE event_id = ? AND user_id = ?
 	`, eventID, userID).Scan(&response)
-	
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return "", fmt.Errorf("no response found")
 		}
 		return "", fmt.Errorf("failed to get user response: %w", err)
 	}
-	
+
 	return response, nil
 }
 
 // DeleteEvent deletes an event (creator only)
 func (er *EventRepository) DeleteEvent(eventID, userID int) error {
 	query := `DELETE FROM events WHERE id = ? AND creator_id = ?`
-	
+
 	result, err := er.db.Exec(query, eventID, userID)
 	if err != nil {
 		return fmt.Errorf("failed to delete event: %w", err)
@@ -333,7 +342,7 @@ func (er *EventRepository) GetUserEvents(userID int, limit, offset int) ([]*Even
 		INNER JOIN groups g ON e.group_id = g.id
 		INNER JOIN group_members gm ON g.id = gm.group_id 
 		INNER JOIN users cu ON e.creator_id = cu.id
-		WHERE gm.user_id = ? AND gm.status = 'member'
+		WHERE gm.user_id = ? AND gm.status = 'accepted'
 		ORDER BY e.event_date ASC
 		LIMIT ? OFFSET ?
 	`
