@@ -148,23 +148,40 @@ export default function ChatMain({ conversation, onConversationStarted }) {
     }
   }, [isTyping, conversation, sendTypingIndicator])
 
+  // Clean up typing timeout on unmount or conversation change
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+      }
+      // Stop typing indicator when component unmounts or conversation changes
+      if (isTyping) {
+        handleTyping(false)
+      }
+    }
+  }, [conversation?.id, handleTyping, isTyping])
+
   const handleInputChange = (e) => {
     setNewMessage(e.target.value)
     
-    // Handle typing indicator
-    if (e.target.value.trim() && !isTyping) {
-      handleTyping(true)
-    }
-    
-    // Clear existing timeout
+    // Clear existing timeout first
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current)
     }
     
-    // Set timeout to stop typing indicator
-    typingTimeoutRef.current = setTimeout(() => {
+    // Handle typing indicator
+    if (e.target.value.trim()) {
+      if (!isTyping) {
+        handleTyping(true)
+      }
+      
+      // Set timeout to stop typing indicator after 3 seconds of inactivity
+      typingTimeoutRef.current = setTimeout(() => {
+        handleTyping(false)
+      }, 3000)
+    } else {
       handleTyping(false)
-    }, 3000)
+    }
   }
 
   const handleEmojiSelect = (emoji) => {
@@ -205,6 +222,13 @@ export default function ChatMain({ conversation, onConversationStarted }) {
     e.preventDefault()
     if ((!newMessage.trim() && !selectedImage) || !conversation) return
 
+    // Stop typing indicator immediately when sending
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+      typingTimeoutRef.current = null
+    }
+    handleTyping(false)
+
     // Handle image upload first if there's an image
     let imagePath = null
     if (selectedImage) {
@@ -235,12 +259,6 @@ export default function ChatMain({ conversation, onConversationStarted }) {
     setNewMessage('')
     setSelectedImage(null)
     setImagePreview(null)
-    
-    // Stop typing indicator
-    handleTyping(false)
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current)
-    }
 
     // Optimistically add message to UI
     const tempMessage = {
@@ -321,8 +339,12 @@ export default function ChatMain({ conversation, onConversationStarted }) {
   }
 
   const getUserName = (userId) => {
-    // In a real app, you'd have user data available
-    // For now, return a placeholder
+    
+    if (!conversation?.isGroup && conversation?.id === userId) {
+      return conversation.name || conversation.first_name || `User ${userId}`
+    }
+    
+    // Fallback
     return `User ${userId}`
   }
 
@@ -437,8 +459,10 @@ export default function ChatMain({ conversation, onConversationStarted }) {
             <i className="fas fa-ellipsis-h"></i>
             <span>
               {typingUsers.length === 1 
-                ? 'Someone is typing...' 
-                : `${typingUsers.length} people are typing...`
+                ? `${getUserName(typingUsers[0])} is typing...`
+                : typingUsers.length === 2
+                ? `${getUserName(typingUsers[0])} and ${getUserName(typingUsers[1])} are typing...`
+                : `${getUserName(typingUsers[0])} and ${typingUsers.length - 1} others are typing...`
               }
             </span>
           </div>
