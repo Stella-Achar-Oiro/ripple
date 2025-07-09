@@ -6,7 +6,7 @@ import styles from './NotificationItem.module.css'
 
 export default function NotificationItem({ notification }) {
   const [isHandling, setIsHandling] = useState(false)
-  const { markAsRead, handleGroupInvitation, formatNotificationTime, getNotificationIcon } = useNotifications()
+  const { markAsRead, handleGroupInvitation, handleFollowRequest, formatNotificationTime, getNotificationIcon } = useNotifications()
 
   const handleClick = async () => {
     if (!notification.is_read) {
@@ -35,6 +35,32 @@ export default function NotificationItem({ notification }) {
     } catch (error) {
       console.error('Error handling group invitation:', error)
       alert('Failed to handle invitation. Please try again.')
+    } finally {
+      setIsHandling(false)
+    }
+  }
+
+  const handleFollowRequestAction = async (action) => {
+    if (isHandling) return
+
+    try {
+      setIsHandling(true)
+      
+      // Extract follow ID from related_id
+      const followId = notification.related_id
+      if (!followId) {
+        throw new Error('Invalid follow request data')
+      }
+
+      await handleFollowRequest(followId, action)
+      
+      // Mark notification as read after handling
+      if (!notification.is_read) {
+        await markAsRead(notification.id)
+      }
+    } catch (error) {
+      console.error('Error handling follow request:', error)
+      alert('Failed to handle follow request. Please try again.')
     } finally {
       setIsHandling(false)
     }
@@ -108,6 +134,52 @@ export default function NotificationItem({ notification }) {
     )
   }
 
+  const renderFollowActions = () => {
+    // Show actions for follow requests if not read
+    if (notification.type !== 'follow_request' || notification.is_read) {
+      return null
+    }
+
+    return (
+      <div className={styles.notificationActions}>
+        <button
+          className={`${styles.actionButton} ${styles.acceptButton}`}
+          onClick={(e) => {
+            e.stopPropagation()
+            handleFollowRequestAction('accept')
+          }}
+          disabled={isHandling}
+        >
+          {isHandling ? (
+            <i className="fas fa-spinner fa-spin"></i>
+          ) : (
+            <>
+              <i className="fas fa-check"></i>
+              Accept
+            </>
+          )}
+        </button>
+        <button
+          className={`${styles.actionButton} ${styles.declineButton}`}
+          onClick={(e) => {
+            e.stopPropagation()
+            handleFollowRequestAction('decline')
+          }}
+          disabled={isHandling}
+        >
+          {isHandling ? (
+            <i className="fas fa-spinner fa-spin"></i>
+          ) : (
+            <>
+              <i className="fas fa-times"></i>
+              Decline
+            </>
+          )}
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div
       className={`${styles.notificationItem} ${!notification.is_read ? styles.unread : ''}`}
@@ -115,6 +187,7 @@ export default function NotificationItem({ notification }) {
     >
       {renderNotificationContent()}
       {renderGroupActions()}
+      {renderFollowActions()}
     </div>
   )
 }

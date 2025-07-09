@@ -188,14 +188,14 @@ func (nr *NotificationRepository) DeleteNotification(notificationID, userID int)
 }
 
 // CreateFollowRequestNotification creates notification for follow request
-func (nr *NotificationRepository) CreateFollowRequestNotification(followerID, followingID int, followerName string) error {
+func (nr *NotificationRepository) CreateFollowRequestNotification(followID, followingID int, followerName string) error {
 	req := &CreateNotificationRequest{
 		UserID:      followingID,
 		Type:        NotificationFollowRequest,
 		Title:       "New Follow Request",
 		Message:     fmt.Sprintf("%s wants to follow you", followerName),
-		RelatedID:   &followerID,
-		RelatedType: stringPtr("user"),
+		RelatedID:   &followID,
+		RelatedType: stringPtr("follow"),
 	}
 
 	_, err := nr.CreateNotification(req)

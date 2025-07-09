@@ -99,7 +99,7 @@ func (fh *FollowHandler) FollowUser(w http.ResponseWriter, r *http.Request) {
 		// Create notification for follow request (only for private users)
 		if !targetUser.IsPublic {
 			followerName := currentUser.FirstName + " " + currentUser.LastName
-			err = fh.notificationRepo.CreateFollowRequestNotification(userID, req.UserID, followerName)
+			err = fh.notificationRepo.CreateFollowRequestNotification(followRequest.ID, req.UserID, followerName)
 			if err != nil {
 				// Log error but don't fail the request
 				// In production, you might want to use a proper logger
