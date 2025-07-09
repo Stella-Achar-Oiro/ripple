@@ -1,6 +1,9 @@
 .chatMain {
   display: flex;
   flex-direction: column;
+  /* Ensure the main chat area fills the grid cell and can contain a scrolling child */
+  height: 100%;
+  min-height: 0;
 }
 
 .noConversation {
@@ -95,6 +98,7 @@
 .message {
   display: flex;
   margin-bottom: var(--spacing-md);
+  align-items: flex-start;
 }
 
 .message.own {
@@ -102,12 +106,15 @@
 }
 
 .messageBubble {
+  min-width: 60px;
   max-width: 70%;
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--radius-lg);
   font-size: 14px;
   line-height: 1.4;
   transition: all 0.15s ease-in-out;
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
 .message.own .messageBubble {
@@ -211,17 +218,21 @@
 }
 
 .messageContent {
-  background: #f8fafc;
   padding: 12px 16px;
   border-radius: 18px;
-  max-width: 70%;
   word-wrap: break-word;
   position: relative;
+  display: inline-block;
+  max-width: 100%;
 }
 
 .message.own .messageContent {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+}
+
+.message:not(.own) .messageContent {
+  background: #f8fafc;
 }
 
 .pendingIndicator {

@@ -108,4 +108,5 @@ func setupChatRoutes(mux *http.ServeMux, h *handlers.ChatHandler, auth func(http
 	mux.Handle("/api/chat/online", auth(http.HandlerFunc(h.GetOnlineUsers)))
 	mux.Handle("/api/chat/typing", auth(http.HandlerFunc(h.TypingIndicator)))
 	mux.Handle("/api/chat/unread", auth(http.HandlerFunc(h.GetUnreadCounts)))
+	mux.Handle("/api/chat/followed-users", auth(http.HandlerFunc(h.GetFollowedUsers)))
 }
