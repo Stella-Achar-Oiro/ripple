@@ -138,6 +138,57 @@
   margin-top: 4px;
 }
 
+.responseOptions {
+  display: flex;
+  gap: 20px;
+  margin-top: 8px;
+}
+
+.radioOption {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.radioOption:hover {
+  border-color: #7b3ff2;
+  background-color: #f8f6ff;
+}
+
+.radioOption input[type="radio"] {
+  display: none;
+}
+
+.radioOption input[type="radio"]:checked + .radioLabel {
+  color: #7b3ff2;
+  font-weight: 600;
+}
+
+.radioOption:has(input[type="radio"]:checked) {
+  border-color: #7b3ff2;
+  background-color: #f8f6ff;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #666;
+  transition: color 0.2s;
+  width: 100%;
+  justify-content: center;
+}
+
+.radioLabel i {
+  font-size: 16px;
+}
+
 .dateTimeRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -194,6 +245,11 @@
   .dateTimeRow {
     grid-template-columns: 1fr;
     gap: 20px;
+  }
+  
+  .responseOptions {
+    flex-direction: column;
+    gap: 12px;
   }
   
   .modalActions {
