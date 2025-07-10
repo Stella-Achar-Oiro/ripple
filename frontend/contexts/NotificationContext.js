@@ -114,6 +114,35 @@ export function NotificationProvider({ children }) {
     }
   }
 
+  // Handle follow request response
+  const handleFollowRequest = async (followId, action) => {
+    try {
+      const response = await fetch(`${API_URL}/api/follow/handle`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          follow_id: followId,
+          action: action
+        })
+      })
+
+      if (response.ok) {
+        // Refresh notifications after handling follow request
+        await fetchNotifications()
+        return true
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.error?.message || 'Failed to handle follow request')
+      }
+    } catch (error) {
+      console.error('Error handling follow request:', error)
+      throw error
+    }
+  }
+
   // Add new notification (for real-time updates)
   const addNotification = (notification) => {
     setNotifications(prev => [notification, ...prev])
@@ -178,6 +207,7 @@ export function NotificationProvider({ children }) {
     markAsRead,
     markAllAsRead,
     handleGroupInvitation,
+    handleFollowRequest,
     addNotification,
     formatNotificationTime,
     getNotificationIcon

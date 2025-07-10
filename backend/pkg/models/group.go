@@ -335,6 +335,57 @@ func (gr *GroupRepository) GetUserGroups(userID int, limit, offset int) ([]*Grou
 	return groups, nil
 }
 
+// SearchGroups searches for groups by title and description
+func (gr *GroupRepository) SearchGroups(query string, viewerID int, limit, offset int) ([]*Group, error) {
+	searchQuery := `
+		SELECT g.id, g.creator_id, g.title, g.description, g.avatar_path, g.cover_path, g.created_at, g.updated_at,
+		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.is_public, u.created_at,
+		       (SELECT COUNT(*) FROM group_members WHERE group_id = g.id AND status = ?) as member_count
+		FROM groups g
+		JOIN users u ON g.creator_id = u.id
+		WHERE (g.title LIKE ? OR g.description LIKE ?)
+		ORDER BY g.title, g.created_at DESC
+		LIMIT ? OFFSET ?
+	`
+
+	searchTerm := "%" + strings.ToLower(query) + "%"
+	rows, err := gr.db.Query(searchQuery, constants.GroupMemberStatusAccepted, searchTerm, searchTerm, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search groups: %w", err)
+	}
+	defer rows.Close()
+
+	var groups []*Group
+	for rows.Next() {
+		group := &Group{}
+		creator := &User{}
+
+		err := rows.Scan(
+			&group.ID, &group.CreatorID, &group.Title, &group.Description, &group.AvatarPath, &group.CoverPath, &group.CreatedAt, &group.UpdatedAt,
+			&creator.ID, &creator.Email, &creator.FirstName, &creator.LastName, &creator.DateOfBirth, &creator.Nickname, &creator.AboutMe, &creator.AvatarPath, &creator.IsPublic, &creator.CreatedAt,
+			&group.MemberCount,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan group: %w", err)
+		}
+
+		group.Creator = creator.ToResponse()
+		group.IsCreator = group.CreatorID == viewerID
+
+		// Get membership status for viewer
+		memberStatus, err := gr.GetMembershipStatus(group.ID, viewerID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get membership status: %w", err)
+		}
+		group.MemberStatus = memberStatus
+		group.IsMember = memberStatus == constants.GroupMemberStatusAccepted
+
+		groups = append(groups, group)
+	}
+
+	return groups, nil
+}
+
 // InviteUsersToGroup invites users to join a group and returns membership IDs
 func (gr *GroupRepository) InviteUsersToGroup(groupID, inviterID int, userIDs []int) (map[int]int, error) {
 	// Check if inviter is a member of the group

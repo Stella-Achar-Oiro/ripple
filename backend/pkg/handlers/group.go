@@ -256,6 +256,58 @@ func (gh *GroupHandler) GetUserGroups(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// SearchGroups searches for groups by title and description
+func (gh *GroupHandler) SearchGroups(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	// Get search query from URL parameters
+	query := r.URL.Query().Get("q")
+	if strings.TrimSpace(query) == "" {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Search query is required")
+		return
+	}
+
+	// Parse pagination parameters
+	limit := 20
+	offset := 0
+
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 && parsedLimit <= 50 {
+			limit = parsedLimit
+		}
+	}
+
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if parsedOffset, err := strconv.Atoi(offsetStr); err == nil && parsedOffset >= 0 {
+			offset = parsedOffset
+		}
+	}
+
+	// Search groups
+	groups, err := gh.groupRepo.SearchGroups(query, userID, limit, offset)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
+		"groups": groups,
+		"query":  query,
+		"limit":  limit,
+		"offset": offset,
+		"count":  len(groups),
+	})
+}
+
 // InviteToGroup invites users to join a group
 func (gh *GroupHandler) InviteToGroup(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
