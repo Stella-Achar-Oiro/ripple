@@ -53,6 +53,9 @@ func main() {
 	wsHub := websocket.NewHub(database.DB)
 	go wsHub.Run()
 
+	// Set WebSocket hub for real-time notifications
+	notificationRepo.SetWebSocketHub(wsHub)
+
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(userRepo, followRepo, postRepo, sessionManager)
 	followHandler := handlers.NewFollowHandler(followRepo, userRepo, notificationRepo)

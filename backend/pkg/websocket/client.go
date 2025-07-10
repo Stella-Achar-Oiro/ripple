@@ -147,6 +147,10 @@ func (c *Client) handleIncomingMessage(msg *WSMessage) {
 		c.handlePing(msg)
 	case MessageTypePong:
 		c.handlePong(msg)
+	case MessageTypeNotificationAck:
+		c.handleNotificationAck(msg)
+	case MessageTypeConnectionStatus:
+		c.handleConnectionStatus(msg)
 	default:
 		log.Printf("WebSocket: Unknown message type from user %d: %s", c.userID, msg.Type)
 		c.sendError("Unknown message type")
@@ -347,6 +351,32 @@ func (c *Client) handlePong(msg *WSMessage) {
 	// No further action needed for pong messages
 }
 
+// handleNotificationAck handles notification acknowledgments from the client
+func (c *Client) handleNotificationAck(msg *WSMessage) {
+	// Extract notification ID from the message data
+	if data, ok := msg.Data.(map[string]interface{}); ok {
+		if notificationID, ok := data["notification_id"].(float64); ok {
+			log.Printf("WebSocket: User %d acknowledged notification %d", c.userID, int(notificationID))
+			// Here you could update notification delivery status in database if needed
+		}
+	}
+}
+
+// handleConnectionStatus handles connection status requests from the client
+func (c *Client) handleConnectionStatus(msg *WSMessage) {
+	// Send connection status response
+	statusMessage := WSMessage{
+		Type:      MessageTypeConnectionStatus,
+		Timestamp: time.Now(),
+		Data: map[string]interface{}{
+			"status":    "connected",
+			"user_id":   c.userID,
+			"last_seen": c.lastSeen,
+		},
+	}
+	c.hub.sendToClient(c, statusMessage)
+}
+
 // canSendPrivateMessage checks if user can send private message using follow system
 func (c *Client) canSendPrivateMessage(recipientID int) (bool, error) {
 	// Use the existing CanSendMessage logic from follow repository
@@ -469,7 +499,7 @@ func (h *Hub) SendPrivateMessage(senderID, recipientID int, content string, mess
 		var msgContent string
 		var msgCreatedAt time.Time
 		var firstName, lastName, nickname sql.NullString
-		
+
 		err := h.db.QueryRow(query, messageID).Scan(&msgID, &msgSenderID, &msgReceiverID, &msgContent, &msgCreatedAt, &firstName, &lastName, &nickname)
 		if err == nil {
 			// Convert NullString to regular string, using empty string if NULL
@@ -477,24 +507,24 @@ func (h *Hub) SendPrivateMessage(senderID, recipientID int, content string, mess
 			if firstName.Valid {
 				firstNameStr = firstName.String
 			}
-			
+
 			lastNameStr := ""
 			if lastName.Valid {
 				lastNameStr = lastName.String
 			}
-			
+
 			nicknameStr := ""
 			if nickname.Valid {
 				nicknameStr = nickname.String
 			}
-			
+
 			messageData = map[string]interface{}{
 				"message": map[string]interface{}{
-					"id":         msgID,
-					"sender_id":  msgSenderID,
+					"id":          msgID,
+					"sender_id":   msgSenderID,
 					"receiver_id": msgReceiverID,
-					"content":    msgContent,
-					"created_at": msgCreatedAt,
+					"content":     msgContent,
+					"created_at":  msgCreatedAt,
 					"sender": map[string]interface{}{
 						"first_name": firstNameStr,
 						"last_name":  lastNameStr,

@@ -167,7 +167,7 @@ func TestChatAPI(t *testing.T) {
 	}
 
 	// Create chat handler
-	chatHandler := handlers.NewChatHandler(messageRepo, followRepo, groupRepo, hub)
+	chatHandler := handlers.NewChatHandler(messageRepo, followRepo, groupRepo, userRepo, hub)
 
 	t.Run("GetConversations", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/api/chat/conversations", nil)
@@ -314,7 +314,7 @@ func TestWebSocketIntegration(t *testing.T) {
 
 		// Send a test message
 		testMessage := map[string]interface{}{
-			
+
 			"type":    "private_message",
 			"to":      user2.ID,
 			"content": "Hello WebSocket!",

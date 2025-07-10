@@ -8,11 +8,22 @@ import (
 )
 
 type NotificationRepository struct {
-	db *sql.DB
+	db    *sql.DB
+	wsHub WebSocketHub // Interface for WebSocket hub
+}
+
+// WebSocketHub interface for real-time notification delivery
+type WebSocketHub interface {
+	SendNotification(userID int, data interface{})
 }
 
 func NewNotificationRepository(db *sql.DB) *NotificationRepository {
 	return &NotificationRepository{db: db}
+}
+
+// SetWebSocketHub sets the WebSocket hub for real-time notifications
+func (nr *NotificationRepository) SetWebSocketHub(hub WebSocketHub) {
+	nr.wsHub = hub
 }
 
 type NotificationType string
@@ -72,7 +83,44 @@ func (nr *NotificationRepository) CreateNotification(req *CreateNotificationRequ
 		return nil, fmt.Errorf("failed to create notification: %w", err)
 	}
 
+	// Send real-time notification if WebSocket hub is available
+	if nr.wsHub != nil {
+		nr.sendRealtimeNotification(notification)
+	}
+
 	return notification, nil
+}
+
+// sendRealtimeNotification sends a notification via WebSocket with proper categorization
+func (nr *NotificationRepository) sendRealtimeNotification(notification *Notification) {
+	// Create notification data with category for frontend handling
+	notificationData := map[string]interface{}{
+		"id":           notification.ID,
+		"type":         notification.Type,
+		"title":        notification.Title,
+		"message":      notification.Message,
+		"related_id":   notification.RelatedID,
+		"related_type": notification.RelatedType,
+		"is_read":      notification.IsRead,
+		"created_at":   notification.CreatedAt,
+		"category":     nr.getNotificationCategory(notification.Type),
+	}
+
+	nr.wsHub.SendNotification(notification.UserID, notificationData)
+}
+
+// getNotificationCategory categorizes notifications for frontend handling
+func (nr *NotificationRepository) getNotificationCategory(notificationType string) string {
+	switch notificationType {
+	case string(NotificationGroupInvite), string(NotificationGroupRequest),
+		string(NotificationEventCreated), string(NotificationGroupPostCreated),
+		string(NotificationEventReminder):
+		return "group"
+	case string(NotificationFollowRequest):
+		return "private"
+	default:
+		return "general"
+	}
 }
 
 // GetUserNotifications gets notifications for a user
@@ -320,15 +368,40 @@ func (nr *NotificationRepository) BulkCreateNotifications(userIDs []int, notific
 	`
 
 	now := time.Now()
+	var createdNotifications []*Notification
+
 	for _, userID := range userIDs {
 		_, err = tx.Exec(query, userID, string(notificationType), title, message, relatedID, relatedType, now)
 		if err != nil {
 			return fmt.Errorf("failed to create bulk notification: %w", err)
 		}
+
+		// Store notification data for real-time delivery
+		notification := &Notification{
+			UserID:      userID,
+			Type:        string(notificationType),
+			Title:       title,
+			Message:     message,
+			RelatedID:   relatedID,
+			RelatedType: relatedType,
+			IsRead:      false,
+			BaseModel: BaseModel{
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+		}
+		createdNotifications = append(createdNotifications, notification)
 	}
 
 	if err = tx.Commit(); err != nil {
 		return fmt.Errorf("failed to commit bulk notifications: %w", err)
+	}
+
+	// Send real-time notifications after successful commit
+	if nr.wsHub != nil {
+		for _, notification := range createdNotifications {
+			nr.sendRealtimeNotification(notification)
+		}
 	}
 
 	return nil

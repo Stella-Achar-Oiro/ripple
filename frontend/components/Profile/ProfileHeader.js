@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import ProfileEditModal from './ProfileEditModal'
 import Avatar from '../shared/Avatar'
+import ConfirmationModal from '../shared/ConfirmationModal'
 import styles from './ProfileHeader.module.css'
 
 export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle, onProfileUpdate }) {
@@ -13,6 +14,7 @@ export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle,
   })
   const [isLoading, setIsLoading] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [showUnfollowConfirmation, setShowUnfollowConfirmation] = useState(false)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -47,6 +49,17 @@ export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle,
   }, [profile?.id, isCurrentUser, API_URL])
 
   const handleFollowToggle = async () => {
+    // If unfollowing a private user, show confirmation modal
+    if (followStatus.is_following && !profile.is_public) {
+      setShowUnfollowConfirmation(true)
+      return
+    }
+
+    // Proceed with follow/unfollow
+    await performFollowToggle()
+  }
+
+  const performFollowToggle = async () => {
     setIsLoading(true)
 
     try {
@@ -96,6 +109,11 @@ export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle,
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleUnfollowConfirm = async () => {
+    setShowUnfollowConfirmation(false)
+    await performFollowToggle()
   }
 
   const handleProfileSave = (updatedProfile) => {
@@ -253,6 +271,17 @@ export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle,
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onSave={handleProfileSave}
+      />
+
+      <ConfirmationModal
+        isOpen={showUnfollowConfirmation}
+        onClose={() => setShowUnfollowConfirmation(false)}
+        onConfirm={handleUnfollowConfirm}
+        title="Unfollow Private User"
+        message={`Are you sure you want to unfollow ${profile.first_name} ${profile.last_name}? Since this is a private account, you'll need to send a follow request again if you want to follow them in the future.`}
+        confirmText="Unfollow"
+        cancelText="Cancel"
+        type="warning"
       />
     </div>
   )
