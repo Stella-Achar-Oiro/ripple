@@ -1,6 +1,7 @@
 import './globals.css'
 import { AuthProvider } from '../contexts/AuthContext'
 import { NotificationProvider } from '../contexts/NotificationContext'
+import { GroupChatNotificationProvider } from '../contexts/GroupChatNotificationContext'
 import { WebSocketProvider } from '../contexts/WebSocketContext'
 
 export const metadata = {
@@ -20,9 +21,11 @@ export default function RootLayout({ children }) {
       <body>
         <AuthProvider>
           <NotificationProvider>
-            <WebSocketProvider>
-              {children}
-            </WebSocketProvider>
+            <GroupChatNotificationProvider>
+              <WebSocketProvider>
+                {children}
+              </WebSocketProvider>
+            </GroupChatNotificationProvider>
           </NotificationProvider>
         </AuthProvider>
       </body>

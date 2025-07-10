@@ -19,7 +19,7 @@ export default function ChatMain({ conversation, onConversationStarted }) {
     getConversationId,
     getTypingUsers,
     isUserOnline,
-    markConversationAsRead
+    markPrivateConversationAsRead
   } = useWebSocket()
 
   const [newMessage, setNewMessage] = useState('')
@@ -124,14 +124,14 @@ export default function ChatMain({ conversation, onConversationStarted }) {
   // Mark conversation as read when it's selected
   useEffect(() => {
     if (conversationId) {
-      markConversationAsRead(conversationId)
-      
+      markPrivateConversationAsRead(conversationId)
+
       // Send read status to other user for private conversations
       if (!conversation?.isGroup && conversation?.id) {
         markAsRead(conversation.id)
       }
     }
-  }, [conversationId, conversation, markConversationAsRead, markAsRead])
+  }, [conversationId, conversation, markPrivateConversationAsRead, markAsRead])
 
   // Handle typing indicator
   const handleTyping = useCallback((isCurrentlyTyping) => {

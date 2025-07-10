@@ -5,15 +5,18 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useWebSocket } from '../../contexts/WebSocketContext'
+import { useGroupChatNotifications } from '../../contexts/GroupChatNotificationContext'
 import styles from './Sidebar.module.css'
 
 export default function Sidebar({ currentPage, isOpen, onClose }) {
   const router = useRouter()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const { user, logout } = useAuth()
-  const { getTotalUnreadCount } = useWebSocket()
+  const { getTotalPrivateUnreadCount } = useWebSocket()
+  const { totalUnreadCount: groupUnreadCount } = useGroupChatNotifications()
 
-  const totalUnreadCount = getTotalUnreadCount()
+  const privateUnreadCount = getTotalPrivateUnreadCount ? getTotalPrivateUnreadCount() : 0
+  const totalUnreadCount = privateUnreadCount + groupUnreadCount
 
   const handleLogout = async () => {
     try {

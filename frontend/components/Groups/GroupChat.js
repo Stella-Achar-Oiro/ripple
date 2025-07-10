@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useWebSocket } from '../../contexts/WebSocketContext'
+import { useGroupChatNotifications } from '../../contexts/GroupChatNotificationContext'
 import GroupChatMessage from './GroupChatMessage'
 import EmojiPicker from '../shared/EmojiPicker'
 import styles from './GroupChat.module.css'
@@ -15,8 +16,9 @@ export default function GroupChat({ groupId, groupTitle }) {
     getConversationMessages,
     getConversationId,
     getTypingUsers,
-    markConversationAsRead
+    markGroupConversationAsRead
   } = useWebSocket()
+  const { markGroupAsRead } = useGroupChatNotifications()
 
   const [messages, setMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')
@@ -197,9 +199,10 @@ export default function GroupChat({ groupId, groupTitle }) {
   // Mark conversation as read when component mounts or messages change
   useEffect(() => {
     if (conversationId && messages.length > 0) {
-      markConversationAsRead(conversationId)
+      markGroupConversationAsRead(numericGroupId)
+      markGroupAsRead(numericGroupId)
     }
-  }, [conversationId, messages, markConversationAsRead])
+  }, [conversationId, messages, markGroupConversationAsRead, markGroupAsRead, numericGroupId])
 
   // Get typing users for this group
   const typingUsers = getTypingUsers(conversationId)

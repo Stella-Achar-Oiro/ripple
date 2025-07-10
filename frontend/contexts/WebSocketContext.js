@@ -17,6 +17,9 @@ export const useWebSocket = () => {
 export const WebSocketProvider = ({ children }) => {
   const { user, isAuthenticated } = useAuth()
   const { addNotification } = useNotifications()
+
+  // Group chat notifications context will be injected via a higher-order component
+  const [groupChatNotifications, setGroupChatNotifications] = useState(null)
   
   // Connection state
   const [isConnected, setIsConnected] = useState(false)
@@ -27,7 +30,8 @@ export const WebSocketProvider = ({ children }) => {
   const [onlineUsers, setOnlineUsers] = useState(new Set())
   const [typingUsers, setTypingUsers] = useState(new Map()) // user_id -> timeout
   const [messages, setMessages] = useState(new Map()) // conversation_id -> messages[]
-  const [unreadCounts, setUnreadCounts] = useState(new Map()) // conversation_id -> count
+  const [privateUnreadCounts, setPrivateUnreadCounts] = useState(new Map()) // private conversation_id -> count
+  const [groupUnreadCounts, setGroupUnreadCounts] = useState(new Map()) // group_id -> count
   
   // WebSocket and refs
   const wsRef = useRef(null)
@@ -88,9 +92,9 @@ export const WebSocketProvider = ({ children }) => {
             return updated
           })
 
-          // Update unread count if not from current user
+          // Update private unread count if not from current user
           if (from !== user.id) {
-            setUnreadCounts(prev => {
+            setPrivateUnreadCounts(prev => {
               const updated = new Map(prev)
               updated.set(conversationId, (updated.get(conversationId) || 0) + 1)
               return updated
@@ -122,13 +126,23 @@ export const WebSocketProvider = ({ children }) => {
             return updated
           })
 
-          // Update unread count if not from current user
+          // Update group unread count and trigger group notification if not from current user
           if (from !== user.id) {
-            setUnreadCounts(prev => {
+            setGroupUnreadCounts(prev => {
               const updated = new Map(prev)
-              updated.set(conversationId, (updated.get(conversationId) || 0) + 1)
+              updated.set(group_id, (updated.get(group_id) || 0) + 1)
               return updated
             })
+
+            // Add to group chat notifications if context is available
+            if (groupChatNotifications?.addGroupNotification) {
+              const senderInfo = data.message?.sender || {
+                first_name: 'Unknown',
+                last_name: 'User',
+                id: from
+              }
+              groupChatNotifications.addGroupNotification(group_id, data.message, senderInfo)
+            }
           }
         } else {
           console.warn('[WebSocket] Group message missing data.message:', wsMessage) // Debug log
@@ -398,22 +412,42 @@ export const WebSocketProvider = ({ children }) => {
     return messages.get(conversationId) || []
   }, [messages])
 
-  const getUnreadCount = useCallback((conversationId) => {
-    return unreadCounts.get(conversationId) || 0
-  }, [unreadCounts])
+  const getPrivateUnreadCount = useCallback((conversationId) => {
+    return privateUnreadCounts.get(conversationId) || 0
+  }, [privateUnreadCounts])
 
-  const getTotalUnreadCount = useCallback(() => {
+  const getGroupUnreadCount = useCallback((groupId) => {
+    return groupUnreadCounts.get(groupId) || 0
+  }, [groupUnreadCounts])
+
+  const getTotalPrivateUnreadCount = useCallback(() => {
     let total = 0
-    unreadCounts.forEach((count) => {
+    privateUnreadCounts.forEach((count) => {
       total += count
     })
     return total
-  }, [unreadCounts])
+  }, [privateUnreadCounts])
 
-  const markConversationAsRead = useCallback((conversationId) => {
-    setUnreadCounts(prev => {
+  const getTotalGroupUnreadCount = useCallback(() => {
+    let total = 0
+    groupUnreadCounts.forEach((count) => {
+      total += count
+    })
+    return total
+  }, [groupUnreadCounts])
+
+  const markPrivateConversationAsRead = useCallback((conversationId) => {
+    setPrivateUnreadCounts(prev => {
       const updated = new Map(prev)
       updated.delete(conversationId)
+      return updated
+    })
+  }, [])
+
+  const markGroupConversationAsRead = useCallback((groupId) => {
+    setGroupUnreadCounts(prev => {
+      const updated = new Map(prev)
+      updated.delete(groupId)
       return updated
     })
   }, [])
@@ -432,6 +466,11 @@ export const WebSocketProvider = ({ children }) => {
   const isUserOnline = useCallback((userId) => {
     return onlineUsers.has(userId)
   }, [onlineUsers])
+
+  // Function to inject group chat notifications context
+  const setGroupChatNotificationsContext = useCallback((context) => {
+    setGroupChatNotifications(context)
+  }, [])
 
   // Connection management effects
   useEffect(() => {
@@ -487,12 +526,16 @@ export const WebSocketProvider = ({ children }) => {
     
     // Data accessors
     getConversationMessages,
-    getUnreadCount,
-    getTotalUnreadCount,
-    markConversationAsRead,
+    getPrivateUnreadCount,
+    getGroupUnreadCount,
+    getTotalPrivateUnreadCount,
+    getTotalGroupUnreadCount,
+    markPrivateConversationAsRead,
+    markGroupConversationAsRead,
     getTypingUsers,
     isUserOnline,
     getConversationId,
+    setGroupChatNotificationsContext,
     
     // Connection management
     connect,

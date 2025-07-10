@@ -15,7 +15,7 @@ export default function ChatSidebar({
   onRetry
 }) {
   const { user } = useAuth()
-  const { isUserOnline, getUnreadCount, getConversationId } = useWebSocket()
+  const { isUserOnline, getPrivateUnreadCount, getConversationId } = useWebSocket()
 
   const [searchQuery, setSearchQuery] = useState('')
   const [conversations, setConversations] = useState([])
@@ -44,13 +44,13 @@ export default function ChatSidebar({
           lastMessage: conv.last_message || 'No messages yet',
           lastMessageTime: conv.last_message_at,
           isOnline: isGroup ? false : isUserOnline(participant.id),
-          unread: getUnreadCount(conversationId),
+          unread: getPrivateUnreadCount(conversationId),
           memberCount: isGroup ? conv.group_info?.member_count : null
         }
       })
       setConversations(transformedConversations)
     }
-  }, [initialConversations, user?.id, getConversationId, isUserOnline, getUnreadCount])
+  }, [initialConversations, user?.id, getConversationId, isUserOnline, getPrivateUnreadCount])
 
   useEffect(() => {
     if (initialFollowedUsers) {
@@ -70,7 +70,7 @@ export default function ChatSidebar({
       setConversations(prev => prev.map(conv => ({
         ...conv,
         isOnline: conv.isGroup ? true : isUserOnline(conv.id),
-        unread: getUnreadCount(conv.conversationId),
+        unread: getPrivateUnreadCount(conv.conversationId),
       })))
     }
     if (followedUsers.length > 0) {
@@ -79,7 +79,7 @@ export default function ChatSidebar({
         isOnline: isUserOnline(u.id),
       })))
     }
-  }, [isUserOnline, getUnreadCount]) // Removed length dependencies to avoid re-renders
+  }, [isUserOnline, getPrivateUnreadCount]) // Removed length dependencies to avoid re-renders
 
   const handleStartNewChat = useCallback((targetUser) => {
     // Check if a conversation with this user already exists
