@@ -575,11 +575,29 @@ func (ah *AuthHandler) SearchUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Convert to response format and exclude current user
-	var userResponses []*models.UserResponse
+	// Convert to response format with follow status
+	type SearchUserResponse struct {
+		*models.UserResponse
+		IsFollowing  bool   `json:"is_following"`
+		FollowStatus string `json:"follow_status"`
+	}
+
+	var userResponses []*SearchUserResponse
 	for _, user := range users {
 		if user.ID != userID { // Exclude current user from search results
-			userResponses = append(userResponses, user.ToResponse())
+			// Check follow status
+			followStatus, err := ah.followRepo.GetFollowRelationshipStatus(userID, user.ID)
+			if err != nil {
+				log.Printf("SearchUsers - failed to get follow status for user %d: %v", user.ID, err)
+				followStatus = "" // Default to no relationship
+			}
+
+			userResponse := &SearchUserResponse{
+				UserResponse: user.ToResponse(),
+				IsFollowing:  followStatus == constants.FollowStatusAccepted,
+				FollowStatus: followStatus,
+			}
+			userResponses = append(userResponses, userResponse)
 		}
 	}
 
