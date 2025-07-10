@@ -218,6 +218,20 @@
   box-shadow: 0 8px 25px rgba(139, 92, 246, 0.2);
 }
 
+.followButton.pending {
+  background-color: var(--warning-yellow);
+  color: var(--text-primary);
+  border-color: var(--warning-yellow);
+  cursor: not-allowed;
+}
+
+.followButton.pending:hover {
+  background-color: var(--warning-yellow);
+  border-color: var(--warning-yellow);
+  transform: none;
+  box-shadow: none;
+}
+
 .followButton:disabled {
   opacity: 0.7;
   cursor: not-allowed;
