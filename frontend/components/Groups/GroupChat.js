@@ -26,7 +26,7 @@ export default function GroupChat({ groupId, groupTitle }) {
   const [error, setError] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
-  const [typingUserNames, setTypingUserNames] = useState(new Map()) // userId -> user name
+
   const messagesEndRef = useRef(null)
   const typingTimeoutRef = useRef(null)
   const messageInputRef = useRef(null)
@@ -44,28 +44,7 @@ export default function GroupChat({ groupId, groupTitle }) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  // Fetch user information by ID
-  const fetchUserInfo = async (userId) => {
-    try {
-      const response = await fetch(`${API_URL}/api/users/${userId}`, {
-        credentials: 'include',
-      })
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch user info')
-      }
-
-      const data = await response.json()
-      if (data.success && data.data) {
-        const user = data.data
-        const displayName = user.nickname || `${user.first_name} ${user.last_name}`.trim() || `User ${userId}`
-        return displayName
-      }
-    } catch (err) {
-      console.error('Error fetching user info:', err)
-    }
-    return `User ${userId}` // Fallback
-  }
 
   // Fetch message history from API
   const fetchMessages = async () => {
@@ -207,37 +186,7 @@ export default function GroupChat({ groupId, groupTitle }) {
   // Get typing users for this group
   const typingUsers = getTypingUsers(conversationId)
 
-  // Fetch user names for typing users
-  useEffect(() => {
-    const fetchTypingUserNames = async () => {
-      if (typingUsers.length === 0) {
-        setTypingUserNames(new Map())
-        return
-      }
 
-      const newUserNames = new Map(typingUserNames)
-      const usersToFetch = typingUsers.filter(userId => !newUserNames.has(userId))
-
-      if (usersToFetch.length > 0) {
-        const fetchPromises = usersToFetch.map(async (userId) => {
-          const userName = await fetchUserInfo(userId)
-          return [userId, userName]
-        })
-
-        try {
-          const results = await Promise.all(fetchPromises)
-          results.forEach(([userId, userName]) => {
-            newUserNames.set(userId, userName)
-          })
-          setTypingUserNames(newUserNames)
-        } catch (err) {
-          console.error('Error fetching typing user names:', err)
-        }
-      }
-    }
-
-    fetchTypingUserNames()
-  }, [typingUsers, typingUserNames, fetchUserInfo])
 
   if (isLoading) {
     return (
@@ -306,10 +255,8 @@ export default function GroupChat({ groupId, groupTitle }) {
                 </div>
                 <span className={styles.typingText}>
                   {typingUsers.length === 1
-                    ? `${typingUserNames.get(typingUsers[0]) || `User ${typingUsers[0]}`} is typing...`
-                    : typingUsers.length === 2
-                    ? `${typingUserNames.get(typingUsers[0]) || `User ${typingUsers[0]}`} and ${typingUserNames.get(typingUsers[1]) || `User ${typingUsers[1]}`} are typing...`
-                    : `${typingUserNames.get(typingUsers[0]) || `User ${typingUsers[0]}`} and ${typingUsers.length - 1} others are typing...`
+                    ? "Member typing..."
+                    : "Members typing..."
                   }
                 </span>
               </div>
