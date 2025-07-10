@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -88,7 +89,30 @@ func (eh *EventHandler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Create notifications for all group members
+	// Get group information for notifications
+	group, err := eh.groupRepo.GetGroup(groupID, userID)
+	if err != nil {
+		// Log error but don't fail the request since event was created successfully
+		// TODO: Add proper logging
+	} else {
+		// Create notifications for all group members (except the creator)
+		title := "New Event"
+		message := fmt.Sprintf("New event '%s' created in '%s'", event.Title, group.Title)
+		err = eh.notificationRepo.NotifyAllGroupMembers(
+			groupID,
+			userID, // actor (event creator)
+			models.NotificationEventCreated,
+			title,
+			message,
+			&event.ID,
+			stringPtr("event"),
+		)
+		if err != nil {
+			// Log error but don't fail the request since event was created successfully
+			// TODO: Add proper logging
+		}
+	}
+
 	utils.WriteSuccessResponse(w, http.StatusCreated, map[string]interface{}{
 		"event":   event,
 		"message": "Event created successfully",
@@ -424,4 +448,9 @@ func (eh *EventHandler) validateCreateEventRequest(req *models.CreateEventReques
 	}
 
 	return errors
+}
+
+// Helper function to create string pointer
+func stringPtr(s string) *string {
+	return &s
 }
