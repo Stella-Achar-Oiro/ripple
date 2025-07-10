@@ -277,6 +277,35 @@
   box-shadow: 0 6px 20px rgba(139, 92, 246, 0.2);
 }
 
+.followButton.pending {
+  background-color: var(--warning-light, #fef3c7);
+  color: var(--warning-dark, #92400e);
+  border-color: var(--warning, #f59e0b);
+  cursor: default;
+}
+
+.followButton.pending:hover {
+  background-color: var(--warning-light, #fef3c7);
+  color: var(--warning-dark, #92400e);
+  border-color: var(--warning, #f59e0b);
+  transform: none;
+  box-shadow: none;
+}
+
+.followButton.pending::before {
+  display: none;
+}
+
+.followButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.followButton:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 .userActions button,
 .groupActions button {
   padding: 8px 16px;
