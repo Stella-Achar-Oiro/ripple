@@ -68,20 +68,22 @@ type Client struct {
 type MessageType string
 
 const (
-	MessageTypePrivate      MessageType = "private_message"
-	MessageTypeGroup        MessageType = "group_message"
-	MessageTypeNotification MessageType = "notification"
-	MessageTypeUserOnline   MessageType = "user_online"
-	MessageTypeUserOffline  MessageType = "user_offline"
-	MessageTypeTyping       MessageType = "typing"
-	MessageTypeReadStatus   MessageType = "read_status"
-	MessageTypeDelivered    MessageType = "delivered"
-	MessageTypeError        MessageType = "error"
-	MessageTypeHeartbeat    MessageType = "heartbeat"
-	MessageTypeUserList     MessageType = "user_list"
-	MessageTypePresence     MessageType = "presence"
-	MessageTypePing         MessageType = "ping"
-	MessageTypePong         MessageType = "pong"
+	MessageTypePrivate          MessageType = "private_message"
+	MessageTypeGroup            MessageType = "group_message"
+	MessageTypeNotification     MessageType = "notification"
+	MessageTypeNotificationAck  MessageType = "notification_ack"
+	MessageTypeUserOnline       MessageType = "user_online"
+	MessageTypeUserOffline      MessageType = "user_offline"
+	MessageTypeTyping           MessageType = "typing"
+	MessageTypeReadStatus       MessageType = "read_status"
+	MessageTypeDelivered        MessageType = "delivered"
+	MessageTypeError            MessageType = "error"
+	MessageTypeHeartbeat        MessageType = "heartbeat"
+	MessageTypeUserList         MessageType = "user_list"
+	MessageTypePresence         MessageType = "presence"
+	MessageTypePing             MessageType = "ping"
+	MessageTypePong             MessageType = "pong"
+	MessageTypeConnectionStatus MessageType = "connection_status"
 )
 
 // WebSocket message structure
@@ -154,6 +156,20 @@ func HandleWebSocket(hub *Hub, sm *auth.SessionManager, w http.ResponseWriter, r
 
 	// Register the client
 	client.hub.register <- client
+
+	// Send connection status to client
+	go func() {
+		time.Sleep(100 * time.Millisecond) // Small delay to ensure registration is complete
+		statusMessage := WSMessage{
+			Type:      MessageTypeConnectionStatus,
+			Timestamp: time.Now(),
+			Data: map[string]interface{}{
+				"status":  "connected",
+				"user_id": session.UserID,
+			},
+		}
+		client.hub.sendToClient(client, statusMessage)
+	}()
 
 	// Start the read and write pumps in separate goroutines
 	go client.writePump()
@@ -647,7 +663,7 @@ func (h *Hub) BroadcastTypingIndicator(userID int, chatType string, targetID int
 	}
 }
 
-// SendNotification sends a notification to a specific user
+// SendNotification sends a notification to a specific user with retry logic
 func (h *Hub) SendNotification(userID int, data interface{}) {
 	message := WSMessage{
 		Type:      MessageTypeNotification,
@@ -668,11 +684,35 @@ func (h *Hub) SendNotification(userID int, data interface{}) {
 		case client.send <- messageBytes:
 			log.Printf("WebSocket: Notification sent to user %d", userID)
 		default:
-			// Skip if send channel is full
-			log.Printf("WebSocket: Failed to send notification to user %d - channel full", userID)
+			// Channel is full, try to clean up and retry once
+			log.Printf("WebSocket: Send channel full for user %d, attempting cleanup", userID)
+			go h.handleFullChannel(client, messageBytes)
 		}
+	} else {
+		log.Printf("WebSocket: User %d is offline, notification not delivered in real-time", userID)
 	}
 	h.mu.RUnlock()
+}
+
+// handleFullChannel handles the case when a client's send channel is full
+func (h *Hub) handleFullChannel(client *Client, messageBytes []byte) {
+	// Try to drain some messages from the channel
+	select {
+	case <-client.send:
+		// Drained one message, try to send the notification again
+		select {
+		case client.send <- messageBytes:
+			log.Printf("WebSocket: Notification sent to user %d after channel cleanup", client.userID)
+		default:
+			log.Printf("WebSocket: Failed to send notification to user %d - channel still full", client.userID)
+			// Consider disconnecting the client if channel is consistently full
+			h.unregisterClient(client)
+		}
+	case <-time.After(1 * time.Second):
+		log.Printf("WebSocket: Timeout waiting for channel cleanup for user %d", client.userID)
+		// Channel is consistently full, disconnect the client
+		h.unregisterClient(client)
+	}
 }
 
 // cleanupRoutine periodically cleans up inactive connections and updates presence

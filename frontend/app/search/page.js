@@ -7,6 +7,7 @@ import RouteGuard from '../../components/Auth/RouteGuard'
 import MainLayout from '../../components/Layout/MainLayout'
 import Avatar from '../../components/shared/Avatar'
 import ImageModal from '../../components/shared/ImageModal'
+import ConfirmationModal from '../../components/shared/ConfirmationModal'
 import styles from './page.module.css'
 
 export default function SearchPage() {
@@ -24,6 +25,8 @@ export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState(query)
   const [showImageModal, setShowImageModal] = useState(false)
   const [selectedImage, setSelectedImage] = useState(null)
+  const [showUnfollowConfirmation, setShowUnfollowConfirmation] = useState(false)
+  const [userToUnfollow, setUserToUnfollow] = useState(null)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -123,6 +126,21 @@ export default function SearchPage() {
   }
 
   const handleFollowToggle = async (userId, isFollowing) => {
+    // If unfollowing a private user, show confirmation modal
+    if (isFollowing) {
+      const user = searchResults.users.find(u => u.id === userId)
+      if (user && !user.is_public) {
+        setUserToUnfollow(user)
+        setShowUnfollowConfirmation(true)
+        return
+      }
+    }
+
+    // Proceed with follow/unfollow
+    await performFollowToggle(userId, isFollowing)
+  }
+
+  const performFollowToggle = async (userId, isFollowing) => {
     try {
       const endpoint = isFollowing ? '/api/unfollow' : '/api/follow'
       const response = await fetch(`${API_URL}${endpoint}`, {
@@ -136,13 +154,13 @@ export default function SearchPage() {
 
       if (response.ok) {
         const data = await response.json()
-        
+
         if (isFollowing) {
           // Unfollowing - remove follow status
           setSearchResults(prev => ({
             ...prev,
-            users: Array.isArray(prev.users) ? prev.users.map(user => 
-              user.id === userId 
+            users: Array.isArray(prev.users) ? prev.users.map(user =>
+              user.id === userId
                 ? { ...user, is_following: false, follow_status: '' }
                 : user
             ) : []
@@ -152,10 +170,10 @@ export default function SearchPage() {
           const followRequest = data.data?.follow_request || data.follow_request
           setSearchResults(prev => ({
             ...prev,
-            users: Array.isArray(prev.users) ? prev.users.map(user => 
-              user.id === userId 
-                ? { 
-                    ...user, 
+            users: Array.isArray(prev.users) ? prev.users.map(user =>
+              user.id === userId
+                ? {
+                    ...user,
                     is_following: followRequest?.status === 'accepted',
                     follow_status: followRequest?.status
                   }
@@ -166,6 +184,14 @@ export default function SearchPage() {
       }
     } catch (error) {
       console.error('Error toggling follow:', error)
+    }
+  }
+
+  const handleUnfollowConfirm = async () => {
+    if (userToUnfollow) {
+      setShowUnfollowConfirmation(false)
+      await performFollowToggle(userToUnfollow.id, true)
+      setUserToUnfollow(null)
     }
   }
 
@@ -469,6 +495,20 @@ export default function SearchPage() {
           }}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={showUnfollowConfirmation}
+        onClose={() => {
+          setShowUnfollowConfirmation(false)
+          setUserToUnfollow(null)
+        }}
+        onConfirm={handleUnfollowConfirm}
+        title="Unfollow Private User"
+        message={userToUnfollow ? `Are you sure you want to unfollow ${userToUnfollow.first_name} ${userToUnfollow.last_name}? Since this is a private account, you'll need to send a follow request again if you want to follow them in the future.` : ''}
+        confirmText="Unfollow"
+        cancelText="Cancel"
+        type="warning"
+      />
     </RouteGuard>
   )
 }

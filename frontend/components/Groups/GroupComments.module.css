@@ -46,8 +46,8 @@
 }
 
 .commentAvatar {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
@@ -68,13 +68,13 @@
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: 1rem;
 }
 
 .commentContent {
   flex: 1;
   background: var(--comment-background, var(--card-background));
-  padding: 0.75rem;
+  padding: 1rem;
   border-radius: 12px;
   border: 1px solid var(--border-color);
 }
@@ -88,17 +88,17 @@
 
 .commentAuthor {
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 1rem;
   color: var(--text-primary);
 }
 
 .commentTime {
-  font-size: 0.75rem;
+  font-size: 0.9rem;
   color: var(--text-secondary);
 }
 
 .commentText {
-  font-size: 0.9rem;
+  font-size: 1rem;
   line-height: 1.4;
   color: var(--text-primary);
   white-space: pre-wrap;
@@ -106,10 +106,10 @@
 }
 
 .commentImage {
-  margin-top: 0.5rem;
-  border-radius: 6px;
+  margin-top: 0.75rem;
+  border-radius: 8px;
   overflow: hidden;
-  max-height: 200px;
+  max-height: 250px;
 }
 
 .commentImage img {
@@ -167,11 +167,11 @@
 
 .commentInput {
   flex: 1;
-  padding: 0.75rem;
+  padding: 1rem;
   border: 1px solid var(--border-color);
   border-radius: 20px;
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 1rem;
   background: var(--background-color);
   color: var(--text-primary);
   transition: border-color 0.2s ease;
@@ -192,8 +192,8 @@
 }
 
 .imageUploadButton {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: 1px solid var(--border-color);
   background: var(--background-color);
@@ -213,12 +213,12 @@
 }
 
 .imageUploadButton i {
-  font-size: 0.8rem;
+  font-size: 1rem;
 }
 
 .commentSubmit {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: none;
   background: var(--primary-navy);
@@ -243,7 +243,7 @@
 }
 
 .commentSubmit i {
-  font-size: 0.8rem;
+  font-size: 1rem;
 }
 
 /* Responsive design */
@@ -253,24 +253,24 @@
   }
   
   .commentAvatar {
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
   }
-  
+
   .commentContent {
-    padding: 0.5rem;
+    padding: 0.75rem;
   }
-  
+
   .commentAuthor {
+    font-size: 0.9rem;
+  }
+
+  .commentTime {
     font-size: 0.8rem;
   }
-  
-  .commentTime {
-    font-size: 0.7rem;
-  }
-  
+
   .commentText {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
   }
   
   .commentInputContainer {
@@ -278,18 +278,18 @@
   }
   
   .commentInput {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.85rem;
+    padding: 0.75rem;
+    font-size: 0.9rem;
   }
-  
+
   .imageUploadButton {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
   }
 
   .commentSubmit {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
   }
 
   .removeImage {

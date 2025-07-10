@@ -9,7 +9,7 @@ import styles from './RegisterForm.module.css'
 
 export default function RegisterForm() {
   const router = useRouter()
-  const { register: registerUser, checkAuth } = useAuth()
+  const { register: registerUser, checkAuth, updateUser } = useAuth()
 
   const [formData, setFormData] = useState({
     email: '',
@@ -182,28 +182,37 @@ export default function RegisterForm() {
       if (fileInputRef.current && fileInputRef.current.files[0]) {
         // Wait for session/cookie to be set
         // await checkAuth()
-        
+
         // Create a FormData object
         const avatarFormData = new FormData()
         avatarFormData.append('avatar', fileInputRef.current.files[0])
-        
+
         // Upload avatar
         const avatarResponse = await fetch(`${API_URL}/api/upload/avatar`, {
           method: 'POST',
           body: avatarFormData,
           credentials: 'include', // Important for cookies
         })
-        
+
         if (avatarResponse.ok) {
           const avatarData = await avatarResponse.json()
           const filePath = avatarData.file_path || (avatarData.data && avatarData.data.file_path)
           if (filePath) {
-            await fetch(`${API_URL}/api/auth/profile/update`, {
+            const profileUpdateResponse = await fetch(`${API_URL}/api/auth/profile/update`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ avatar_path: filePath }),
               credentials: 'include',
             })
+
+            // Update AuthContext user state with the new avatar
+            if (profileUpdateResponse.ok) {
+              const updatedUserData = await profileUpdateResponse.json()
+              if (updatedUserData.success && updatedUserData.data) {
+                // Update the user state in AuthContext with the new avatar_path
+                updateUser(updatedUserData.data)
+              }
+            }
           }
         } else {
           console.error('Avatar upload failed, but registration was successful')
