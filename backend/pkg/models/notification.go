@@ -202,6 +202,21 @@ func (nr *NotificationRepository) CreateFollowRequestNotification(followerID, fo
 	return err
 }
 
+// CreateFollowRequestNotificationWithID creates notification for follow request with follow ID
+func (nr *NotificationRepository) CreateFollowRequestNotificationWithID(followID, followerID, followingID int, followerName string) error {
+	req := &CreateNotificationRequest{
+		UserID:      followingID,
+		Type:        NotificationFollowRequest,
+		Title:       "New Follow Request",
+		Message:     fmt.Sprintf("%s wants to follow you", followerName),
+		RelatedID:   &followID,
+		RelatedType: stringPtr("follow"),
+	}
+
+	_, err := nr.CreateNotification(req)
+	return err
+}
+
 // CreateGroupInvitationNotification creates notification for group invitation
 func (nr *NotificationRepository) CreateGroupInvitationNotification(userID, groupID, membershipID int, groupTitle, inviterName string) error {
 	req := &CreateNotificationRequest{
