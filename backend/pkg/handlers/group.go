@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -368,8 +369,7 @@ func (gh *GroupHandler) InviteToGroup(w http.ResponseWriter, r *http.Request) {
 				inviterName,
 			)
 			if err != nil {
-				// Log error but don't fail the request
-				// TODO: Add proper logging
+				fmt.Println("Failed to create notification:", err)
 			}
 		}
 	}
