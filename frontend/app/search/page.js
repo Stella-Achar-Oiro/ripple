@@ -44,7 +44,7 @@ export default function SearchPage() {
         if (usersResponse.ok) {
           const usersData = await usersResponse.json()
           console.log('Users API response:', usersData)
-          users = Array.isArray(usersData.data) ? usersData.data : []
+          users = Array.isArray(usersData.data?.users) ? usersData.data.users : []
         } else {
           console.error('Users search failed:', usersResponse.status, usersResponse.statusText)
         }
@@ -115,15 +115,34 @@ export default function SearchPage() {
       })
 
       if (response.ok) {
-        // Update the user in search results
-        setSearchResults(prev => ({
-          ...prev,
-          users: Array.isArray(prev.users) ? prev.users.map(user => 
-            user.id === userId 
-              ? { ...user, is_following: !isFollowing }
-              : user
-          ) : []
-        }))
+        const data = await response.json()
+        
+        if (isFollowing) {
+          // Unfollowing - remove follow status
+          setSearchResults(prev => ({
+            ...prev,
+            users: Array.isArray(prev.users) ? prev.users.map(user => 
+              user.id === userId 
+                ? { ...user, is_following: false, follow_status: '' }
+                : user
+            ) : []
+          }))
+        } else {
+          // Following - update based on response
+          const followRequest = data.data?.follow_request || data.follow_request
+          setSearchResults(prev => ({
+            ...prev,
+            users: Array.isArray(prev.users) ? prev.users.map(user => 
+              user.id === userId 
+                ? { 
+                    ...user, 
+                    is_following: followRequest?.status === 'accepted',
+                    follow_status: followRequest?.status
+                  }
+                : user
+            ) : []
+          }))
+        }
       }
     } catch (error) {
       console.error('Error toggling follow:', error)
@@ -271,13 +290,19 @@ export default function SearchPage() {
                             </button>
                             {!user.is_own_profile && (
                               <button
-                                onClick={() => handleFollowToggle(user.id, user.is_following)}
-                                className={`${styles.followButton} ${user.is_following ? styles.following : ''}`}
+                                onClick={() => handleFollowToggle(user.id, user.is_following || user.follow_status === 'pending')}
+                                className={`${styles.followButton} ${user.is_following ? styles.following : ''} ${user.follow_status === 'pending' ? styles.pending : ''}`}
+                                disabled={user.follow_status === 'pending'}
                               >
                                 {user.is_following ? (
                                   <>
                                     <i className="fas fa-check"></i>
                                     Following
+                                  </>
+                                ) : user.follow_status === 'pending' ? (
+                                  <>
+                                    <i className="fas fa-clock"></i>
+                                    Requested
                                   </>
                                 ) : (
                                   <>
