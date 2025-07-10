@@ -6,6 +6,7 @@ import { useWebSocket } from '../../contexts/WebSocketContext'
 import GroupChatInfo from './GroupChatInfo'
 import styles from './ChatMain.module.css'
 import Avatar from '../shared/Avatar'
+import EmojiPicker from '../shared/EmojiPicker'
 
 export default function ChatMain({ conversation, onConversationStarted }) {
   const { user } = useAuth()
@@ -26,12 +27,14 @@ export default function ChatMain({ conversation, onConversationStarted }) {
   const [selectedImage, setSelectedImage] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
   const [showGroupInfo, setShowGroupInfo] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [chatMessages, setChatMessages] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const messagesEndRef = useRef(null)
   const typingTimeoutRef = useRef(null)
   const fileInputRef = useRef(null)
+  const messageInputRef = useRef(null)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -145,23 +148,52 @@ export default function ChatMain({ conversation, onConversationStarted }) {
     }
   }, [isTyping, conversation, sendTypingIndicator])
 
+  // Clean up typing timeout on unmount or conversation change
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+      }
+      // Stop typing indicator when component unmounts or conversation changes
+      if (isTyping) {
+        handleTyping(false)
+      }
+    }
+  }, [conversation?.id, handleTyping, isTyping])
+
   const handleInputChange = (e) => {
     setNewMessage(e.target.value)
     
-    // Handle typing indicator
-    if (e.target.value.trim() && !isTyping) {
-      handleTyping(true)
-    }
-    
-    // Clear existing timeout
+    // Clear existing timeout first
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current)
     }
     
-    // Set timeout to stop typing indicator
-    typingTimeoutRef.current = setTimeout(() => {
+    // Handle typing indicator
+    if (e.target.value.trim()) {
+      if (!isTyping) {
+        handleTyping(true)
+      }
+      
+      // Set timeout to stop typing indicator after 3 seconds of inactivity
+      typingTimeoutRef.current = setTimeout(() => {
+        handleTyping(false)
+      }, 3000)
+    } else {
       handleTyping(false)
-    }, 3000)
+    }
+  }
+
+  const handleEmojiSelect = (emoji) => {
+    setNewMessage(prev => prev + emoji)
+    setShowEmojiPicker(false)
+    setTimeout(() => {
+      messageInputRef.current?.focus()
+    }, 100)
+  }
+
+  const handleEmojiButtonClick = () => {
+    setShowEmojiPicker(!showEmojiPicker)
   }
 
   const handleImageSelect = (e) => {
@@ -189,6 +221,13 @@ export default function ChatMain({ conversation, onConversationStarted }) {
   const handleSendMessage = async (e) => {
     e.preventDefault()
     if ((!newMessage.trim() && !selectedImage) || !conversation) return
+
+    // Stop typing indicator immediately when sending
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+      typingTimeoutRef.current = null
+    }
+    handleTyping(false)
 
     // Handle image upload first if there's an image
     let imagePath = null
@@ -220,12 +259,6 @@ export default function ChatMain({ conversation, onConversationStarted }) {
     setNewMessage('')
     setSelectedImage(null)
     setImagePreview(null)
-    
-    // Stop typing indicator
-    handleTyping(false)
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current)
-    }
 
     // Optimistically add message to UI
     const tempMessage = {
@@ -306,8 +339,12 @@ export default function ChatMain({ conversation, onConversationStarted }) {
   }
 
   const getUserName = (userId) => {
-    // In a real app, you'd have user data available
-    // For now, return a placeholder
+    
+    if (!conversation?.isGroup && conversation?.id === userId) {
+      return conversation.name || conversation.first_name || `User ${userId}`
+    }
+    
+    // Fallback
     return `User ${userId}`
   }
 
@@ -422,8 +459,10 @@ export default function ChatMain({ conversation, onConversationStarted }) {
             <i className="fas fa-ellipsis-h"></i>
             <span>
               {typingUsers.length === 1 
-                ? 'Someone is typing...' 
-                : `${typingUsers.length} people are typing...`
+                ? `${getUserName(typingUsers[0])} is typing...`
+                : typingUsers.length === 2
+                ? `${getUserName(typingUsers[0])} and ${getUserName(typingUsers[1])} are typing...`
+                : `${getUserName(typingUsers[0])} and ${typingUsers.length - 1} others are typing...`
               }
             </span>
           </div>
@@ -451,6 +490,7 @@ export default function ChatMain({ conversation, onConversationStarted }) {
         <form onSubmit={handleSendMessage} className={styles.chatInput}>
           <div className={styles.inputWrapper}>
             <input
+              ref={messageInputRef}
               type="text"
               value={newMessage}
               onChange={handleInputChange}
@@ -464,6 +504,13 @@ export default function ChatMain({ conversation, onConversationStarted }) {
               accept="image/*"
               style={{ display: 'none' }}
             />
+            <button
+              type="button"
+              className={styles.attachmentBtn}
+              onClick={handleEmojiButtonClick}
+            >
+              <i className="fas fa-smile"></i>
+            </button>
             <button 
               type="button"
               className={styles.attachmentBtn}
@@ -481,6 +528,14 @@ export default function ChatMain({ conversation, onConversationStarted }) {
             </button>
           </div>
         </form>
+
+        {showEmojiPicker && (
+          <EmojiPicker
+            isOpen={showEmojiPicker}
+            onClose={() => setShowEmojiPicker(false)}
+            onEmojiSelect={handleEmojiSelect}
+          />
+        )}
 
         {showGroupInfo && conversation.isGroup && (
           <div className={styles.groupInfoOverlay}>
