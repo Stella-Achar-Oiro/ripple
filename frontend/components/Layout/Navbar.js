@@ -6,7 +6,9 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
 import { useNotifications } from '../../contexts/NotificationContext'
 import { useWebSocket } from '../../contexts/WebSocketContext'
+import { useGroupChatNotifications } from '../../contexts/GroupChatNotificationContext'
 import NotificationPanel from '../Notifications/NotificationPanel'
+import GroupNotificationPanel from '../Notifications/GroupNotificationPanel'
 import SearchDropdown from './SearchDropdown'
 import Avatar from '../shared/Avatar'
 import styles from './Navbar.module.css'
@@ -14,6 +16,7 @@ import styles from './Navbar.module.css'
 export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showNotifications, setShowNotifications] = useState(false)
+  const [showGroupNotifications, setShowGroupNotifications] = useState(false)
   const [showSearchDropdown, setShowSearchDropdown] = useState(false)
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const searchInputRef = useRef(null)
@@ -21,10 +24,21 @@ export default function Navbar() {
   const router = useRouter()
   const { user } = useAuth()
   const { unreadCount } = useNotifications()
-  const { isConnected, getTotalUnreadCount } = useWebSocket()
+  const { isConnected, getTotalPrivateUnreadCount, setGroupChatNotificationsContext } = useWebSocket()
+  const groupChatNotifications = useGroupChatNotifications()
 
-  // Calculate total unread message count
-  const messageUnreadCount = getTotalUnreadCount ? getTotalUnreadCount() : 0
+  // Calculate total unread message count (private messages only)
+  const messageUnreadCount = getTotalPrivateUnreadCount ? getTotalPrivateUnreadCount() : 0
+
+  // Get group notification count
+  const groupUnreadCount = groupChatNotifications.totalUnreadCount
+
+  // Inject group chat notifications context into WebSocket
+  useEffect(() => {
+    if (setGroupChatNotificationsContext && groupChatNotifications) {
+      setGroupChatNotificationsContext(groupChatNotifications)
+    }
+  }, [setGroupChatNotificationsContext, groupChatNotifications])
 
   // Handle search input changes
   const handleSearchChange = (e) => {
@@ -143,8 +157,20 @@ export default function Navbar() {
             )}
           </Link>
           <div
+            className={`${styles.navIcon} ${styles.groupChatIcon}`}
+            onClick={() => setShowGroupNotifications(!showGroupNotifications)}
+            title="Group Messages"
+          >
+            <i className="fas fa-users"></i>
+            <i className="fas fa-comment-dots" style={{ fontSize: '10px', position: 'absolute', top: '8px', right: '8px' }}></i>
+            {groupUnreadCount > 0 && (
+              <span className="notification-badge">{groupUnreadCount}</span>
+            )}
+          </div>
+          <div
             className={styles.navIcon}
             onClick={() => setShowNotifications(!showNotifications)}
+            title="Notifications"
           >
             <i className="fas fa-bell"></i>
             {unreadCount > 0 && (
@@ -164,6 +190,11 @@ export default function Navbar() {
       <NotificationPanel
         isVisible={showNotifications}
         onClose={() => setShowNotifications(false)}
+      />
+
+      <GroupNotificationPanel
+        isVisible={showGroupNotifications}
+        onClose={() => setShowGroupNotifications(false)}
       />
     </nav>
   )

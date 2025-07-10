@@ -34,20 +34,26 @@ type FollowStats struct {
 	FollowingCount int `json:"following_count"`
 }
 
-// CreateFollowRequest creates a follow request
+// CreateFollowRequest creates a follow request or updates a declined one
 func (fr *FollowRepository) CreateFollowRequest(followerID, followingID int) (*FollowRequest, error) {
 	// Check if users are the same
 	if followerID == followingID {
 		return nil, fmt.Errorf(constants.ErrCannotFollowSelf)
 	}
 
-	// Check if follow relationship already exists
+	// Check if active follow relationship already exists (pending or accepted)
 	exists, err := fr.FollowRelationshipExists(followerID, followingID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check existing relationship: %w", err)
 	}
 	if exists {
 		return nil, fmt.Errorf(constants.ErrAlreadyFollowing)
+	}
+
+	// Check if there's a declined request that we can reuse
+	existingStatus, err := fr.GetFollowRelationshipStatus(followerID, followingID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check existing relationship status: %w", err)
 	}
 
 	// Check if target user is public or private
@@ -66,12 +72,6 @@ func (fr *FollowRepository) CreateFollowRequest(followerID, followingID int) (*F
 		status = constants.FollowStatusAccepted
 	}
 
-	query := `
-		INSERT INTO follows (follower_id, following_id, status, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?)
-		RETURNING id, created_at, updated_at
-	`
-
 	now := time.Now()
 	followRequest := &FollowRequest{
 		FollowerID:  followerID,
@@ -81,16 +81,45 @@ func (fr *FollowRepository) CreateFollowRequest(followerID, followingID int) (*F
 		UpdatedAt:   now,
 	}
 
-	err = fr.db.QueryRow(query,
-		followRequest.FollowerID,
-		followRequest.FollowingID,
-		followRequest.Status,
-		followRequest.CreatedAt,
-		followRequest.UpdatedAt,
-	).Scan(&followRequest.ID, &followRequest.CreatedAt, &followRequest.UpdatedAt)
+	// If there's a declined request, update it instead of creating a new one
+	if existingStatus == constants.FollowStatusDeclined {
+		query := `
+			UPDATE follows
+			SET status = ?, updated_at = ?
+			WHERE follower_id = ? AND following_id = ? AND status = ?
+			RETURNING id, created_at
+		`
 
-	if err != nil {
-		return nil, fmt.Errorf("failed to create follow request: %w", err)
+		err = fr.db.QueryRow(query,
+			followRequest.Status,
+			followRequest.UpdatedAt,
+			followRequest.FollowerID,
+			followRequest.FollowingID,
+			constants.FollowStatusDeclined,
+		).Scan(&followRequest.ID, &followRequest.CreatedAt)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to update declined follow request: %w", err)
+		}
+	} else {
+		// Create new follow request
+		query := `
+			INSERT INTO follows (follower_id, following_id, status, created_at, updated_at)
+			VALUES (?, ?, ?, ?, ?)
+			RETURNING id, created_at, updated_at
+		`
+
+		err = fr.db.QueryRow(query,
+			followRequest.FollowerID,
+			followRequest.FollowingID,
+			followRequest.Status,
+			followRequest.CreatedAt,
+			followRequest.UpdatedAt,
+		).Scan(&followRequest.ID, &followRequest.CreatedAt, &followRequest.UpdatedAt)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to create follow request: %w", err)
+		}
 	}
 
 	return followRequest, nil
@@ -324,13 +353,13 @@ func (fr *FollowRepository) IsFollowing(followerID, followingID int) (bool, erro
 	return count > 0, nil
 }
 
-// FollowRelationshipExists checks if any follow relationship exists (any status)
+// FollowRelationshipExists checks if an active follow relationship exists (pending or accepted, excludes declined)
 func (fr *FollowRepository) FollowRelationshipExists(followerID, followingID int) (bool, error) {
 	var count int
 	err := fr.db.QueryRow(`
-		SELECT COUNT(*) FROM follows 
-		WHERE follower_id = ? AND following_id = ?
-	`, followerID, followingID).Scan(&count)
+		SELECT COUNT(*) FROM follows
+		WHERE follower_id = ? AND following_id = ? AND status IN (?, ?)
+	`, followerID, followingID, constants.FollowStatusPending, constants.FollowStatusAccepted).Scan(&count)
 
 	if err != nil {
 		return false, fmt.Errorf("failed to check relationship existence: %w", err)

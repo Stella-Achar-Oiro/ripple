@@ -119,13 +119,18 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
+  // Update user function
+  const updateUser = (updatedUserData) => {
+    setUser(updatedUserData)
+  }
+
   // Initialize auth state on mount
   useEffect(() => {
     const initAuth = async () => {
       await checkAuth()
       setIsLoading(false)
     }
-    
+
     initAuth()
   }, [])
 
@@ -136,7 +141,8 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     register,
-    checkAuth
+    checkAuth,
+    updateUser
   }
 
   return (

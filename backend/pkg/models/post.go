@@ -314,6 +314,78 @@ func (pr *PostRepository) GetUserPosts(userID, viewerID int, limit, offset int) 
 	return posts, nil
 }
 
+// SearchPosts searches for posts by content with privacy filtering
+func (pr *PostRepository) SearchPosts(query string, viewerID int, limit, offset int) ([]*Post, error) {
+	searchQuery := `
+		SELECT p.id, p.user_id, p.content, p.image_path, p.privacy_level, p.created_at, p.updated_at,
+		       u.id, u.email, u.first_name, u.last_name, u.date_of_birth, u.nickname, u.about_me, u.avatar_path, u.cover_path, u.is_public, u.created_at,
+		       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
+		       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count,
+		       (SELECT COUNT(*) > 0 FROM likes WHERE post_id = p.id AND user_id = ?) as is_liked
+		FROM posts p
+		JOIN users u ON p.user_id = u.id
+		WHERE p.content LIKE ? AND (
+			-- Public posts
+			p.privacy_level = ? OR
+			-- User's own posts
+			p.user_id = ? OR
+			-- Almost private posts from followed users
+			(p.privacy_level = ? AND EXISTS (
+				SELECT 1 FROM follows
+				WHERE follower_id = ? AND following_id = p.user_id AND status = ?
+			)) OR
+			-- Private posts where user is specifically allowed
+			(p.privacy_level = ? AND EXISTS (
+				SELECT 1 FROM post_privacy
+				WHERE post_id = p.id AND user_id = ?
+			))
+		)
+		ORDER BY p.created_at DESC
+		LIMIT ? OFFSET ?
+	`
+
+	searchTerm := "%" + strings.ToLower(query) + "%"
+	rows, err := pr.db.Query(searchQuery,
+		viewerID,                       // for is_liked check
+		searchTerm,                     // for content search
+		constants.PrivacyPublic,        // public posts
+		viewerID,                       // user's own posts
+		constants.PrivacyAlmostPrivate, // almost private posts
+		viewerID,                       // follower check
+		constants.FollowStatusAccepted, // accepted follows
+		constants.PrivacyPrivate,       // private posts
+		viewerID,                       // privacy check
+		limit, offset)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to search posts: %w", err)
+	}
+	defer rows.Close()
+
+	var posts []*Post
+	for rows.Next() {
+		post := &Post{}
+		author := &User{}
+
+		err := rows.Scan(
+			&post.ID, &post.UserID, &post.Content, &post.ImagePath, &post.PrivacyLevel, &post.CreatedAt, &post.UpdatedAt,
+			&author.ID, &author.Email, &author.FirstName, &author.LastName, &author.DateOfBirth, &author.Nickname, &author.AboutMe, &author.AvatarPath, &author.CoverPath, &author.IsPublic, &author.CreatedAt,
+			&post.CommentCount, &post.LikesCount, &post.IsLiked,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan post: %w", err)
+		}
+
+		post.Author = author.ToResponse()
+		post.CanView = true // These posts are already filtered for visibility
+		post.CanComment = true
+
+		posts = append(posts, post)
+	}
+
+	return posts, nil
+}
+
 // CanViewPost checks if a user can view a specific post
 func (pr *PostRepository) CanViewPost(post *Post, viewerID int) (bool, error) {
 	// Author can always view their own posts
@@ -385,7 +457,7 @@ func (pr *PostRepository) CreateComment(userID int, req *CreateCommentRequest) (
 	if strings.TrimSpace(req.Content) == "" && req.ImagePath == nil {
 		return nil, fmt.Errorf("comment must have content or image")
 	}
-	
+
 	// First, check if the user is allowed to comment on this post
 	post, err := pr.GetPost(req.PostID, userID)
 	if err != nil {

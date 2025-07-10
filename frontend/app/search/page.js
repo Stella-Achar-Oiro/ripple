@@ -6,6 +6,7 @@ import Link from 'next/link'
 import RouteGuard from '../../components/Auth/RouteGuard'
 import MainLayout from '../../components/Layout/MainLayout'
 import Avatar from '../../components/shared/Avatar'
+import ImageModal from '../../components/shared/ImageModal'
 import styles from './page.module.css'
 
 export default function SearchPage() {
@@ -21,6 +22,8 @@ export default function SearchPage() {
   const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState('users')
   const [searchQuery, setSearchQuery] = useState(query)
+  const [showImageModal, setShowImageModal] = useState(false)
+  const [selectedImage, setSelectedImage] = useState(null)
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -62,9 +65,9 @@ export default function SearchPage() {
         if (groupsResponse.ok) {
           const groupsData = await groupsResponse.json()
           console.log('Groups API response:', groupsData)
-          groups = Array.isArray(groupsData.data) ? groupsData.data : []
+          groups = Array.isArray(groupsData.data?.groups) ? groupsData.data.groups : []
         } else {
-          console.warn('Groups search not available:', groupsResponse.status, groupsResponse.statusText)
+          console.warn('Groups search failed:', groupsResponse.status, groupsResponse.statusText)
           // Don't treat this as a critical error, just continue with empty groups
         }
       } catch (groupError) {
@@ -72,8 +75,25 @@ export default function SearchPage() {
         // Continue with empty groups array
       }
 
-      // Future: Search posts (not implemented in backend yet)
-      const posts = []
+      // Search posts
+      let posts = []
+      try {
+        const postsResponse = await fetch(`${API_URL}/api/posts/search?q=${encodeURIComponent(searchTerm)}`, {
+          credentials: 'include',
+        })
+
+        if (postsResponse.ok) {
+          const postsData = await postsResponse.json()
+          console.log('Posts API response:', postsData)
+          posts = Array.isArray(postsData.data?.posts) ? postsData.data.posts : []
+        } else {
+          console.warn('Posts search failed:', postsResponse.status, postsResponse.statusText)
+          // Don't treat this as a critical error, just continue with empty posts
+        }
+      } catch (postError) {
+        console.warn('Posts search error:', postError.message)
+        // Continue with empty posts array
+      }
 
       setSearchResults({ users, groups, posts })
 
@@ -252,7 +272,6 @@ export default function SearchPage() {
                 <button
                   className={`${styles.tab} ${activeTab === 'posts' ? styles.active : ''}`}
                   onClick={() => setActiveTab('posts')}
-                  disabled
                 >
                   <i className="fas fa-file-alt"></i>
                   Posts ({Array.isArray(searchResults.posts) ? searchResults.posts.length : 0})
@@ -370,10 +389,58 @@ export default function SearchPage() {
 
                 {activeTab === 'posts' && (
                   <div className={styles.postsResults}>
-                    <div className={styles.emptyResults}>
-                      <i className="fas fa-search"></i>
-                      <p>Post search coming soon!</p>
-                    </div>
+                    {!Array.isArray(searchResults.posts) || searchResults.posts.length === 0 ? (
+                      <div className={styles.emptyResults}>
+                        <i className="fas fa-file-slash"></i>
+                        <p>No posts found for "{query}"</p>
+                      </div>
+                    ) : (
+                      (Array.isArray(searchResults.posts) ? searchResults.posts : []).map(post => (
+                        <div key={post.id} className={styles.postCard}>
+                          <div className={styles.postHeader}>
+                            <Link href={`/profile/${post.author.id}`} className={styles.avatarLink}>
+                              <Avatar user={post.author} size="medium" />
+                            </Link>
+                            <div className={styles.postInfo}>
+                              <Link href={`/profile/${post.author.id}`} className={styles.authorLink}>
+                                <h4>{post.author.first_name} {post.author.last_name}</h4>
+                              </Link>
+                              {post.author.nickname && <span>@{post.author.nickname}</span>}
+                              <time>{new Date(post.created_at).toLocaleDateString()}</time>
+                            </div>
+                          </div>
+                          <div className={styles.postContent}>
+                            <p>{post.content}</p>
+                            {post.image_path && (
+                              <div
+                                className={styles.postImage}
+                                onClick={() => {
+                                  setSelectedImage(`${API_URL}${post.image_path}`)
+                                  setShowImageModal(true)
+                                }}
+                              >
+                                <img
+                                  src={`${API_URL}${post.image_path}`}
+                                  alt="Post image"
+                                  loading="lazy"
+                                  onLoad={() => {
+                                    console.log('Image loaded successfully:', `${API_URL}${post.image_path}`)
+                                  }}
+                                  onError={(e) => {
+                                    console.error('Image failed to load:', e.target.src)
+                                    e.target.style.display = 'none'
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                          <div className={styles.postStats}>
+                            <span><i className="fas fa-heart"></i> {post.likes_count}</span>
+                            <span><i className="fas fa-comment"></i> {post.comment_count}</span>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 )}
               </div>
@@ -389,6 +456,19 @@ export default function SearchPage() {
           )}
         </div>
       </MainLayout>
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <ImageModal
+          src={selectedImage}
+          alt="Post image"
+          isOpen={showImageModal}
+          onClose={() => {
+            setShowImageModal(false)
+            setSelectedImage(null)
+          }}
+        />
+      )}
     </RouteGuard>
   )
 }

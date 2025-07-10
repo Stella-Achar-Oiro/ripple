@@ -106,6 +106,10 @@
   position: relative;
 }
 
+.groupChatIcon {
+  position: relative;
+}
+
 .connectionWarning {
   position: absolute;
   top: -2px;

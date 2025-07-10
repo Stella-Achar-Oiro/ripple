@@ -1,20 +1,56 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ProfileEditModal from './ProfileEditModal'
 import Avatar from '../shared/Avatar'
 import styles from './ProfileHeader.module.css'
 
 export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle, onProfileUpdate }) {
-  const [isFollowing, setIsFollowing] = useState(profile.is_following)
+  const [followStatus, setFollowStatus] = useState({
+    is_following: profile.is_following || false,
+    is_pending: false,
+    is_declined: false,
+    can_send_request: true,
+    has_pending_request: false
+  })
   const [isLoading, setIsLoading] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
-  
+
+  // Fetch detailed follow status when component mounts or profile changes
+  useEffect(() => {
+    const fetchFollowStatus = async () => {
+      if (isCurrentUser || !profile?.id) return
+
+      try {
+        const response = await fetch(`${API_URL}/api/follow/status/${profile.id}`, {
+          credentials: 'include'
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success) {
+            setFollowStatus({
+              is_following: data.data.is_following || false,
+              is_pending: data.data.is_pending || false,
+              is_declined: data.data.is_declined || false,
+              can_send_request: data.data.can_send_request || false,
+              has_pending_request: data.data.has_pending_request || false
+            })
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching follow status:', error)
+      }
+    }
+
+    fetchFollowStatus()
+  }, [profile?.id, isCurrentUser, API_URL])
+
   const handleFollowToggle = async () => {
     setIsLoading(true)
 
     try {
-      const endpoint = isFollowing
+      const endpoint = followStatus.is_following
         ? `${API_URL}/api/unfollow`
         : `${API_URL}/api/follow`
 
@@ -28,12 +64,33 @@ export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle,
           user_id: profile.id
         })
       })
-      
+
       if (!response.ok) {
         throw new Error('Failed to update follow status')
       }
-      
-      setIsFollowing(!isFollowing)
+
+      const data = await response.json()
+
+      if (followStatus.is_following) {
+        // Unfollowing - reset to initial state
+        setFollowStatus({
+          is_following: false,
+          is_pending: false,
+          is_declined: false,
+          can_send_request: true,
+          has_pending_request: false
+        })
+      } else {
+        // Following/requesting - update based on response
+        const followRequest = data.data?.follow_request
+        setFollowStatus({
+          is_following: followRequest?.status === 'accepted',
+          is_pending: followRequest?.status === 'pending',
+          is_declined: false,
+          can_send_request: false,
+          has_pending_request: followRequest?.status === 'pending'
+        })
+      }
     } catch (err) {
       console.error('Error updating follow status:', err)
     } finally {
@@ -114,20 +171,29 @@ export default function ProfileHeader({ profile, isCurrentUser, onPrivacyToggle,
               </div>
             </div>
           ) : (
-            <button 
-              className={`${styles.followButton} ${isFollowing ? styles.following : ''}`}
+            <button
+              className={`${styles.followButton} ${
+                followStatus.is_following ? styles.following : ''
+              } ${
+                followStatus.is_pending ? styles.pending : ''
+              }`}
               onClick={handleFollowToggle}
-              disabled={isLoading}
+              disabled={isLoading || followStatus.is_pending}
             >
               {isLoading ? (
                 <>
                   <span className={styles.buttonLoader}></span>
                   Loading...
                 </>
-              ) : isFollowing ? (
+              ) : followStatus.is_following ? (
                 <>
                   <i className="fas fa-check"></i>
                   Following
+                </>
+              ) : followStatus.is_pending ? (
+                <>
+                  <i className="fas fa-clock"></i>
+                  Requested
                 </>
               ) : (
                 <>

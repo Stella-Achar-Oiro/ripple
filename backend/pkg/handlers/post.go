@@ -220,6 +220,58 @@ func (ph *PostHandler) GetUserPosts(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// SearchPosts searches for posts by content
+func (ph *PostHandler) SearchPosts(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteErrorResponse(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	userID, err := auth.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	// Get search query from URL parameters
+	query := r.URL.Query().Get("q")
+	if strings.TrimSpace(query) == "" {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Search query is required")
+		return
+	}
+
+	// Parse pagination parameters
+	limit := 20
+	offset := 0
+
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 && parsedLimit <= 50 {
+			limit = parsedLimit
+		}
+	}
+
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if parsedOffset, err := strconv.Atoi(offsetStr); err == nil && parsedOffset >= 0 {
+			offset = parsedOffset
+		}
+	}
+
+	// Search posts
+	posts, err := ph.postRepo.SearchPosts(query, userID, limit, offset)
+	if err != nil {
+		utils.WriteInternalErrorResponse(w, err)
+		return
+	}
+
+	utils.WriteSuccessResponse(w, http.StatusOK, map[string]interface{}{
+		"posts":  posts,
+		"query":  query,
+		"limit":  limit,
+		"offset": offset,
+		"count":  len(posts),
+	})
+}
+
 // DeletePost deletes a post
 func (ph *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {

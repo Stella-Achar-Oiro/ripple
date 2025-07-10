@@ -8,7 +8,8 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, groupId, 
     title: '',
     description: '',
     event_date: '',
-    event_time: ''
+    event_time: '',
+    creator_response: 'going'
   })
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState({})
@@ -83,7 +84,8 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, groupId, 
         body: JSON.stringify({
           title: formData.title.trim(),
           description: formData.description.trim(),
-          event_date: eventDateTime
+          event_date: eventDateTime,
+          creator_response: formData.creator_response
         })
       })
 
@@ -99,7 +101,8 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, groupId, 
         title: '',
         description: '',
         event_date: '',
-        event_time: ''
+        event_time: '',
+        creator_response: 'going'
       })
       setErrors({})
       
@@ -122,7 +125,8 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, groupId, 
         title: '',
         description: '',
         event_date: '',
-        event_time: ''
+        event_time: '',
+        creator_response: 'going'
       })
       setErrors({})
       onClose()
@@ -233,6 +237,40 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess, groupId, 
               {errors.event_time && (
                 <div className={styles.errorMessage}>{errors.event_time}</div>
               )}
+            </div>
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Your Response *</label>
+            <div className={styles.responseOptions}>
+              <label className={styles.radioOption}>
+                <input
+                  type="radio"
+                  name="creator_response"
+                  value="going"
+                  checked={formData.creator_response === 'going'}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+                <span className={styles.radioLabel}>
+                  <i className="fas fa-check-circle"></i>
+                  Going
+                </span>
+              </label>
+              <label className={styles.radioOption}>
+                <input
+                  type="radio"
+                  name="creator_response"
+                  value="not_going"
+                  checked={formData.creator_response === 'not_going'}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+                <span className={styles.radioLabel}>
+                  <i className="fas fa-times-circle"></i>
+                  Not Going
+                </span>
+              </label>
             </div>
           </div>
 
