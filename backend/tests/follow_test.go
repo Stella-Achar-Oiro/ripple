@@ -267,5 +267,156 @@ func TestFollowSystem(t *testing.T) {
 			t.Error("User1 should not be following User2 after unfollow")
 		}
 	})
-}
 
+	t.Run("Decline and resend follow request", func(t *testing.T) {
+		// Create a new user for this test
+		user3, session3 := createTestUser(t, userRepo, sessionManager, "charlie@test.com", false) // private
+
+		// Alice sends follow request to Charlie (private user)
+		payload := map[string]int{"user_id": user3.ID}
+		jsonPayload, _ := json.Marshal(payload)
+
+		req, _ := http.NewRequest("POST", "/api/follow/request", bytes.NewBuffer(jsonPayload))
+		req.Header.Set("Content-Type", "application/json")
+		req.AddCookie(&http.Cookie{Name: "session_id", Value: session1.ID})
+
+		rr := httptest.NewRecorder()
+		sessionManager.AuthMiddleware(http.HandlerFunc(followHandler.FollowUser)).ServeHTTP(rr, req)
+
+		if rr.Code != http.StatusCreated {
+			t.Errorf("Expected status 201, got %d. Body: %s", rr.Code, rr.Body.String())
+			return
+		}
+
+		// Get the follow request ID
+		requests, err := followRepo.GetPendingFollowRequests(user3.ID)
+		if err != nil {
+			t.Fatalf("Failed to get pending follow requests: %v", err)
+		}
+
+		if len(requests) == 0 {
+			t.Fatal("No pending follow requests found")
+		}
+
+		followRequestID := requests[0].ID
+
+		// Charlie declines the follow request
+		declinePayload := map[string]interface{}{
+			"follow_id": followRequestID,
+			"action":    "decline",
+		}
+		declineJsonPayload, _ := json.Marshal(declinePayload)
+
+		declineReq, _ := http.NewRequest("POST", "/api/follow/handle", bytes.NewBuffer(declineJsonPayload))
+		declineReq.Header.Set("Content-Type", "application/json")
+		declineReq.AddCookie(&http.Cookie{Name: "session_id", Value: session3.ID})
+
+		declineRr := httptest.NewRecorder()
+		sessionManager.AuthMiddleware(http.HandlerFunc(followHandler.HandleFollowRequest)).ServeHTTP(declineRr, declineReq)
+
+		if declineRr.Code != http.StatusOK {
+			t.Errorf("Expected status 200 for decline, got %d. Body: %s", declineRr.Code, declineRr.Body.String())
+			return
+		}
+
+		t.Logf("Decline follow request response: %s", declineRr.Body.String())
+
+		// Verify the request is declined
+		status, err := followRepo.GetFollowRelationshipStatus(user1.ID, user3.ID)
+		if err != nil {
+			t.Fatalf("Failed to get relationship status: %v", err)
+		}
+		if status != "declined" {
+			t.Errorf("Expected status 'declined', got %s", status)
+		}
+
+		// Alice tries to send follow request again (should succeed)
+		resendReq, _ := http.NewRequest("POST", "/api/follow/request", bytes.NewBuffer(jsonPayload))
+		resendReq.Header.Set("Content-Type", "application/json")
+		resendReq.AddCookie(&http.Cookie{Name: "session_id", Value: session1.ID})
+
+		resendRr := httptest.NewRecorder()
+		sessionManager.AuthMiddleware(http.HandlerFunc(followHandler.FollowUser)).ServeHTTP(resendRr, resendReq)
+
+		t.Logf("Resend follow request response: %s", resendRr.Body.String())
+
+		if resendRr.Code != http.StatusCreated {
+			t.Errorf("Expected status 201 for resend, got %d. Body: %s", resendRr.Code, resendRr.Body.String())
+			return
+		}
+
+		var resendResponse map[string]interface{}
+		if err := json.Unmarshal(resendRr.Body.Bytes(), &resendResponse); err != nil {
+			t.Fatalf("Failed to unmarshal resend response: %v", err)
+		}
+
+		if !resendResponse["success"].(bool) {
+			t.Errorf("Expected success for resend, got failure: %v", resendResponse["error"])
+			return
+		}
+
+		// Verify the request is now pending again
+		newStatus, err := followRepo.GetFollowRelationshipStatus(user1.ID, user3.ID)
+		if err != nil {
+			t.Fatalf("Failed to get relationship status after resend: %v", err)
+		}
+		if newStatus != "pending" {
+			t.Errorf("Expected status 'pending' after resend, got %s", newStatus)
+		}
+
+		// Verify Charlie has a new pending request
+		newRequests, err := followRepo.GetPendingFollowRequests(user3.ID)
+		if err != nil {
+			t.Fatalf("Failed to get pending follow requests after resend: %v", err)
+		}
+
+		if len(newRequests) != 1 {
+			t.Errorf("Expected 1 pending request after resend, got %d", len(newRequests))
+		}
+	})
+
+	t.Run("Cannot send duplicate pending request", func(t *testing.T) {
+		// Create a new user for this test
+		user4, _ := createTestUser(t, userRepo, sessionManager, "david@test.com", false) // private
+
+		// Alice sends follow request to David (private user)
+		payload := map[string]int{"user_id": user4.ID}
+		jsonPayload, _ := json.Marshal(payload)
+
+		req, _ := http.NewRequest("POST", "/api/follow/request", bytes.NewBuffer(jsonPayload))
+		req.Header.Set("Content-Type", "application/json")
+		req.AddCookie(&http.Cookie{Name: "session_id", Value: session1.ID})
+
+		rr := httptest.NewRecorder()
+		sessionManager.AuthMiddleware(http.HandlerFunc(followHandler.FollowUser)).ServeHTTP(rr, req)
+
+		if rr.Code != http.StatusCreated {
+			t.Errorf("Expected status 201, got %d. Body: %s", rr.Code, rr.Body.String())
+			return
+		}
+
+		// Try to send the same request again (should fail)
+		duplicateReq, _ := http.NewRequest("POST", "/api/follow/request", bytes.NewBuffer(jsonPayload))
+		duplicateReq.Header.Set("Content-Type", "application/json")
+		duplicateReq.AddCookie(&http.Cookie{Name: "session_id", Value: session1.ID})
+
+		duplicateRr := httptest.NewRecorder()
+		sessionManager.AuthMiddleware(http.HandlerFunc(followHandler.FollowUser)).ServeHTTP(duplicateRr, duplicateReq)
+
+		t.Logf("Duplicate follow request response: %s", duplicateRr.Body.String())
+
+		if duplicateRr.Code != http.StatusBadRequest {
+			t.Errorf("Expected status 400 for duplicate request, got %d. Body: %s", duplicateRr.Code, duplicateRr.Body.String())
+			return
+		}
+
+		var duplicateResponse map[string]interface{}
+		if err := json.Unmarshal(duplicateRr.Body.Bytes(), &duplicateResponse); err != nil {
+			t.Fatalf("Failed to unmarshal duplicate response: %v", err)
+		}
+
+		if duplicateResponse["success"].(bool) {
+			t.Error("Expected failure for duplicate request, got success")
+		}
+	})
+}
