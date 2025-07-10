@@ -109,24 +109,73 @@
   color: #333;
 }
 
+.commentContent p {
+  margin: 0 0 8px 0;
+}
+
+.commentImage {
+  margin-top: 8px;
+}
+
+.commentImageFile {
+  max-width: 300px;
+  max-height: 200px;
+  border-radius: 8px;
+  object-fit: cover;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.commentImageFile:hover {
+  opacity: 0.9;
+}
+
 .commentForm {
   padding: 16px;
   border-top: 1px solid #eee;
-  display: flex;
-  gap: 12px;
 }
 
-.commentForm textarea {
-  flex: 1;
+.commentInputContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.commentTextarea {
+  width: 100%;
   padding: 8px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
   resize: none;
   min-height: 40px;
   max-height: 120px;
+  font-family: inherit;
 }
 
-.commentForm button {
+.commentActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.imageUploadButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #f0f2f5;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 16px;
+}
+
+.imageUploadButton:hover {
+  background-color: #e4e6ea;
+}
+
+.submitButton {
   padding: 8px 16px;
   background-color: #1877f2;
   color: white;
@@ -134,11 +183,51 @@
   border-radius: 4px;
   cursor: pointer;
   font-weight: 600;
+  transition: background-color 0.2s;
 }
 
-.commentForm button:disabled {
+.submitButton:hover:not(:disabled) {
+  background-color: #166fe5;
+}
+
+.submitButton:disabled {
   background-color: #e4e6eb;
   cursor: not-allowed;
+}
+
+.imagePreview {
+  position: relative;
+  display: inline-block;
+  margin-top: 8px;
+}
+
+.previewImage {
+  max-width: 200px;
+  max-height: 150px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.removeImageButton {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #ff4757;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.removeImageButton:hover {
+  background-color: #ff3838;
 }
 
 .error {
