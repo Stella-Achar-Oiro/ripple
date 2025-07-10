@@ -160,14 +160,14 @@ func (fr *FollowRepository) DeclineFollowRequest(followID, userID int) error {
 	return nil
 }
 
-// Unfollow removes a follow relationship
+// Unfollow removes a follow relationship (accepted or pending)
 func (fr *FollowRepository) Unfollow(followerID, followingID int) error {
 	query := `
 		DELETE FROM follows 
-		WHERE follower_id = ? AND following_id = ? AND status = ?
+		WHERE follower_id = ? AND following_id = ?
 	`
 
-	result, err := fr.db.Exec(query, followerID, followingID, constants.FollowStatusAccepted)
+	result, err := fr.db.Exec(query, followerID, followingID)
 	if err != nil {
 		return fmt.Errorf("failed to unfollow user: %w", err)
 	}
