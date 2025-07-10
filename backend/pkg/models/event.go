@@ -47,9 +47,10 @@ type EventResponse struct {
 }
 
 type CreateEventRequest struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	EventDate   string `json:"event_date"` // ISO format: "2025-06-15T19:00:00Z"
+	Title           string `json:"title"`
+	Description     string `json:"description"`
+	EventDate       string `json:"event_date"`       // ISO format: "2025-06-15T19:00:00Z"
+	CreatorResponse string `json:"creator_response"` // "going" or "not_going"
 }
 
 type EventResponseRequest struct {
@@ -103,6 +104,16 @@ func (er *EventRepository) CreateEvent(groupID, creatorID int, req *CreateEventR
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create event: %w", err)
+	}
+
+	// Add creator's response if provided
+	if req.CreatorResponse != "" {
+		if req.CreatorResponse == constants.EventResponseGoing || req.CreatorResponse == constants.EventResponseNotGoing {
+			err = er.RespondToEvent(event.ID, creatorID, req.CreatorResponse)
+			if err != nil {
+				return nil, fmt.Errorf("failed to add creator response: %w", err)
+			}
+		}
 	}
 
 	return event, nil
