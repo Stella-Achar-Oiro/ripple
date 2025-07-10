@@ -15,7 +15,7 @@ import styles from './profile.module.css'
 export default function ProfilePage() {
   const params = useParams()
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, updateUser } = useAuth()
   const [activeTab, setActiveTab] = useState(null) // Start with no tab selected
   const [profile, setProfile] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -29,14 +29,21 @@ export default function ProfilePage() {
     const fetchProfile = async () => {
       if (!user) return // Wait for user to be loaded
 
+      const targetUserId = params.id
+      const isOwnProfile = String(targetUserId) === String(user.id)
+      setIsCurrentUser(isOwnProfile)
+
+      // If this is the current user's profile and we already have profile data,
+      // just update it with the latest user data from context
+      if (isOwnProfile && profile && String(profile.id) === String(user.id)) {
+        setProfile(user)
+        return
+      }
+
       setIsLoading(true)
       setError(null)
 
       try {
-        const targetUserId = params.id
-        const isOwnProfile = String(targetUserId) === String(user.id)
-        setIsCurrentUser(isOwnProfile)
-
         // Fetch the requested profile
         let profileData
         if (isOwnProfile) {
@@ -68,7 +75,7 @@ export default function ProfilePage() {
     }
 
     fetchProfile()
-  }, [params.id, user, API_URL])
+  }, [params.id, user?.id, API_URL]) // Only depend on user.id, not the entire user object
   
   // Handle privacy toggle
   const handlePrivacyToggle = async (isPublic) => {
@@ -87,10 +94,16 @@ export default function ProfilePage() {
       }
       
       // Update local state
-      setProfile(prev => ({
-        ...prev,
+      const updatedProfile = {
+        ...profile,
         is_public: isPublic
-      }))
+      }
+      setProfile(updatedProfile)
+
+      // Update user context if this is the current user's profile
+      if (isCurrentUser) {
+        updateUser(updatedProfile)
+      }
     } catch (err) {
       console.error('Error updating privacy:', err)
       // Show error notification
@@ -100,8 +113,10 @@ export default function ProfilePage() {
   // Handle profile update from edit modal
   const handleProfileUpdate = (updatedProfile) => {
     setProfile(updatedProfile)
-    // Note: The auth context will be updated when the user refreshes or navigates
-    // For real-time updates, we could add an updateUser function to the auth context
+    // Update user context if this is the current user's profile
+    if (isCurrentUser) {
+      updateUser(updatedProfile)
+    }
   }
 
   // Prepare loading component
