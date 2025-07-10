@@ -229,7 +229,6 @@ func (ur *UserRepository) SearchUsers(query string, limit, offset int) ([]*User,
 		SELECT id, email, first_name, last_name, date_of_birth, nickname, about_me, avatar_path, cover_path, is_public, created_at, updated_at
 		FROM users
 		WHERE (first_name LIKE ? OR last_name LIKE ? OR email LIKE ? OR nickname LIKE ?)
-		AND is_public = 1
 		ORDER BY first_name, last_name
 		LIMIT ? OFFSET ?
 	`
