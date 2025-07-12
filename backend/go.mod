@@ -7,7 +7,7 @@ toolchain go1.24.2
 
 require (
 	github.com/golang-migrate/migrate/v4 v4.16.2
-	github.com/mattn/go-sqlite3 v1.14.17
+	github.com/mattn/go-sqlite3 v1.14.22
 )
 
 require github.com/gorilla/websocket v1.5.3

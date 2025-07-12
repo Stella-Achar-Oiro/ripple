@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
@@ -12,8 +12,8 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Build the application
-RUN CGO_ENABLED=1 GOOS=linux go build -o main server.go
+# Build the application with specific flags for Alpine compatibility
+RUN CGO_ENABLED=1 GOOS=linux go build -tags sqlite_omit_load_extension -o main server.go
 
 FROM alpine:latest
 
