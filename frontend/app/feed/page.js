@@ -29,7 +29,7 @@ export default function FeedPage() {
 
           <div className={styles.feedSidebar}>
             <OnlineFriends />
-            <SuggestedGroups />
+            {/* <SuggestedGroups /> */}
           </div>
         </div>
       </MainLayout>
