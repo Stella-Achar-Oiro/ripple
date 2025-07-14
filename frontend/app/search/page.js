@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import RouteGuard from '../../components/Auth/RouteGuard'
@@ -10,7 +10,7 @@ import ImageModal from '../../components/shared/ImageModal'
 import ConfirmationModal from '../../components/shared/ConfirmationModal'
 import styles from './page.module.css'
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams()
   const query = searchParams.get('q') || ''
   
@@ -230,9 +230,7 @@ export default function SearchPage() {
   }
 
   return (
-    <RouteGuard requireAuth={true}>
-      <MainLayout currentPage="search">
-        <div className={styles.searchContainer}>
+    <div className={styles.searchContainer}>
           <div className={styles.searchHeader}>
             <form onSubmit={handleSearch} className={styles.searchForm}>
               <div className={styles.searchInputContainer}>
@@ -480,9 +478,6 @@ export default function SearchPage() {
               <p>Find people, groups, and content you're interested in</p>
             </div>
           )}
-        </div>
-      </MainLayout>
-
       {/* Image Modal */}
       {selectedImage && (
         <ImageModal
@@ -509,6 +504,18 @@ export default function SearchPage() {
         cancelText="Cancel"
         type="warning"
       />
+    </div>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <RouteGuard requireAuth={true}>
+      <MainLayout currentPage="search">
+        <Suspense fallback={<div className="loading-state"><i className="fas fa-spinner fa-spin"></i><span>Loading...</span></div>}>
+          <SearchContent />
+        </Suspense>
+      </MainLayout>
     </RouteGuard>
   )
 }

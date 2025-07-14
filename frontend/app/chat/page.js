@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useWebSocket } from '../../contexts/WebSocketContext'
 import RouteGuard from '../../components/Auth/RouteGuard'
@@ -10,7 +10,7 @@ import ChatMain from '../../components/Chat/ChatMain'
 import styles from './page.module.css'
 import { useSearchParams } from 'next/navigation'
 
-export default function ChatPage() {
+function ChatContent() {
   const { user } = useAuth()
   const [selectedConversation, setSelectedConversation] = useState(null)
   const { isConnected, connectionError, isUserOnline, getUnreadCount, getConversationId } = useWebSocket()
@@ -102,9 +102,7 @@ export default function ChatPage() {
   }
 
   return (
-    <RouteGuard requireAuth={true}>
-      <MainLayout currentPage="chat">
-        <div className={styles.chatContainer}>
+    <div className={styles.chatContainer}>
           <div className={styles.connectionBanners}>
             {/* Connection status indicator */}
             {connectionError && (
@@ -141,7 +139,17 @@ export default function ChatPage() {
               onConversationStarted={handleConversationStarted}
             />
           </div>
-        </div>
+    </div>
+  )
+}
+
+export default function ChatPage() {
+  return (
+    <RouteGuard requireAuth={true}>
+      <MainLayout currentPage="chat">
+        <Suspense fallback={<div className="loading-state"><i className="fas fa-spinner fa-spin"></i><span>Loading chat...</span></div>}>
+          <ChatContent />
+        </Suspense>
       </MainLayout>
     </RouteGuard>
   )
