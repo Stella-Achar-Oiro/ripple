@@ -7,6 +7,8 @@ import RouteGuard from '../../components/Auth/RouteGuard'
 import MainLayout from '../../components/Layout/MainLayout'
 import ChatSidebar from '../../components/Chat/ChatSidebar'
 import ChatMain from '../../components/Chat/ChatMain'
+import ElectronIntegration from '../../components/Electron/ElectronIntegration'
+import ElectronWebSocketEnhancer from '../../components/Electron/ElectronWebSocketEnhancer'
 import styles from './page.module.css'
 import { useSearchParams } from 'next/navigation'
 
@@ -147,9 +149,12 @@ export default function ChatPage() {
   return (
     <RouteGuard requireAuth={true}>
       <MainLayout currentPage="chat">
-        <Suspense fallback={<div className="loading-state"><i className="fas fa-spinner fa-spin"></i><span>Loading chat...</span></div>}>
-          <ChatContent />
-        </Suspense>
+        <ElectronIntegration />
+        <ElectronWebSocketEnhancer>
+          <Suspense fallback={<div className="loading-state"><i className="fas fa-spinner fa-spin"></i><span>Loading chat...</span></div>}>
+            <ChatContent />
+          </Suspense>
+        </ElectronWebSocketEnhancer>
       </MainLayout>
     </RouteGuard>
   )
